@@ -1,0 +1,9 @@
+﻿{
+  "desc": "乡耘OS 站点地图",
+  "rules": [
+    {
+      "action": "allow",
+      "page": "*"
+    }
+  ]
+}

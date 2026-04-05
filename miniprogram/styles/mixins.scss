@@ -1,0 +1,33 @@
+﻿@import './tokens.scss';
+
+@mixin card {
+  background: $color-surface;
+  border-radius: $radius-lg;
+  box-shadow: $shadow-card;
+}
+
+@mixin section-space {
+  margin-top: $space-3;
+}
+
+@mixin title {
+  color: $color-text-primary;
+  font-size: $font-md;
+  font-weight: $weight-bold;
+}
+
+@mixin subtitle {
+  color: $color-text-secondary;
+  font-size: $font-xs;
+}
+
+@mixin pill($bg, $text) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999rpx;
+  background: $bg;
+  color: $text;
+  padding: 6rpx 16rpx;
+  font-size: $font-xs;
+}

@@ -1,0 +1,16 @@
+﻿@import '../../styles/tokens.scss';
+
+.tag-group {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.tag {
+  margin-right: 10rpx;
+  margin-bottom: 10rpx;
+  padding: 6rpx 14rpx;
+  border-radius: 999rpx;
+  font-size: 20rpx;
+  color: $color-brand;
+  background: rgba(47, 125, 50, 0.12);
+}

@@ -1,0 +1,35 @@
+﻿<view class="page-root">
+  <section-header title="资源一张图" subtitle="资源可视、可查、可招商" />
+  <filter-bar options="{{tagOptions}}" activeKey="{{activeTag}}" bind:change="onTagChange" />
+
+  <view class="map-wrap page-section">
+    <map
+      id="resourceMap"
+      class="map"
+      latitude="{{mapCenter.latitude}}"
+      longitude="{{mapCenter.longitude}}"
+      scale="14"
+      markers="{{markers}}"
+      bindmarkertap="onMarkerTap"
+      show-location="true"
+      enable-3D="true"
+      enable-poi="true"
+    ></map>
+  </view>
+
+  <view wx:if="{{selectedResource.id}}" class="popup-wrap">
+    <map-resource-popup resource="{{selectedResource}}" bind:tap="onPopupTap" />
+  </view>
+
+  <view class="page-section">
+    <section-header title="资源列表" subtitle="点击卡片查看详情" />
+    <empty-state wx:if="{{!filteredResources.length}}" title="当前筛选下暂无资源" description="请切换标签查看其他资源" />
+    <resource-card
+      wx:for="{{filteredResources}}"
+      wx:key="id"
+      resource="{{item}}"
+      showActions="{{false}}"
+      bind:tap="onResourceTap"
+    />
+  </view>
+</view>

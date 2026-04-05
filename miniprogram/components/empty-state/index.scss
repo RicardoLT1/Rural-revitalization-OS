@@ -1,0 +1,22 @@
+﻿@import '../../styles/tokens.scss';
+
+.empty {
+  padding: 36rpx 20rpx;
+  text-align: center;
+}
+
+.icon {
+  font-size: 52rpx;
+}
+
+.title {
+  margin-top: 10rpx;
+  color: $color-text-primary;
+  font-size: $font-sm;
+}
+
+.desc {
+  margin-top: 6rpx;
+  color: $color-text-secondary;
+  font-size: $font-xs;
+}

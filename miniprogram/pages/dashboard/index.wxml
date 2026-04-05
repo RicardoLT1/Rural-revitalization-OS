@@ -1,0 +1,53 @@
+﻿<view class="page-root dashboard-page">
+  <view class="hero card">
+    <view class="role">{{roleName}} · {{villageName}}</view>
+    <view class="headline">乡村数字化运营驾驶舱</view>
+    <view class="sub">聚焦客流、营收、进度与风险，支持AI辅助决策</view>
+  </view>
+
+  <view class="stats-grid page-section">
+    <stat-card
+      wx:for="{{stats}}"
+      wx:key="key"
+      title="{{item.title}}"
+      value="{{item.value}}"
+      unit="{{item.unit}}"
+      delta="{{item.delta}}"
+      trend="{{item.trend}}"
+      status="{{item.status}}"
+      icon="{{item.icon}}"
+    />
+  </view>
+
+  <view class="page-section">
+    <section-header title="客流趋势" subtitle="近7天 / 近30天变化" />
+    <chart-card
+      title="游客趋势图"
+      periods="{{periods}}"
+      activePeriod="{{trendPeriod}}"
+      ecOption="{{trendOption}}"
+      bind:periodchange="onTrendPeriodChange"
+    />
+  </view>
+
+  <view class="page-section">
+    <section-header title="风险预警" subtitle="重点风险闭环跟踪" />
+    <risk-alert-card wx:for="{{risks}}" wx:key="id" risk="{{item}}" />
+  </view>
+
+  <view class="page-section">
+    <section-header title="AI建议" subtitle="系统自动生成决策建议" />
+    <ai-tip-card wx:for="{{suggestions}}" wx:key="id" tip="{{item}}" bind:action="onTipAction" />
+  </view>
+
+  <view class="page-section">
+    <section-header title="快捷入口" subtitle="高频操作一键直达" />
+    <view class="entry-grid">
+      <view class="entry" data-action="map" bindtap="onEntryTap">资源地图</view>
+      <view class="entry" data-action="collab" bindtap="onEntryTap">协同工作台</view>
+      <view class="entry" data-action="report" bindtap="onEntryTap">智能报表</view>
+      <view class="entry" data-action="match" bindtap="onEntryTap">招商推荐</view>
+      <view class="entry" data-action="forecast" bindtap="onEntryTap">趋势预测</view>
+    </view>
+  </view>
+</view>

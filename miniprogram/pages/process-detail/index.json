@@ -1,0 +1,10 @@
+﻿{
+  "navigationBarTitleText": "流程详情",
+  "usingComponents": {
+    "section-header": "/components/section-header/index",
+    "status-badge": "/components/status-badge/index",
+    "timeline-node": "/components/timeline-node/index",
+    "filter-bar": "/components/filter-bar/index",
+    "workflow-node-strip": "/components/workflow-node-strip/index"
+  }
+}

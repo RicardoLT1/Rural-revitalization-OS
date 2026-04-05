@@ -1,0 +1,45 @@
+﻿@import '../../styles/tokens.scss';
+
+.strip {
+  white-space: nowrap;
+}
+
+.inner {
+  display: inline-flex;
+}
+
+.item {
+  width: 180rpx;
+  border-radius: $radius-md;
+  padding: $space-2;
+  margin-right: $space-2;
+  background: #fff;
+  box-shadow: $shadow-soft;
+}
+
+.item.active {
+  border: 2rpx solid rgba(47, 125, 50, 0.4);
+}
+
+.item.blocked {
+  border-left: 6rpx solid $color-danger;
+}
+
+.item.doing {
+  border-left: 6rpx solid $color-info;
+}
+
+.item.done {
+  border-left: 6rpx solid $color-success;
+}
+
+.name {
+  font-size: $font-sm;
+  color: $color-text-primary;
+}
+
+.owner {
+  margin-top: 8rpx;
+  font-size: $font-xs;
+  color: $color-text-secondary;
+}

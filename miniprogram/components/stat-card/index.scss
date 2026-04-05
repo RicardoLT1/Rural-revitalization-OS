@@ -1,0 +1,61 @@
+﻿.row-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+@import '../../styles/tokens.scss';
+
+.stat-card {
+  background: $color-surface;
+  border-radius: $radius-lg;
+  box-shadow: $shadow-card;
+  padding: $space-3;
+}
+
+.title {
+  font-size: $font-xs;
+  color: $color-text-secondary;
+}
+
+.icon {
+  font-size: 30rpx;
+}
+
+.value-line {
+  margin-top: $space-2;
+  display: flex;
+  align-items: baseline;
+}
+
+.value {
+  font-size: $font-xl;
+  color: $color-text-primary;
+  font-weight: $weight-bold;
+}
+
+.unit {
+  margin-left: 8rpx;
+  font-size: $font-xs;
+  color: $color-text-secondary;
+}
+
+.footer {
+  margin-top: $space-2;
+}
+
+.delta {
+  font-size: $font-xs;
+}
+
+.delta.up {
+  color: $color-success;
+}
+
+.delta.down {
+  color: $color-danger;
+}
+
+.delta.flat {
+  color: $color-text-secondary;
+}
+

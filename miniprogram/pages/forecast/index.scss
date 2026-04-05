@@ -1,0 +1,29 @@
+﻿@import '../../styles/tokens.scss';
+
+.band-box,
+.strategy-box {
+  padding: $space-2;
+}
+
+.band-box .title {
+  font-size: $font-sm;
+  font-weight: $weight-bold;
+}
+
+.band-box .confidence,
+.band-box .range {
+  margin-top: 8rpx;
+  font-size: $font-xs;
+  color: $color-text-secondary;
+  line-height: 1.6;
+}
+
+.strategy-item {
+  margin-top: 10rpx;
+  padding: 10rpx 12rpx;
+  border-radius: $radius-md;
+  background: rgba(47, 125, 50, 0.08);
+  color: $color-text-primary;
+  font-size: $font-xs;
+  line-height: 1.6;
+}

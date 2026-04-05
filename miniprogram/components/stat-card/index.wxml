@@ -1,0 +1,14 @@
+﻿<view class="stat-card" bindtap="onTap">
+  <view class="row-between">
+    <view class="title">{{title}}</view>
+    <view class="icon">{{icon}}</view>
+  </view>
+  <view class="value-line">
+    <text class="value mono">{{value}}</text>
+    <text class="unit">{{unit}}</text>
+  </view>
+  <view class="row-between footer">
+    <view class="delta {{trend}}">{{trendText}}</view>
+    <status-badge text="{{statusText}}" type="{{status}}" size="small" />
+  </view>
+</view>

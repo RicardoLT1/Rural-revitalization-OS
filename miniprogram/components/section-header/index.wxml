@@ -1,0 +1,7 @@
+﻿<view class="section-header row-between">
+  <view>
+    <view class="title">{{title}}</view>
+    <view wx:if="{{subtitle}}" class="subtitle">{{subtitle}}</view>
+  </view>
+  <view wx:if="{{actionText}}" class="action" bindtap="onActionTap">{{actionText}}</view>
+</view>

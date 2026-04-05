@@ -1,0 +1,44 @@
+﻿<view class="page-root">
+  <section-header title="智能报表总览" subtitle="自动分析与决策建议" />
+
+  <view class="summary-grid page-section">
+    <view wx:for="{{summary}}" wx:key="id" class="summary-card">
+      <view class="title">{{item.title}}</view>
+      <view class="value mono">{{item.value}}</view>
+      <view class="delta">{{item.delta}}</view>
+    </view>
+  </view>
+
+  <view class="page-section">
+    <chart-card
+      title="客流趋势折线图"
+      periods="{{periods}}"
+      activePeriod="{{period}}"
+      ecOption="{{lineOption}}"
+      bind:periodchange="onPeriodChange"
+    />
+  </view>
+
+  <view class="page-section">
+    <chart-card title="营收对比柱状图" ecOption="{{barOption}}" />
+  </view>
+
+  <view class="page-section">
+    <chart-card title="收入结构占比" ecOption="{{ringOption}}" />
+  </view>
+
+  <view class="page-section card summary-box">
+    <section-header title="自动摘要" />
+    <view class="text">{{autoSummary}}</view>
+  </view>
+
+  <view class="page-section">
+    <section-header title="AI建议" />
+    <ai-tip-card wx:for="{{aiTips}}" wx:key="id" tip="{{item}}" bind:action="onTipAction" />
+  </view>
+
+  <view class="page-section quick-actions">
+    <view class="btn" data-action="match" bindtap="onQuickTap">招商推荐</view>
+    <view class="btn" data-action="forecast" bindtap="onQuickTap">趋势预测</view>
+  </view>
+</view>

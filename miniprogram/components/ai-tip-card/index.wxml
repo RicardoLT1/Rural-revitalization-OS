@@ -1,0 +1,8 @@
+﻿<view class="ai-tip" bindtap="onTap">
+  <view class="row-between">
+    <view class="title">{{tip.title}}</view>
+    <view class="priority">{{tip.priority}}</view>
+  </view>
+  <view class="content">{{tip.content}}</view>
+  <view class="action">{{tip.actionLabel}} ></view>
+</view>

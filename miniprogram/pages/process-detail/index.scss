@@ -1,0 +1,52 @@
+﻿@import '../../styles/tokens.scss';
+
+.head,
+.records,
+.archive {
+  padding: $space-2;
+}
+
+.title {
+  flex: 1;
+  margin-right: $space-2;
+  font-size: $font-md;
+  font-weight: $weight-bold;
+}
+
+.blocker {
+  margin-top: 10rpx;
+  padding: 10rpx 12rpx;
+  border-radius: $radius-md;
+  color: $color-danger;
+  background: rgba(201, 74, 59, 0.1);
+  font-size: $font-xs;
+}
+
+.record-item {
+  margin-top: $space-2;
+  padding: $space-2;
+  border-radius: $radius-md;
+  background: rgba(47, 125, 50, 0.08);
+}
+
+.record-item .action {
+  font-size: $font-sm;
+  color: $color-text-primary;
+}
+
+.record-item .time {
+  font-size: $font-xs;
+  color: $color-text-light;
+}
+
+.record-item .meta {
+  margin-top: 8rpx;
+  font-size: $font-xs;
+  color: $color-text-secondary;
+}
+
+.archive .line {
+  margin-top: 8rpx;
+  color: $color-text-secondary;
+  font-size: $font-xs;
+}

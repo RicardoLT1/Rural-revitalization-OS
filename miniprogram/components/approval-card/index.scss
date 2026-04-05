@@ -1,0 +1,51 @@
+﻿.row-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+@import '../../styles/tokens.scss';
+
+.approval {
+  background: #fff;
+  border-radius: $radius-md;
+  box-shadow: $shadow-soft;
+  padding: $space-2;
+  margin-bottom: $space-2;
+}
+
+.title {
+  flex: 1;
+  margin-right: $space-2;
+  font-size: $font-sm;
+  color: $color-text-primary;
+}
+
+.meta {
+  margin-top: 8rpx;
+  font-size: $font-xs;
+  color: $color-text-secondary;
+}
+
+.actions {
+  margin-top: 12rpx;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btn {
+  padding: 8rpx 16rpx;
+  border-radius: 999rpx;
+  margin-left: 10rpx;
+  font-size: 22rpx;
+}
+
+.btn.pass {
+  color: #fff;
+  background: $color-success;
+}
+
+.btn.reject {
+  color: $color-danger;
+  background: rgba(201, 74, 59, 0.12);
+}
+

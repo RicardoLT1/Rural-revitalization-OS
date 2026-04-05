@@ -1,0 +1,143 @@
+﻿.row-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+@import '../../styles/tokens.scss';
+
+.chart-card {
+  background: #fff;
+  border-radius: $radius-lg;
+  box-shadow: $shadow-card;
+  padding: $space-2;
+}
+
+.header {
+  margin-bottom: $space-2;
+}
+
+.title {
+  font-size: $font-sm;
+  font-weight: $weight-bold;
+}
+
+.periods {
+  display: flex;
+  align-items: center;
+}
+
+.period {
+  margin-left: 10rpx;
+  padding: 6rpx 14rpx;
+  border-radius: 999rpx;
+  font-size: 20rpx;
+  color: $color-text-secondary;
+  background: rgba(91, 97, 100, 0.1);
+}
+
+.period.active {
+  color: $color-brand;
+  background: rgba(47, 125, 50, 0.14);
+}
+
+.fake-chart {
+  height: 260rpx;
+  background: linear-gradient(180deg, rgba(47, 125, 50, 0.1), rgba(47, 125, 50, 0.02));
+  border-radius: 12rpx;
+  padding: 18rpx;
+  box-sizing: border-box;
+}
+
+.polyline {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-left: 2rpx solid #d9d4c8;
+  border-bottom: 2rpx solid #d9d4c8;
+}
+
+.polyline .dot {
+  position: absolute;
+  width: 12rpx;
+  height: 12rpx;
+  margin-left: -6rpx;
+  margin-bottom: -6rpx;
+  border-radius: 50%;
+  background: $color-brand;
+}
+
+.bar-chart {
+  height: 260rpx;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  border-radius: 12rpx;
+  background: linear-gradient(180deg, rgba(111, 175, 94, 0.1), rgba(111, 175, 94, 0.02));
+  padding: 16rpx 10rpx;
+  box-sizing: border-box;
+}
+
+.bar-wrap {
+  flex: 1;
+  margin: 0 4rpx;
+  text-align: center;
+}
+
+.bar {
+  width: 100%;
+  min-height: 6%;
+  border-radius: 8rpx 8rpx 0 0;
+  background: linear-gradient(180deg, $color-brand-soft, $color-brand);
+}
+
+.bar-label {
+  margin-top: 8rpx;
+  font-size: 20rpx;
+  color: $color-text-secondary;
+}
+
+.ring-chart {
+  height: 260rpx;
+  display: flex;
+  align-items: center;
+}
+
+.ring {
+  width: 180rpx;
+  height: 180rpx;
+  border-radius: 50%;
+  background: conic-gradient(#2f7d32 0% 52%, #6faf5e 52% 80%, #d58a2a 80% 100%);
+  position: relative;
+}
+
+.ring::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 92rpx;
+  height: 92rpx;
+  transform: translate(-50%, -50%);
+  background: #fff;
+  border-radius: 50%;
+}
+
+.legend {
+  margin-left: 24rpx;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8rpx;
+  font-size: $font-xs;
+  color: $color-text-secondary;
+}
+
+.legend .dot {
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 50%;
+  margin-right: 8rpx;
+}
+

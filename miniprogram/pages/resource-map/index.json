@@ -1,0 +1,10 @@
+﻿{
+  "navigationBarTitleText": "资源地图",
+  "usingComponents": {
+    "section-header": "/components/section-header/index",
+    "filter-bar": "/components/filter-bar/index",
+    "map-resource-popup": "/components/map-resource-popup/index",
+    "resource-card": "/components/resource-card/index",
+    "empty-state": "/components/empty-state/index"
+  }
+}

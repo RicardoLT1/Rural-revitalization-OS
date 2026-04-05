@@ -1,0 +1,43 @@
+﻿.row-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+@import '../../styles/tokens.scss';
+
+.ai-tip {
+  padding: $space-2;
+  border-radius: $radius-md;
+  background: linear-gradient(120deg, rgba(47, 125, 50, 0.12), rgba(111, 175, 94, 0.08));
+  border: 1rpx solid rgba(47, 125, 50, 0.2);
+  margin-bottom: $space-2;
+}
+
+.title {
+  flex: 1;
+  margin-right: $space-2;
+  font-size: $font-sm;
+  font-weight: $weight-medium;
+}
+
+.priority {
+  font-size: 20rpx;
+  padding: 4rpx 10rpx;
+  border-radius: 999rpx;
+  color: $color-brand;
+  background: #fff;
+}
+
+.content {
+  margin-top: 8rpx;
+  line-height: 1.6;
+  font-size: $font-xs;
+  color: $color-text-primary;
+}
+
+.action {
+  margin-top: 10rpx;
+  font-size: $font-xs;
+  color: $color-brand;
+}
+

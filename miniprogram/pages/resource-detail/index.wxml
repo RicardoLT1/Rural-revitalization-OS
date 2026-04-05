@@ -1,0 +1,44 @@
+﻿<view class="page-root" wx:if="{{detail.id}}">
+  <image class="cover card" src="{{detail.cover}}" mode="aspectFill"></image>
+
+  <view class="page-section card info-card">
+    <view class="row-between">
+      <view class="name">{{detail.name}}</view>
+      <status-badge text="{{detail.investmentStatus}}" type="{{statusType}}" />
+    </view>
+    <view class="meta">{{detail.category}} · {{detail.area}}㎡ · {{detail.address}}</view>
+    <view class="intro">{{detail.intro}}</view>
+    <tag-group tags="{{detail.tags}}" />
+  </view>
+
+  <view class="page-section card info-card">
+    <section-header title="经营指标" />
+    <view class="kpi-grid">
+      <view class="kpi-item">
+        <view class="label">预估年收益</view>
+        <view class="value mono">{{detail.annualEstimate}} 万</view>
+      </view>
+      <view class="kpi-item">
+        <view class="label">当前入驻率</view>
+        <view class="value mono">{{detail.occupancyRate}}%</view>
+      </view>
+      <view class="kpi-item">
+        <view class="label">预期ROI</view>
+        <view class="value mono">{{detail.expectedROI}}%</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="page-section card info-card">
+    <section-header title="关联项目" />
+    <view wx:for="{{detail.relatedProjects}}" wx:key="*this" class="project">{{item}}</view>
+    <view class="contact">资产主体：{{detail.owner}}</view>
+    <view class="contact">对接方式：{{detail.contact}}</view>
+  </view>
+
+  <view class="page-section actions">
+    <view class="btn primary" bindtap="onGoMatch">查看推荐</view>
+    <view class="btn ghost" bindtap="onMockAction" data-name="发起流转">发起流转</view>
+    <view class="btn ghost" bindtap="onMockAction" data-name="联系对接">联系对接</view>
+  </view>
+</view>

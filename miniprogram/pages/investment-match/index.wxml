@@ -1,0 +1,25 @@
+﻿<view class="page-root" wx:if="{{resource.id}}">
+  <section-header title="资源与投资方匹配" subtitle="结果导向：评分 + 理由 + 优先级" />
+
+  <resource-card resource="{{resource}}" showActions="{{false}}" bind:tap="onResourceTap" />
+
+  <view class="page-section">
+    <section-header title="推荐对象" subtitle="匹配分越高越优先" />
+    <empty-state wx:if="{{!matches.length}}" title="暂无匹配对象" />
+
+    <view wx:for="{{matches}}" wx:key="id" class="match-card card">
+      <view class="row-between">
+        <view class="name">{{item.investor}}</view>
+        <view class="score mono">{{item.score}}</view>
+      </view>
+      <view class="meta">方向：{{item.direction}}</view>
+      <view class="reason">{{item.reason}}</view>
+      <status-badge text="{{item.priority}}" type="{{item.priorityType}}" size="small" />
+    </view>
+  </view>
+
+  <view class="page-section">
+    <section-header title="AI建议摘要" />
+    <ai-tip-card tip="{{aiSummary}}" bind:action="onAiAction" />
+  </view>
+</view>

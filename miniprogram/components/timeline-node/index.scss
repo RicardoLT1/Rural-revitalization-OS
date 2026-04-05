@@ -1,0 +1,62 @@
+﻿.row-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+@import '../../styles/tokens.scss';
+
+.timeline-node {
+  position: relative;
+  padding-left: 34rpx;
+  margin-bottom: $space-2;
+}
+
+.line {
+  position: absolute;
+  left: 11rpx;
+  top: 24rpx;
+  bottom: -24rpx;
+  width: 2rpx;
+  background: #d9d4c8;
+}
+
+.dot {
+  position: absolute;
+  left: 0;
+  top: 8rpx;
+  width: 22rpx;
+  height: 22rpx;
+  border-radius: 50%;
+  background: #cdd2cf;
+}
+
+.dot.done { background: $color-success; }
+.dot.doing { background: $color-info; }
+.dot.pending { background: $color-warning; }
+.dot.blocked { background: $color-danger; }
+
+.content {
+  background: $color-surface;
+  border-radius: $radius-md;
+  box-shadow: $shadow-soft;
+  padding: $space-2;
+}
+
+.name {
+  font-size: $font-sm;
+  font-weight: $weight-medium;
+}
+
+.meta {
+  margin-top: 8rpx;
+  color: $color-text-secondary;
+  font-size: $font-xs;
+}
+
+.remark {
+  margin-top: 8rpx;
+  color: $color-text-primary;
+  font-size: $font-xs;
+  line-height: 1.5;
+}
+

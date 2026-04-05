@@ -1,0 +1,10 @@
+﻿{
+  "navigationBarTitleText": "首页驾驶舱",
+  "usingComponents": {
+    "section-header": "/components/section-header/index",
+    "stat-card": "/components/stat-card/index",
+    "chart-card": "/components/chart-card/index",
+    "risk-alert-card": "/components/risk-alert-card/index",
+    "ai-tip-card": "/components/ai-tip-card/index"
+  }
+}

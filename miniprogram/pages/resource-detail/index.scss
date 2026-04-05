@@ -1,0 +1,81 @@
+﻿@import '../../styles/tokens.scss';
+
+.cover {
+  width: 100%;
+  height: 340rpx;
+}
+
+.info-card {
+  padding: $space-2;
+}
+
+.name {
+  flex: 1;
+  margin-right: $space-2;
+  font-size: $font-lg;
+  font-weight: $weight-bold;
+}
+
+.meta,
+.intro,
+.contact {
+  margin-top: 10rpx;
+  font-size: $font-xs;
+  color: $color-text-secondary;
+  line-height: 1.6;
+}
+
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: $space-2;
+}
+
+.kpi-item {
+  background: rgba(47, 125, 50, 0.1);
+  border-radius: $radius-md;
+  padding: $space-2;
+}
+
+.kpi-item .label {
+  font-size: 20rpx;
+  color: $color-text-secondary;
+}
+
+.kpi-item .value {
+  margin-top: 8rpx;
+  font-size: $font-sm;
+  font-weight: $weight-bold;
+}
+
+.project {
+  padding: 10rpx 14rpx;
+  background: rgba(111, 175, 94, 0.12);
+  color: $color-brand;
+  border-radius: $radius-md;
+  margin-bottom: 10rpx;
+  font-size: $font-xs;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-2;
+  margin-bottom: 24rpx;
+}
+
+.btn {
+  padding: 14rpx 20rpx;
+  border-radius: $radius-md;
+  font-size: $font-sm;
+}
+
+.btn.primary {
+  color: #fff;
+  background: $color-brand;
+}
+
+.btn.ghost {
+  color: $color-brand;
+  background: rgba(47, 125, 50, 0.14);
+}

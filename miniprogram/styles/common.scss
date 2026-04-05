@@ -1,0 +1,46 @@
+﻿@import './tokens.scss';
+
+page {
+  background: $color-bg;
+  color: $color-text-primary;
+  font-size: $font-sm;
+  font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+}
+
+.page-root {
+  min-height: 100vh;
+  padding: $space-3;
+  box-sizing: border-box;
+}
+
+.page-section {
+  margin-top: $space-3;
+}
+
+.card {
+  background: $color-surface;
+  border-radius: $radius-lg;
+  box-shadow: $shadow-card;
+}
+
+.section-title {
+  font-size: $font-md;
+  font-weight: $weight-bold;
+  color: $color-text-primary;
+}
+
+.section-subtitle {
+  margin-top: 8rpx;
+  font-size: $font-xs;
+  color: $color-text-secondary;
+}
+
+.row-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.mono {
+  font-family: 'DIN Alternate', 'Arial', sans-serif;
+}

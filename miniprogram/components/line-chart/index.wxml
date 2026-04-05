@@ -1,0 +1,7 @@
+﻿<chart-card
+  title="{{title}}"
+  periods="{{periods}}"
+  activePeriod="{{activePeriod}}"
+  ecOption="{{ecOption}}"
+  bind:periodchange="onPeriodChange"
+/>

@@ -1,0 +1,91 @@
+﻿@import '../../styles/tokens.scss';
+
+.todo-overview {
+  padding: $space-3;
+}
+
+.count {
+  flex: 1;
+  text-align: center;
+}
+
+.count .value {
+  font-size: $font-lg;
+  font-weight: $weight-bold;
+}
+
+.count .label {
+  margin-top: 6rpx;
+  font-size: $font-xs;
+  color: $color-text-secondary;
+}
+
+.count.warning .value {
+  color: $color-warning;
+}
+
+.count.success .value {
+  color: $color-success;
+}
+
+.todo-card {
+  background: #fff;
+  border-radius: $radius-md;
+  box-shadow: $shadow-soft;
+  padding: $space-2;
+  margin-bottom: $space-2;
+}
+
+.todo-card .title {
+  flex: 1;
+  margin-right: $space-2;
+  font-size: $font-sm;
+  color: $color-text-primary;
+}
+
+.todo-card .status {
+  padding: 4rpx 12rpx;
+  border-radius: 999rpx;
+  font-size: 20rpx;
+}
+
+.todo-card .status.待处理 {
+  color: $color-warning;
+  background: rgba(213, 138, 42, 0.14);
+}
+
+.todo-card .status.进行中 {
+  color: $color-info;
+  background: rgba(46, 108, 184, 0.14);
+}
+
+.todo-card .status.已逾期 {
+  color: $color-danger;
+  background: rgba(201, 74, 59, 0.14);
+}
+
+.meta {
+  margin-top: 8rpx;
+  color: $color-text-secondary;
+  font-size: $font-xs;
+}
+
+.archive {
+  padding: $space-3;
+}
+
+.quick-grid {
+  margin-top: $space-2;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: $space-2;
+}
+
+.quick {
+  text-align: center;
+  padding: 14rpx;
+  border-radius: $radius-md;
+  background: rgba(47, 125, 50, 0.12);
+  color: $color-brand;
+  font-size: $font-xs;
+}

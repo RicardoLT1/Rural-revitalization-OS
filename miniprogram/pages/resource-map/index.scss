@@ -1,0 +1,18 @@
+﻿@import '../../styles/tokens.scss';
+
+.map-wrap {
+  border-radius: $radius-lg;
+  overflow: hidden;
+  box-shadow: $shadow-card;
+}
+
+.map {
+  width: 100%;
+  height: 520rpx;
+}
+
+.popup-wrap {
+  margin-top: -52rpx;
+  position: relative;
+  z-index: 2;
+}

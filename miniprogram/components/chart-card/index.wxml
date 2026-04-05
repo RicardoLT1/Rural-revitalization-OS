@@ -1,0 +1,44 @@
+﻿<view class="chart-card">
+  <view class="header row-between">
+    <view class="title">{{title}}</view>
+    <view wx:if="{{periods && periods.length}}" class="periods">
+      <view
+        wx:for="{{periods}}"
+        wx:key="key"
+        class="period {{item.key === activePeriod ? 'active' : ''}}"
+        data-key="{{item.key}}"
+        bindtap="onPeriodTap"
+      >
+        {{item.label}}
+      </view>
+    </view>
+  </view>
+
+  <view class="fake-chart" wx:if="{{kind === 'line' || kind === 'forecast'}}">
+    <view class="polyline">
+      <view
+        wx:for="{{linePoints}}"
+        wx:key="index"
+        class="dot"
+        style="left: {{item.left}}%; bottom: {{item.bottom}}%;"
+      ></view>
+    </view>
+  </view>
+
+  <view class="bar-chart" wx:if="{{kind === 'bar'}}">
+    <view wx:for="{{barData}}" wx:key="index" class="bar-wrap">
+      <view class="bar" style="height: {{item.height}}%;"></view>
+      <view class="bar-label">{{item.label}}</view>
+    </view>
+  </view>
+
+  <view class="ring-chart" wx:if="{{kind === 'ring'}}">
+    <view class="ring"></view>
+    <view class="legend">
+      <view wx:for="{{ringLegend}}" wx:key="index" class="legend-item">
+        <view class="dot" style="background: {{item.color}}"></view>
+        <view>{{item.name}} {{item.value}}%</view>
+      </view>
+    </view>
+  </view>
+</view>

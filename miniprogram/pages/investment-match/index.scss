@@ -1,0 +1,26 @@
+﻿@import '../../styles/tokens.scss';
+
+.match-card {
+  padding: $space-2;
+  margin-bottom: $space-2;
+}
+
+.match-card .name {
+  flex: 1;
+  margin-right: $space-2;
+  font-size: $font-sm;
+  font-weight: $weight-bold;
+}
+
+.match-card .score {
+  font-size: $font-lg;
+  color: $color-brand;
+}
+
+.match-card .meta,
+.match-card .reason {
+  margin-top: 8rpx;
+  color: $color-text-secondary;
+  font-size: $font-xs;
+  line-height: 1.6;
+}

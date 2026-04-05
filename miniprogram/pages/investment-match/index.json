@@ -1,0 +1,10 @@
+﻿{
+  "navigationBarTitleText": "招商推荐",
+  "usingComponents": {
+    "section-header": "/components/section-header/index",
+    "resource-card": "/components/resource-card/index",
+    "status-badge": "/components/status-badge/index",
+    "ai-tip-card": "/components/ai-tip-card/index",
+    "empty-state": "/components/empty-state/index"
+  }
+}

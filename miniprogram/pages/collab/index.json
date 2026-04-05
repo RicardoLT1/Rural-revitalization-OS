@@ -1,0 +1,11 @@
+﻿{
+  "navigationBarTitleText": "协同工作台",
+  "usingComponents": {
+    "section-header": "/components/section-header/index",
+    "filter-bar": "/components/filter-bar/index",
+    "approval-card": "/components/approval-card/index",
+    "workflow-node-strip": "/components/workflow-node-strip/index",
+    "message-item": "/components/message-item/index",
+    "empty-state": "/components/empty-state/index"
+  }
+}

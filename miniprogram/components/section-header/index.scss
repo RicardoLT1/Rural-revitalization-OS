@@ -1,0 +1,31 @@
+﻿.row-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+@import '../../styles/tokens.scss';
+
+.section-header {
+  margin-bottom: $space-2;
+}
+
+.title {
+  font-size: $font-md;
+  font-weight: $weight-bold;
+  color: $color-text-primary;
+}
+
+.subtitle {
+  margin-top: 4rpx;
+  font-size: $font-xs;
+  color: $color-text-secondary;
+}
+
+.action {
+  padding: 8rpx 16rpx;
+  border-radius: 999rpx;
+  background: rgba(47, 125, 50, 0.1);
+  color: $color-brand;
+  font-size: $font-xs;
+}
+

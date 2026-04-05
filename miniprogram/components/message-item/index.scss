@@ -1,0 +1,28 @@
+﻿.row-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+@import '../../styles/tokens.scss';
+
+.message-item {
+  background: $color-surface;
+  border-radius: $radius-md;
+  padding: $space-2;
+  box-shadow: $shadow-soft;
+  margin-bottom: $space-2;
+}
+
+.title {
+  flex: 1;
+  margin-right: $space-2;
+  color: $color-text-primary;
+  font-size: $font-sm;
+}
+
+.time {
+  margin-top: 8rpx;
+  color: $color-text-light;
+  font-size: $font-xs;
+}
+

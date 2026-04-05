@@ -1,0 +1,8 @@
+﻿{
+  "navigationBarTitleText": "趋势预测",
+  "usingComponents": {
+    "section-header": "/components/section-header/index",
+    "chart-card": "/components/chart-card/index",
+    "risk-alert-card": "/components/risk-alert-card/index"
+  }
+}

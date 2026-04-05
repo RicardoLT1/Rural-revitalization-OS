@@ -1,0 +1,29 @@
+﻿.row-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+@import '../../styles/tokens.scss';
+
+.risk-card {
+  background: #fff;
+  border-radius: $radius-md;
+  box-shadow: $shadow-soft;
+  padding: $space-2;
+  margin-bottom: $space-2;
+}
+
+.title {
+  flex: 1;
+  margin-right: 10rpx;
+  font-size: $font-sm;
+  color: $color-text-primary;
+}
+
+.desc,
+.assignee {
+  margin-top: 8rpx;
+  font-size: $font-xs;
+  color: $color-text-secondary;
+}
+

@@ -1,0 +1,7 @@
+﻿{
+  "component": true,
+  "usingComponents": {
+    "status-badge": "/components/status-badge/index",
+    "tag-group": "/components/tag-group/index"
+  }
+}

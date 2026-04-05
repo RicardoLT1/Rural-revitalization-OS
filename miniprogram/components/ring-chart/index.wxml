@@ -1,0 +1,1 @@
+﻿<chart-card title="{{title}}" ecOption="{{ecOption}}" />

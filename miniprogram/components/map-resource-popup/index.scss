@@ -1,0 +1,34 @@
+﻿.row-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+@import '../../styles/tokens.scss';
+
+.popup {
+  background: #fff;
+  border-radius: $radius-lg;
+  box-shadow: $shadow-card;
+  padding: $space-2;
+}
+
+.name {
+  flex: 1;
+  margin-right: 10rpx;
+  font-size: $font-sm;
+  font-weight: $weight-bold;
+}
+
+.meta,
+.address {
+  margin-top: 8rpx;
+  color: $color-text-secondary;
+  font-size: $font-xs;
+}
+
+.link {
+  margin-top: 12rpx;
+  color: $color-brand;
+  font-size: $font-xs;
+}
+

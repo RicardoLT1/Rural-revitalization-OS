@@ -1,0 +1,61 @@
+﻿.row-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+@import '../../styles/tokens.scss';
+
+.resource-card {
+  overflow: hidden;
+  background: $color-surface;
+  border-radius: $radius-lg;
+  box-shadow: $shadow-card;
+  margin-bottom: $space-2;
+}
+
+.cover {
+  width: 100%;
+  height: 220rpx;
+}
+
+.body {
+  padding: $space-2;
+}
+
+.name {
+  flex: 1;
+  margin-right: $space-2;
+  font-size: $font-sm;
+  font-weight: $weight-bold;
+}
+
+.meta,
+.address {
+  margin-top: 8rpx;
+  color: $color-text-secondary;
+  font-size: $font-xs;
+}
+
+.actions {
+  margin-top: $space-2;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btn {
+  padding: 10rpx 18rpx;
+  border-radius: 999rpx;
+  font-size: $font-xs;
+  margin-left: $space-2;
+}
+
+.btn.ghost {
+  color: $color-brand;
+  background: rgba(47, 125, 50, 0.1);
+}
+
+.btn.primary {
+  color: #fff;
+  background: $color-brand;
+}
+

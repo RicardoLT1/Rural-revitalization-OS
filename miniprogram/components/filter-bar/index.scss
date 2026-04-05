@@ -1,0 +1,25 @@
+﻿@import '../../styles/tokens.scss';
+
+.filter-bar {
+  white-space: nowrap;
+}
+
+.inner {
+  display: inline-flex;
+  align-items: center;
+}
+
+.chip {
+  margin-right: $space-2;
+  padding: 10rpx 22rpx;
+  border-radius: 999rpx;
+  background: rgba(91, 97, 100, 0.1);
+  color: $color-text-secondary;
+  font-size: $font-xs;
+}
+
+.chip.active {
+  background: rgba(47, 125, 50, 0.18);
+  color: $color-brand;
+  font-weight: $weight-medium;
+}

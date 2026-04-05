@@ -1,0 +1,51 @@
+﻿@import '../../styles/tokens.scss';
+
+.dashboard-page {
+  padding-bottom: 36rpx;
+}
+
+.hero {
+  padding: $space-3;
+  background: linear-gradient(145deg, #1f5a26, #2f7d32 60%, #6faf5e);
+  color: #fff;
+}
+
+.role {
+  font-size: $font-xs;
+  opacity: 0.9;
+}
+
+.headline {
+  margin-top: 10rpx;
+  font-size: $font-lg;
+  font-weight: $weight-bold;
+}
+
+.sub {
+  margin-top: 8rpx;
+  font-size: $font-xs;
+  line-height: 1.6;
+  opacity: 0.92;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: $space-2;
+}
+
+.entry-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: $space-2;
+}
+
+.entry {
+  text-align: center;
+  padding: $space-2 8rpx;
+  background: #fff;
+  border-radius: $radius-md;
+  box-shadow: $shadow-soft;
+  font-size: $font-xs;
+  color: $color-text-primary;
+}
