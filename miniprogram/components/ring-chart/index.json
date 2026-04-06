@@ -1,4 +1,4 @@
-﻿{
+{
   "component": true,
   "usingComponents": {
     "chart-card": "/components/chart-card/index"

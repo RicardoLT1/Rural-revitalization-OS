@@ -1,19 +1,19 @@
-﻿<view class="page-root" wx:if="{{detail.id}}">
+<view class="page-root" wx:if="{{detail.id}}">
   <view class="card head">
     <view class="row-between">
       <view class="title">{{detail.title}}</view>
       <status-badge text="{{detail.status}}" type="{{statusType}}" />
     </view>
-    <view wx:if="{{detail.blocker}}" class="blocker">当前阻塞：{{detail.blocker}}</view>
+    <view wx:if="{{detail.blocker}}" class="blocker">Blocker: {{detail.blocker}}</view>
   </view>
 
   <view class="page-section">
-    <section-header title="流程节点概览" />
+    <section-header title="Workflow Overview" />
     <workflow-node-strip nodes="{{detail.nodes}}" currentNodeId="{{detail.currentNodeId}}" bind:nodetap="onNodeTap" />
   </view>
 
   <view class="page-section">
-    <section-header title="节点时间轴" subtitle="支持展开/收起备注" />
+    <section-header title="Timeline" subtitle="Expand or collapse remarks" />
     <timeline-node
       wx:for="{{detail.nodes}}"
       wx:key="id"
@@ -24,21 +24,21 @@
   </view>
 
   <view class="page-section card records">
-    <section-header title="处理记录" />
+    <section-header title="Process Records" />
     <filter-bar options="{{recordFilters}}" activeKey="{{recordFilter}}" bind:change="onRecordFilterChange" />
     <view wx:for="{{visibleRecords}}" wx:key="id" class="record-item">
       <view class="row-between">
         <view class="action">{{item.action}}</view>
         <view class="time">{{item.time}}</view>
       </view>
-      <view class="meta">{{item.operator}} · {{item.remark}}</view>
+      <view class="meta">{{item.operator}} | {{item.remark}}</view>
     </view>
   </view>
 
   <view class="page-section card archive">
-    <section-header title="归档留痕" />
-    <view class="line">档案编号：{{detail.archive.code}}</view>
-    <view class="line">归档时间：{{detail.archive.archivedAt}}</view>
-    <view class="line">归档说明：{{detail.archive.note}}</view>
+    <section-header title="Archive" />
+    <view class="line">Code: {{detail.archive.code}}</view>
+    <view class="line">Archived At: {{detail.archive.archivedAt}}</view>
+    <view class="line">Note: {{detail.archive.note}}</view>
   </view>
 </view>

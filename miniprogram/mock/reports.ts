@@ -1,4 +1,4 @@
-﻿import { ChartSeries, ReportSummary } from '../types';
+import { ChartSeries, ReportSummary } from '../types';
 
 export const reportSummary: ReportSummary[] = [
   { id: 's1', title: '本月累计客流', value: '4.8 万', delta: '+11.2%' },

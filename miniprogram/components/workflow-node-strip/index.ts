@@ -1,4 +1,4 @@
-﻿Component({
+Component({
   properties: {
     nodes: { type: Array, value: [] },
     currentNodeId: { type: String, value: '' }

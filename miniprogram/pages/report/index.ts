@@ -1,4 +1,4 @@
-﻿import { dashboardData } from '../../mock/dashboard';
+import { dashboardData } from '../../mock/dashboard';
 import { flowLine, ratioRing, reportAiTips, reportAutoSummary, reportSummary, revenueBar } from '../../mock/reports';
 import { buildBarOption, buildLineOption, buildRingOption } from '../../utils/chart';
 import { goForecast, goInvestmentMatch } from '../../utils/navigation';

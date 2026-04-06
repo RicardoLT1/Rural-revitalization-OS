@@ -1,5 +1,18 @@
-﻿import { approvals, messages, todoItems, todoStats, workflowStrip } from '../../mock/workflows';
+import { approvals, messages, todoItems, todoStats, workflowStrip } from '../../mock/workflows';
 import { goProcessDetail } from '../../utils/navigation';
+
+const statusClassMap: Record<string, string> = {
+  待处理: 'pending',
+  进行中: 'processing',
+  已逾期: 'overdue'
+};
+
+const enrichTodos = (items: typeof todoItems) => {
+  return items.map((item) => ({
+    ...item,
+    statusClass: statusClassMap[item.status] || 'pending'
+  }));
+};
 
 Page({
   data: {
@@ -16,14 +29,14 @@ Page({
       { key: '村民议事', label: '村民议事' }
     ],
     activeCategory: '全部',
-    filteredTodos: todoItems
+    filteredTodos: enrichTodos(todoItems)
   },
   onCategoryChange(event: WechatMiniprogram.CustomEvent<{ key: string }>) {
     const activeCategory = event.detail.key;
     const filteredTodos = activeCategory === '全部'
       ? todoItems
       : todoItems.filter((item) => item.category === activeCategory);
-    this.setData({ activeCategory, filteredTodos });
+    this.setData({ activeCategory, filteredTodos: enrichTodos(filteredTodos) });
   },
   onTodoTap(event: WechatMiniprogram.TouchEvent) {
     const processId = event.currentTarget.dataset.processid;

@@ -1,4 +1,4 @@
-﻿{
+{
   "navigationBarTitleText": "流程详情",
   "usingComponents": {
     "section-header": "/components/section-header/index",

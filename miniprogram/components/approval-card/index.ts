@@ -1,4 +1,4 @@
-﻿Component({
+Component({
   properties: {
     approval: { type: Object, value: {} }
   },

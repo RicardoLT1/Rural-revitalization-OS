@@ -1,4 +1,4 @@
-﻿const toPath = (url: string): string => `/pages/${url}/index`;
+const toPath = (url: string): string => `/pages/${url}/index`;
 
 export const goResourceDetail = (id: string) => {
   wx.navigateTo({ url: `${toPath('resource-detail')}?id=${id}` });

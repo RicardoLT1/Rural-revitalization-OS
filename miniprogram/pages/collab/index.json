@@ -1,4 +1,4 @@
-﻿{
+{
   "navigationBarTitleText": "协同工作台",
   "usingComponents": {
     "section-header": "/components/section-header/index",

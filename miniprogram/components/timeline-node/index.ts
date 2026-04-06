@@ -1,4 +1,4 @@
-﻿Component({
+Component({
   properties: {
     node: { type: Object, value: {} },
     expanded: { type: Boolean, value: false }

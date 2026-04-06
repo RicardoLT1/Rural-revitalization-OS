@@ -1,4 +1,4 @@
-﻿Component({
+Component({
   properties: {
     risk: { type: Object, value: {} }
   },

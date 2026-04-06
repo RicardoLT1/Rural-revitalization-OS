@@ -1,4 +1,4 @@
-﻿export type TrendType = 'up' | 'down' | 'flat';
+export type TrendType = 'up' | 'down' | 'flat';
 export type StatusType = 'success' | 'warning' | 'danger' | 'info' | 'neutral';
 
 export interface TrendPoint {

@@ -1,4 +1,4 @@
-﻿{
+{
   "navigationBarTitleText": "趋势预测",
   "usingComponents": {
     "section-header": "/components/section-header/index",

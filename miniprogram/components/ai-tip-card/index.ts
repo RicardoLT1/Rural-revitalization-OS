@@ -1,4 +1,4 @@
-﻿Component({
+Component({
   properties: {
     tip: { type: Object, value: {} }
   },

@@ -1,4 +1,4 @@
-﻿<view class="chart-card">
+<view class="chart-card">
   <view class="header row-between">
     <view class="title">{{title}}</view>
     <view wx:if="{{periods && periods.length}}" class="periods">

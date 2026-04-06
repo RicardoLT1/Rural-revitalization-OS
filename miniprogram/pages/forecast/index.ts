@@ -1,4 +1,4 @@
-﻿import { forecastBand, forecastData, forecastRisks, forecastStrategies } from '../../mock/forecast';
+import { forecastBand, forecastData, forecastRisks, forecastStrategies } from '../../mock/forecast';
 import { buildForecastOption } from '../../utils/chart';
 
 Page({

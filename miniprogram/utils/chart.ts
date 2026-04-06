@@ -1,4 +1,4 @@
-﻿import { ChartSeries, ForecastPoint, TrendPoint } from '../types';
+import { ChartSeries, ForecastPoint, TrendPoint } from '../types';
 
 const baseGrid = { left: 28, right: 14, top: 22, bottom: 28, containLabel: true };
 

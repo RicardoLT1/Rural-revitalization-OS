@@ -1,4 +1,4 @@
-﻿<chart-card
+<chart-card
   title="{{title}}"
   periods="{{periods}}"
   activePeriod="{{activePeriod}}"

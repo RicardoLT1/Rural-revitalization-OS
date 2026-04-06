@@ -1,4 +1,4 @@
-﻿import { processDetails } from '../../mock/workflows';
+import { processDetails } from '../../mock/workflows';
 
 Page({
   data: {

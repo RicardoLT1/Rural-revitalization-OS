@@ -1,4 +1,4 @@
-﻿type PeriodItem = { key: string; label: string };
+type PeriodItem = { key: string; label: string };
 
 type PlainObject = Record<string, any>;
 

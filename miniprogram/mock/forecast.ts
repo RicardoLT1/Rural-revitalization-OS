@@ -1,4 +1,4 @@
-﻿import { ForecastBand, ForecastPoint, RiskAlert } from '../types';
+import { ForecastBand, ForecastPoint, RiskAlert } from '../types';
 
 export const forecastData: ForecastPoint[] = [
   { date: '04-01', actual: 1498, predict: 1498, upper: 1560, lower: 1420 },

@@ -1,4 +1,4 @@
-﻿Component({
+Component({
   properties: {
     resource: { type: Object, value: {} },
     showActions: { type: Boolean, value: false }

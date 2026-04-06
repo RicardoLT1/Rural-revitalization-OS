@@ -1,4 +1,4 @@
-﻿import { investmentMatches, resourceDetails } from '../../mock/resources';
+import { investmentMatches, resourceDetails } from '../../mock/resources';
 import { goForecast, goResourceDetail } from '../../utils/navigation';
 
 Page({

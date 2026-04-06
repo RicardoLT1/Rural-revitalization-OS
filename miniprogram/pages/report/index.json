@@ -1,4 +1,4 @@
-﻿{
+{
   "navigationBarTitleText": "智能报表",
   "usingComponents": {
     "section-header": "/components/section-header/index",

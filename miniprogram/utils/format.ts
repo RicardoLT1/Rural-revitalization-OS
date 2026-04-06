@@ -1,4 +1,4 @@
-﻿export const formatNumber = (value: number): string => {
+export const formatNumber = (value: number): string => {
   return value.toLocaleString('zh-CN');
 };
 

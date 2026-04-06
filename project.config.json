@@ -1,45 +1,45 @@
-﻿{
-  "description": "乡耘OS 小程序高保真原型",
-  "packOptions": {
-    "ignore": []
-  },
-  "setting": {
-    "bundle": false,
-    "userConfirmedBundleSwitch": false,
-    "urlCheck": false,
-    "es6": true,
-    "enhance": true,
-    "postcss": true,
-    "preloadBackgroundData": false,
-    "minified": false,
-    "newFeature": true,
-    "coverView": true,
-    "nodeModules": false,
-    "autoAudits": false,
-    "showShadowRootInWxmlPanel": true,
-    "scopeDataCheck": false,
-    "uglifyFileName": false,
-    "checkInvalidKey": true,
-    "checkSiteMap": true,
-    "uploadWithSourceMap": true,
-    "compileHotReLoad": true,
-    "lazyloadPlaceholderEnable": false,
-    "useMultiFrameRuntime": true,
-    "useApiHook": true,
-    "useApiHostProcess": true,
-    "babelSetting": {
-      "ignore": [],
-      "disablePlugins": [],
-      "outputPath": ""
-    }
-  },
-  "compileType": "miniprogram",
-  "libVersion": "3.5.4",
-  "appid": "touristappid",
-  "projectname": "Rural-revitalization-OS",
-  "simulatorType": "wechat",
-  "simulatorPluginLibVersion": {},
-  "condition": {},
-  "srcMiniprogramRoot": "miniprogram/",
-  "miniprogramRoot": "miniprogram/"
+{
+    "description":  "RuralOS MiniProgram Prototype",
+    "setting":  {
+                    "es6":  true,
+                    "postcss":  true,
+                    "minified":  true,
+                    "uglifyFileName":  false,
+                    "enhance":  true,
+                    "packNpmRelationList":  [
+
+                                            ],
+                    "babelSetting":  {
+                                         "ignore":  [
+
+                                                    ],
+                                         "disablePlugins":  [
+
+                                                            ],
+                                         "outputPath":  ""
+                                     },
+                    "useCompilerPlugins":  [
+                                               "typescript",
+                                               "sass"
+                                           ],
+                    "minifyWXML":  true
+                },
+    "compileType":  "miniprogram",
+    "simulatorPluginLibVersion":  {
+
+                                  },
+    "packOptions":  {
+                        "ignore":  [
+
+                                   ],
+                        "include":  [
+
+                                    ]
+                    },
+    "appid":  "wx7602bfaa7e696d14",
+    "editorSetting":  {
+
+                      },
+    "miniprogramRoot":  "miniprogram/",
+    "srcMiniprogramRoot":  "miniprogram/"
 }

@@ -1,4 +1,4 @@
-﻿<scroll-view class="filter-bar" scroll-x="true" show-scrollbar="false">
+<scroll-view class="filter-bar" scroll-x="true" show-scrollbar="false">
   <view class="inner">
     <view
       wx:for="{{options}}"

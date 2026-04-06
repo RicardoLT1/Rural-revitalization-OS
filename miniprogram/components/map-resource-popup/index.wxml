@@ -1,9 +1,9 @@
-﻿<view class="popup" bindtap="onTap">
+<view class="popup" bindtap="onTap">
   <view class="row-between">
     <view class="name">{{resource.name}}</view>
     <status-badge text="{{resource.investmentStatus}}" type="{{statusType}}" size="small" />
   </view>
-  <view class="meta">{{resource.category}} · {{resource.area}}㎡ · 预估 {{resource.annualEstimate}} 万/年</view>
+  <view class="meta">{{resource.category}} | {{resource.area}} m2 | Est. {{resource.annualEstimate}} per year</view>
   <view class="address">{{resource.address}}</view>
-  <view class="link">点击查看资源详情 ></view>
+  <view class="link">Tap to open resource detail ></view>
 </view>

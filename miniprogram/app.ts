@@ -1,4 +1,4 @@
-﻿/// <reference path="./types/wx.d.ts" />
+/// <reference path="./types/wx.d.ts" />
 
 App<IAppOption>({
   globalData: {

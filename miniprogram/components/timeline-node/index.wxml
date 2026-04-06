@@ -1,4 +1,4 @@
-﻿<view class="timeline-node">
+<view class="timeline-node">
   <view class="line"></view>
   <view class="dot {{node.status}}"></view>
   <view class="content" bindtap="onToggle">
@@ -6,7 +6,7 @@
       <view class="name">{{node.name}}</view>
       <status-badge text="{{statusText}}" type="{{badgeType}}" size="small" />
     </view>
-    <view class="meta">负责人：{{node.owner}} · {{node.time}}</view>
+    <view class="meta">Owner: {{node.owner}} | {{node.time}}</view>
     <view wx:if="{{expanded}}" class="remark">{{node.remark}}</view>
   </view>
 </view>

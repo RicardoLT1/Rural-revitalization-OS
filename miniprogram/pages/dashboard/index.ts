@@ -1,4 +1,4 @@
-﻿import { dashboardData } from '../../mock/dashboard';
+import { dashboardData } from '../../mock/dashboard';
 import { buildLineOption } from '../../utils/chart';
 import { goCollab, goForecast, goInvestmentMatch, goMap, goReport } from '../../utils/navigation';
 

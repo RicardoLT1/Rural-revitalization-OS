@@ -1,4 +1,4 @@
-﻿import { ResourcePoint } from '../types';
+import { ResourcePoint } from '../types';
 
 type Marker = WechatMiniprogram.MapMarker;
 

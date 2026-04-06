@@ -1,4 +1,4 @@
-﻿import { ApprovalItem, ProcessDetail, TodoItem, WorkflowNode } from '../types';
+import { ApprovalItem, ProcessDetail, TodoItem, WorkflowNode } from '../types';
 
 export const todoStats = {
   total: 16,

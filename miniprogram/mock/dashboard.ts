@@ -1,4 +1,4 @@
-﻿import { DashboardMetrics } from '../types';
+import { DashboardMetrics } from '../types';
 
 export const dashboardData: DashboardMetrics = {
   villageName: '青禾示范村',

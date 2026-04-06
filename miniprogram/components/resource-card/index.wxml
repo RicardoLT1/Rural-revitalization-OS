@@ -1,16 +1,16 @@
-﻿<view class="resource-card" bindtap="onTap">
+<view class="resource-card" bindtap="onTap">
   <image class="cover" src="{{resource.cover}}" mode="aspectFill"></image>
   <view class="body">
     <view class="row-between">
       <view class="name">{{resource.name}}</view>
       <status-badge text="{{resource.investmentStatus}}" type="{{statusType}}" size="small" />
     </view>
-    <view class="meta">{{resource.category}} · {{resource.area}}㎡ · 预估年收益 {{resource.annualEstimate}} 万</view>
+    <view class="meta">{{resource.category}} | {{resource.area}} m2 | Est. {{resource.annualEstimate}} per year</view>
     <view class="address">{{resource.address}}</view>
     <tag-group tags="{{resource.tags}}" />
     <view wx:if="{{showActions}}" class="actions">
-      <view class="btn ghost" catchtap="onAction" data-action="detail">查看详情</view>
-      <view class="btn primary" catchtap="onAction" data-action="match">查看推荐</view>
+      <view class="btn ghost" catchtap="onAction" data-action="detail">Details</view>
+      <view class="btn primary" catchtap="onAction" data-action="match">Match</view>
     </view>
   </view>
 </view>

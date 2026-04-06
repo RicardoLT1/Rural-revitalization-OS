@@ -1,4 +1,4 @@
-﻿Component({
+Component({
   properties: {
     options: { type: Array, value: [] },
     activeKey: { type: String, value: '' }

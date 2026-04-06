@@ -1,4 +1,4 @@
-﻿@import '../../styles/tokens.scss';
+@import '../../styles/tokens.scss';
 
 .todo-overview {
   padding: $space-3;
@@ -49,17 +49,17 @@
   font-size: 20rpx;
 }
 
-.todo-card .status.待处理 {
+.todo-card .status.pending {
   color: $color-warning;
   background: rgba(213, 138, 42, 0.14);
 }
 
-.todo-card .status.进行中 {
+.todo-card .status.processing {
   color: $color-info;
   background: rgba(46, 108, 184, 0.14);
 }
 
-.todo-card .status.已逾期 {
+.todo-card .status.overdue {
   color: $color-danger;
   background: rgba(201, 74, 59, 0.14);
 }

@@ -1,4 +1,4 @@
-﻿import { resourcePoints, resourceTags } from '../../mock/resources';
+import { resourcePoints, resourceTags } from '../../mock/resources';
 import { ResourcePoint } from '../../types';
 import { filterResources, toMapMarkers, calcMapCenter } from '../../utils/map';
 import { goResourceDetail } from '../../utils/navigation';

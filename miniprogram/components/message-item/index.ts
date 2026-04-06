@@ -1,4 +1,4 @@
-﻿Component({
+Component({
   properties: {
     messageId: { type: String, value: '' },
     title: { type: String, value: '' },

@@ -1,4 +1,4 @@
-﻿import { InvestmentMatch, ResourceDetail, ResourcePoint } from '../types';
+import { InvestmentMatch, ResourceDetail, ResourcePoint } from '../types';
 
 export const resourceTags = ['全部', '闲置农房', '土地', '文旅空间', '可招商'];
 

@@ -1,4 +1,4 @@
-﻿{
+{
   "component": true,
   "usingComponents": {
     "status-badge": "/components/status-badge/index",

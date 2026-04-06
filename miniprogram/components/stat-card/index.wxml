@@ -1,4 +1,4 @@
-﻿<view class="stat-card" bindtap="onTap">
+<view class="stat-card" bindtap="onTap">
   <view class="row-between">
     <view class="title">{{title}}</view>
     <view class="icon">{{icon}}</view>

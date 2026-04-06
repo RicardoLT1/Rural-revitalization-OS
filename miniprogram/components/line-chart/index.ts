@@ -1,4 +1,4 @@
-﻿Component({
+Component({
   properties: {
     title: { type: String, value: '' },
     periods: { type: Array, value: [] },

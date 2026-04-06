@@ -1,5 +1,5 @@
-﻿<view class="page-root">
-  <section-header title="资源一张图" subtitle="资源可视、可查、可招商" />
+<view class="page-root">
+  <section-header title="Resource Map" subtitle="Visible, searchable, investable" />
   <filter-bar options="{{tagOptions}}" activeKey="{{activeTag}}" bind:change="onTagChange" />
 
   <view class="map-wrap page-section">
@@ -22,8 +22,8 @@
   </view>
 
   <view class="page-section">
-    <section-header title="资源列表" subtitle="点击卡片查看详情" />
-    <empty-state wx:if="{{!filteredResources.length}}" title="当前筛选下暂无资源" description="请切换标签查看其他资源" />
+    <section-header title="Resource List" subtitle="Tap a card for details" />
+    <empty-state wx:if="{{!filteredResources.length}}" title="No resources in this filter" description="Try another tag" />
     <resource-card
       wx:for="{{filteredResources}}"
       wx:key="id"

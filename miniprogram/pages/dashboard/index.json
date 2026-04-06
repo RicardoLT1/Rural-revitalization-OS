@@ -1,4 +1,4 @@
-﻿{
+{
   "navigationBarTitleText": "首页驾驶舱",
   "usingComponents": {
     "section-header": "/components/section-header/index",

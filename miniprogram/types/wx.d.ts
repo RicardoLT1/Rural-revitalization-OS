@@ -1,4 +1,4 @@
-﻿declare namespace WechatMiniprogram {
+declare namespace WechatMiniprogram {
   interface TouchEvent {
     currentTarget: {
       dataset: Record<string, any>;
