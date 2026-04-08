@@ -3,7 +3,7 @@
     <view class="name">{{resource.name}}</view>
     <status-badge text="{{resource.investmentStatus}}" type="{{statusType}}" size="small" />
   </view>
-  <view class="meta">{{resource.category}} | {{resource.area}} m2 | Est. {{resource.annualEstimate}} per year</view>
+  <view class="meta">{{resource.category}} | 面积 {{resource.area}} ㎡ | 预估年收益 {{resource.annualEstimate}} 万元</view>
   <view class="address">{{resource.address}}</view>
-  <view class="link">Tap to open resource detail ></view>
+  <view class="link">点击查看资源详情 →</view>
 </view>

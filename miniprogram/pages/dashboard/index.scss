@@ -1,31 +1,31 @@
 @import '../../styles/tokens.scss';
 
 .dashboard-page {
-  padding-bottom: 36rpx;
+  padding-bottom: 40rpx;
 }
 
 .hero {
   padding: $space-3;
-  background: linear-gradient(145deg, #1f5a26, #2f7d32 60%, #6faf5e);
+  background: linear-gradient(145deg, #225f2a, #2f7d32 58%, #6faf5e);
   color: #fff;
 }
 
 .role {
   font-size: $font-xs;
-  opacity: 0.9;
+  opacity: 0.94;
 }
 
 .headline {
   margin-top: 10rpx;
-  font-size: $font-lg;
+  font-size: 36rpx;
   font-weight: $weight-bold;
 }
 
 .sub {
-  margin-top: 8rpx;
+  margin-top: 10rpx;
   font-size: $font-xs;
-  line-height: 1.6;
-  opacity: 0.92;
+  line-height: 1.7;
+  opacity: 0.94;
 }
 
 .stats-grid {
@@ -42,10 +42,22 @@
 
 .entry {
   text-align: center;
-  padding: $space-2 8rpx;
+  padding: 20rpx 10rpx;
   background: #fff;
   border-radius: $radius-md;
   box-shadow: $shadow-soft;
   font-size: $font-xs;
   color: $color-text-primary;
+  border: 1rpx solid rgba(47, 125, 50, 0.1);
+}
+
+.entry-icon {
+  font-size: 34rpx;
+  line-height: 1;
+}
+
+.entry-text {
+  margin-top: 8rpx;
+  font-size: $font-xs;
+  font-weight: $weight-medium;
 }

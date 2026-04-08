@@ -1,5 +1,5 @@
 {
-  "navigationBarTitleText": "流程详情",
+  "navigationBarTitleText": "\u6D41\u7A0B\u8BE6\u60C5",
   "usingComponents": {
     "section-header": "/components/section-header/index",
     "status-badge": "/components/status-badge/index",

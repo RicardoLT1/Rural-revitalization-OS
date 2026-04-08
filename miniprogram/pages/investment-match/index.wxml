@@ -1,25 +1,25 @@
 <view class="page-root" wx:if="{{resource.id}}">
-  <section-header title="Investment Match" subtitle="Score + reason + priority" />
+  <section-header title="招商推荐" subtitle="评分 + 理由 + 优先级" />
 
   <resource-card resource="{{resource}}" showActions="{{false}}" bind:tap="onResourceTap" />
 
   <view class="page-section">
-    <section-header title="Candidates" subtitle="Higher score, higher priority" />
-    <empty-state wx:if="{{!matches.length}}" title="No candidate" />
+    <section-header title="推荐对象" subtitle="评分越高优先级越高" />
+    <empty-state wx:if="{{!matches.length}}" title="暂无推荐对象" />
 
     <view wx:for="{{matches}}" wx:key="id" class="match-card card">
       <view class="row-between">
         <view class="name">{{item.investor}}</view>
         <view class="score mono">{{item.score}}</view>
       </view>
-      <view class="meta">Direction: {{item.direction}}</view>
+      <view class="meta">推荐方向：{{item.direction}}</view>
       <view class="reason">{{item.reason}}</view>
       <status-badge text="{{item.priority}}" type="{{item.priorityType}}" size="small" />
     </view>
   </view>
 
   <view class="page-section">
-    <section-header title="AI Summary" />
+    <section-header title="智能摘要" />
     <ai-tip-card tip="{{aiSummary}}" bind:action="onAiAction" />
   </view>
 </view>

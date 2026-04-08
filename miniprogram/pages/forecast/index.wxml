@@ -1,23 +1,23 @@
 <view class="page-root">
-  <section-header title="Trend Forecast" subtitle="Forecast + confidence + strategy" />
+  <section-header title="趋势预测" subtitle="预测 + 置信区间 + 策略建议" />
 
   <view class="page-section">
-    <chart-card title="Visitor Time-Series Forecast" ecOption="{{forecastOption}}" />
+    <chart-card title="客流时序预测" ecOption="{{forecastOption}}" />
   </view>
 
   <view class="page-section card band-box">
-    <view class="title">Confidence Band</view>
-    <view class="confidence">Confidence: {{band.confidence}}</view>
+    <view class="title">置信区间</view>
+    <view class="confidence">置信度：{{band.confidence}}</view>
     <view class="range">{{band.range}}</view>
   </view>
 
   <view class="page-section">
-    <section-header title="Risk Alerts" />
+    <section-header title="风险预警" />
     <risk-alert-card wx:for="{{risks}}" wx:key="id" risk="{{item}}" />
   </view>
 
   <view class="page-section card strategy-box">
-    <section-header title="AI Strategies" />
+    <section-header title="智能策略建议" />
     <view wx:for="{{strategies}}" wx:key="*this" class="strategy-item">{{index + 1}}. {{item}}</view>
   </view>
 </view>

@@ -3,6 +3,36 @@
 .cover {
   width: 100%;
   height: 340rpx;
+  background: linear-gradient(135deg, #dce9d4, #c6dcc0);
+  overflow: hidden;
+}
+
+.cover-layer {
+  width: 100%;
+  height: 100%;
+  padding: $space-3;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  background: radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.36), transparent 55%);
+}
+
+.cover-tag {
+  display: inline-block;
+  width: fit-content;
+  padding: 6rpx 14rpx;
+  border-radius: 999rpx;
+  font-size: 20rpx;
+  color: $color-brand;
+  background: rgba(47, 125, 50, 0.14);
+}
+
+.cover-title {
+  margin-top: 10rpx;
+  font-size: 36rpx;
+  font-weight: $weight-bold;
+  color: $color-text-primary;
 }
 
 .info-card {

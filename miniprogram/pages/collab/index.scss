@@ -2,6 +2,7 @@
 
 .todo-overview {
   padding: $space-3;
+  border: 1rpx solid rgba(47, 125, 50, 0.1);
 }
 
 .count {
@@ -10,13 +11,13 @@
 }
 
 .count .value {
-  font-size: $font-lg;
+  font-size: 42rpx;
   font-weight: $weight-bold;
 }
 
 .count .label {
   margin-top: 6rpx;
-  font-size: $font-xs;
+  font-size: 22rpx;
   color: $color-text-secondary;
 }
 
@@ -34,6 +35,7 @@
   box-shadow: $shadow-soft;
   padding: $space-2;
   margin-bottom: $space-2;
+  border: 1rpx solid rgba(47, 125, 50, 0.08);
 }
 
 .todo-card .title {
@@ -44,24 +46,29 @@
 }
 
 .todo-card .status {
-  padding: 4rpx 12rpx;
+  padding: 6rpx 14rpx;
   border-radius: 999rpx;
-  font-size: 20rpx;
+  font-size: 22rpx;
+  border: 1rpx solid transparent;
+  font-weight: $weight-medium;
 }
 
 .todo-card .status.pending {
   color: $color-warning;
   background: rgba(213, 138, 42, 0.14);
+  border-color: rgba(213, 138, 42, 0.28);
 }
 
 .todo-card .status.processing {
   color: $color-info;
   background: rgba(46, 108, 184, 0.14);
+  border-color: rgba(46, 108, 184, 0.28);
 }
 
 .todo-card .status.overdue {
   color: $color-danger;
   background: rgba(201, 74, 59, 0.14);
+  border-color: rgba(201, 74, 59, 0.28);
 }
 
 .meta {

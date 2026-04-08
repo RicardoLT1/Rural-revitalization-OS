@@ -2,6 +2,7 @@
 
 .filter-bar {
   white-space: nowrap;
+  padding-bottom: 4rpx;
 }
 
 .inner {
@@ -11,15 +12,17 @@
 
 .chip {
   margin-right: $space-2;
-  padding: 10rpx 22rpx;
+  padding: 10rpx 24rpx;
   border-radius: 999rpx;
   background: rgba(91, 97, 100, 0.1);
   color: $color-text-secondary;
   font-size: $font-xs;
+  border: 1rpx solid transparent;
 }
 
 .chip.active {
   background: rgba(47, 125, 50, 0.18);
   color: $color-brand;
   font-weight: $weight-medium;
+  border-color: rgba(47, 125, 50, 0.32);
 }

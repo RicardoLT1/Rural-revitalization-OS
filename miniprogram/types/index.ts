@@ -32,6 +32,7 @@ export interface AiSuggestion {
   priority: 'P1' | 'P2' | 'P3';
   actionLabel: string;
   actionType: 'report' | 'match' | 'forecast' | 'resource' | 'process';
+  tag?: string;
 }
 
 export interface DashboardMetrics {
@@ -46,6 +47,9 @@ export interface DashboardMetrics {
   suggestions: AiSuggestion[];
 }
 
+export type ResourceCategory = '\u95f2\u7f6e\u519c\u623f' | '\u571f\u5730' | '\u6587\u65c5\u7a7a\u95f4';
+export type InvestmentStatus = '\u53ef\u62db\u5546' | '\u6d3d\u8c08\u4e2d' | '\u5df2\u7b7e\u7ea6';
+
 export interface InvestmentTag {
   key: string;
   label: string;
@@ -54,15 +58,15 @@ export interface InvestmentTag {
 export interface ResourcePoint {
   id: string;
   name: string;
-  category: '闲置农房' | '土地' | '文旅空间';
+  category: ResourceCategory;
   lat: number;
   lng: number;
   address: string;
   area: number;
   annualEstimate: number;
-  investmentStatus: '可招商' | '洽谈中' | '已签约';
+  investmentStatus: InvestmentStatus;
   tags: string[];
-  cover: string;
+  cover?: string;
 }
 
 export interface ResourceDetail extends ResourcePoint {
@@ -79,7 +83,7 @@ export interface InvestmentMatch {
   investor: string;
   score: number;
   reason: string;
-  priority: '高优先' | '中优先' | '观察';
+  priority: '\u9ad8\u4f18\u5148' | '\u4e2d\u4f18\u5148' | '\u89c2\u5bdf';
   direction: string;
 }
 
@@ -87,8 +91,8 @@ export interface TodoItem {
   id: string;
   title: string;
   dueDate: string;
-  category: '项目申报' | '资产流转' | '活动筹备' | '村民议事';
-  status: '待处理' | '进行中' | '已逾期';
+  category: '\u9879\u76ee\u7533\u62a5' | '\u8d44\u4ea7\u6d41\u8f6c' | '\u6d3b\u52a8\u7b79\u5907' | '\u6751\u6c11\u8bae\u4e8b';
+  status: '\u5f85\u5904\u7406' | '\u8fdb\u884c\u4e2d' | '\u5df2\u903e\u671f';
   processId: string;
 }
 
@@ -97,7 +101,7 @@ export interface ApprovalItem {
   title: string;
   applicant: string;
   amount: number;
-  status: '待审批' | '已退回' | '已通过';
+  status: '\u5f85\u5ba1\u6279' | '\u5df2\u9a73\u56de' | '\u5df2\u901a\u8fc7';
   processId: string;
   time: string;
 }

@@ -19,11 +19,24 @@ declare namespace WechatMiniprogram {
     longitude: number;
     width?: number;
     height?: number;
+    alpha?: number;
     iconPath?: string;
+    label?: {
+      content?: string;
+      color?: string;
+      fontSize?: number;
+      bgColor?: string;
+      borderRadius?: number;
+      padding?: number;
+      anchorX?: number;
+      anchorY?: number;
+    };
     callout?: {
       content?: string;
       color?: string;
       bgColor?: string;
+      borderColor?: string;
+      borderWidth?: number;
       borderRadius?: number;
       padding?: number;
       display?: string;

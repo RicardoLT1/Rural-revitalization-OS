@@ -8,7 +8,7 @@ const formatTagOptions = resourceTags.map((tag) => ({ key: tag, label: tag }));
 Page({
   data: {
     tagOptions: formatTagOptions,
-    activeTag: '全部',
+    activeTag: '\u5168\u90e8',
     allResources: resourcePoints,
     filteredResources: resourcePoints,
     selectedResource: {} as Partial<ResourcePoint>,

@@ -1,5 +1,5 @@
 {
-  "navigationBarTitleText": "首页驾驶舱",
+  "navigationBarTitleText": "\u9996\u9875\u9A7E\u9A76\u8231",
   "usingComponents": {
     "section-header": "/components/section-header/index",
     "stat-card": "/components/stat-card/index",

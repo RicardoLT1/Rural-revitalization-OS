@@ -1,5 +1,5 @@
 <view class="page-root">
-  <section-header title="Resource Map" subtitle="Visible, searchable, investable" />
+  <section-header title="资源地图" subtitle="资源一张图：可视、可查、可招商" />
   <filter-bar options="{{tagOptions}}" activeKey="{{activeTag}}" bind:change="onTagChange" />
 
   <view class="map-wrap page-section">
@@ -15,6 +15,11 @@
       enable-3D="true"
       enable-poi="true"
     ></map>
+    <view class="map-legend">
+      <view class="legend-item"><text class="dot invest"></text> 可招商</view>
+      <view class="legend-item"><text class="dot talk"></text> 洽谈中</view>
+      <view class="legend-item"><text class="dot signed"></text> 已签约</view>
+    </view>
   </view>
 
   <view wx:if="{{selectedResource.id}}" class="popup-wrap">
@@ -22,12 +27,13 @@
   </view>
 
   <view class="page-section">
-    <section-header title="Resource List" subtitle="Tap a card for details" />
-    <empty-state wx:if="{{!filteredResources.length}}" title="No resources in this filter" description="Try another tag" />
+    <section-header title="资源列表" subtitle="点击卡片查看资源详情" />
+    <empty-state wx:if="{{!filteredResources.length}}" title="当前筛选下暂无资源" description="请切换标签查看其他资源" />
     <resource-card
       wx:for="{{filteredResources}}"
       wx:key="id"
       resource="{{item}}"
+      active="{{selectedResource.id === item.id}}"
       showActions="{{false}}"
       bind:tap="onResourceTap"
     />

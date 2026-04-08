@@ -4,16 +4,16 @@
       <view class="title">{{detail.title}}</view>
       <status-badge text="{{detail.status}}" type="{{statusType}}" />
     </view>
-    <view wx:if="{{detail.blocker}}" class="blocker">Blocker: {{detail.blocker}}</view>
+    <view wx:if="{{detail.blocker}}" class="blocker">当前阻塞：{{detail.blocker}}</view>
   </view>
 
   <view class="page-section">
-    <section-header title="Workflow Overview" />
+    <section-header title="流程节点概览" />
     <workflow-node-strip nodes="{{detail.nodes}}" currentNodeId="{{detail.currentNodeId}}" bind:nodetap="onNodeTap" />
   </view>
 
   <view class="page-section">
-    <section-header title="Timeline" subtitle="Expand or collapse remarks" />
+    <section-header title="节点时间轴" subtitle="支持展开/收起处理备注" />
     <timeline-node
       wx:for="{{detail.nodes}}"
       wx:key="id"
@@ -24,7 +24,7 @@
   </view>
 
   <view class="page-section card records">
-    <section-header title="Process Records" />
+    <section-header title="操作记录" />
     <filter-bar options="{{recordFilters}}" activeKey="{{recordFilter}}" bind:change="onRecordFilterChange" />
     <view wx:for="{{visibleRecords}}" wx:key="id" class="record-item">
       <view class="row-between">
@@ -36,9 +36,9 @@
   </view>
 
   <view class="page-section card archive">
-    <section-header title="Archive" />
-    <view class="line">Code: {{detail.archive.code}}</view>
-    <view class="line">Archived At: {{detail.archive.archivedAt}}</view>
-    <view class="line">Note: {{detail.archive.note}}</view>
+    <section-header title="归档留痕" />
+    <view class="line">归档编号：{{detail.archive.code}}</view>
+    <view class="line">归档时间：{{detail.archive.archivedAt}}</view>
+    <view class="line">归档说明：{{detail.archive.note}}</view>
   </view>
 </view>

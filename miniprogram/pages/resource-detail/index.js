@@ -10,9 +10,9 @@ Page({
     const id = query.id || 'res-01';
     const detail = resourceDetails[id] || resourceDetails['res-01'];
     const statusMap = {
-      可招商: 'success',
-      洽谈中: 'warning',
-      已签约: 'info'
+      '\u53ef\u62db\u5546': 'success',
+      '\u6d3d\u8c08\u4e2d': 'warning',
+      '\u5df2\u7b7e\u7ea6': 'info'
     };
     this.setData({
       detail,
@@ -24,6 +24,6 @@ Page({
   },
   onMockAction(event) {
     const name = event.currentTarget.dataset.name;
-    wx.showToast({ title: `${name}（演示态）`, icon: 'none' });
+    wx.showToast({ title: `${name}\uff08\u6f14\u793a\u6001\uff09`, icon: 'none' });
   }
 });

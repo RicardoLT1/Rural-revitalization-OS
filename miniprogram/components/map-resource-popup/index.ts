@@ -8,9 +8,9 @@ Component({
   observers: {
     'resource.investmentStatus': function (status: string) {
       const map: Record<string, string> = {
-        可招商: 'success',
-        洽谈中: 'warning',
-        已签约: 'info'
+        '\u53ef\u62db\u5546': 'success',
+        '\u6d3d\u8c08\u4e2d': 'warning',
+        '\u5df2\u7b7e\u7ea6': 'info'
       };
       this.setData({ statusType: map[status] || 'neutral' });
     }

@@ -1,5 +1,5 @@
 {
-  "navigationBarTitleText": "协同工作台",
+  "navigationBarTitleText": "\u534F\u540C\u5DE5\u4F5C\u53F0",
   "usingComponents": {
     "section-header": "/components/section-header/index",
     "filter-bar": "/components/filter-bar/index",

@@ -10,8 +10,8 @@ Page({
     risks: dashboardData.risks,
     suggestions: dashboardData.suggestions,
     periods: [
-      { key: '7d', label: '近7天' },
-      { key: '30d', label: '近30天' }
+      { key: '7d', label: '\u8fd17\u5929' },
+      { key: '30d', label: '\u8fd130\u5929' }
     ],
     trendPeriod: '7d',
     trendOption: buildLineOption(dashboardData.trends.days7)

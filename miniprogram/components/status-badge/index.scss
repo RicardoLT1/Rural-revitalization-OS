@@ -9,6 +9,7 @@
   font-size: $font-xs;
   color: $color-text-secondary;
   background: rgba(91, 97, 100, 0.12);
+  border: 1rpx solid rgba(91, 97, 100, 0.22);
 }
 
 .badge.small {
@@ -19,19 +20,23 @@
 .badge.success {
   color: $color-success;
   background: rgba(47, 125, 50, 0.12);
+  border-color: rgba(47, 125, 50, 0.32);
 }
 
 .badge.warning {
   color: $color-warning;
   background: rgba(213, 138, 42, 0.16);
+  border-color: rgba(213, 138, 42, 0.34);
 }
 
 .badge.danger {
   color: $color-danger;
   background: rgba(201, 74, 59, 0.14);
+  border-color: rgba(201, 74, 59, 0.32);
 }
 
 .badge.info {
   color: $color-info;
   background: rgba(46, 108, 184, 0.12);
+  border-color: rgba(46, 108, 184, 0.28);
 }

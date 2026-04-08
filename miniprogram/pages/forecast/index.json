@@ -1,5 +1,5 @@
 {
-  "navigationBarTitleText": "趋势预测",
+  "navigationBarTitleText": "\u8D8B\u52BF\u9884\u6D4B",
   "usingComponents": {
     "section-header": "/components/section-header/index",
     "chart-card": "/components/chart-card/index",

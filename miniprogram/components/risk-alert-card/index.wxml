@@ -4,5 +4,5 @@
     <status-badge text="{{levelText}}" type="{{badgeType}}" size="small" />
   </view>
   <view class="desc">{{risk.detail}}</view>
-  <view class="assignee">Owner Team: {{risk.assignee}}</view>
+  <view class="assignee">责任小组：{{risk.assignee}}</view>
 </view>

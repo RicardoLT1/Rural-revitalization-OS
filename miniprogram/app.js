@@ -1,7 +1,7 @@
 App({
   globalData: {
-    roleName: '乡村CEO',
-    villageName: '青禾示范村'
+    roleName: '\u4e61\u6751CEO',
+    villageName: '\u9752\u79be\u793a\u8303\u6751'
   },
   onLaunch() {
   }

@@ -3,9 +3,9 @@
     <view class="title">{{approval.title}}</view>
     <status-badge text="{{approval.status}}" type="{{statusType}}" size="small" />
   </view>
-  <view class="meta">Applicant: {{approval.applicant}} | Amount: {{approval.amount}} wan | {{approval.time}}</view>
+  <view class="meta">申请人：{{approval.applicant}} | 金额：{{approval.amount}} 万元 | {{approval.time}}</view>
   <view class="actions">
-    <view class="btn pass" catchtap="onApprove" data-action="pass">Pass</view>
-    <view class="btn reject" catchtap="onApprove" data-action="reject">Reject</view>
+    <view class="btn pass" catchtap="onApprove" data-action="pass">通过</view>
+    <view class="btn reject" catchtap="onApprove" data-action="reject">驳回</view>
   </view>
 </view>

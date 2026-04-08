@@ -1,5 +1,5 @@
 {
-  "navigationBarTitleText": "招商推荐",
+  "navigationBarTitleText": "\u62DB\u5546\u63A8\u8350",
   "usingComponents": {
     "section-header": "/components/section-header/index",
     "resource-card": "/components/resource-card/index",

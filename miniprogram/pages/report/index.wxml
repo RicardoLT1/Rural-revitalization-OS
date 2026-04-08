@@ -1,5 +1,5 @@
-<view class="page-root">
-  <section-header title="Smart Report" subtitle="Auto analytics and suggestions" />
+<view class="page-root report-page">
+  <section-header title="智能报表" subtitle="自动分析与建议" />
 
   <view class="summary-grid page-section">
     <view wx:for="{{summary}}" wx:key="id" class="summary-card">
@@ -11,7 +11,7 @@
 
   <view class="page-section">
     <chart-card
-      title="Visitor Trend Line"
+      title="客流趋势"
       periods="{{periods}}"
       activePeriod="{{period}}"
       ecOption="{{lineOption}}"
@@ -20,25 +20,29 @@
   </view>
 
   <view class="page-section">
-    <chart-card title="Revenue Bar" ecOption="{{barOption}}" />
+    <chart-card title="营收对比" ecOption="{{barOption}}" />
   </view>
 
   <view class="page-section">
-    <chart-card title="Revenue Ratio" ecOption="{{ringOption}}" />
+    <chart-card title="收入结构" ecOption="{{ringOption}}" />
   </view>
 
   <view class="page-section card summary-box">
-    <section-header title="Auto Summary" />
+    <section-header title="自动摘要" />
     <view class="text">{{autoSummary}}</view>
   </view>
 
   <view class="page-section">
-    <section-header title="AI Tips" />
+    <section-header title="智能建议" />
     <ai-tip-card wx:for="{{aiTips}}" wx:key="id" tip="{{item}}" bind:action="onTipAction" />
   </view>
 
   <view class="page-section quick-actions">
-    <view class="btn" data-action="match" bindtap="onQuickTap">Investment Match</view>
-    <view class="btn" data-action="forecast" bindtap="onQuickTap">Trend Forecast</view>
+    <view class="btn" data-action="match" bindtap="onQuickTap">
+      <text class="btn-icon">推</text> 招商推荐
+    </view>
+    <view class="btn" data-action="forecast" bindtap="onQuickTap">
+      <text class="btn-icon">测</text> 趋势预测
+    </view>
   </view>
 </view>

@@ -2,38 +2,56 @@ import { ResourcePoint } from '../types';
 
 type Marker = WechatMiniprogram.MapMarker;
 
-const markerIconByStatus: Record<ResourcePoint['investmentStatus'], string> = {
-  可招商: 'https://dummyimage.com/44x44/2f7d32/ffffff&text=%E6%8B%9B',
-  洽谈中: 'https://dummyimage.com/44x44/d58a2a/ffffff&text=%E8%B0%88',
-  已签约: 'https://dummyimage.com/44x44/5b6164/ffffff&text=%E7%AD%BE'
-};
-
 export const filterResources = (resources: ResourcePoint[], tag: string): ResourcePoint[] => {
-  if (tag === '全部') {
+  if (tag === '\u5168\u90e8') {
     return resources;
   }
-  if (tag === '可招商') {
-    return resources.filter((item) => item.investmentStatus === '可招商');
+  if (tag === '\u53ef\u62db\u5546') {
+    return resources.filter((item) => item.investmentStatus === '\u53ef\u62db\u5546');
   }
   return resources.filter((item) => item.category === tag);
 };
 
+const markerColorByStatus: Record<ResourcePoint['investmentStatus'], string> = {
+  '\u53ef\u62db\u5546': '#2F7D32',
+  '\u6d3d\u8c08\u4e2d': '#D58A2A',
+  '\u5df2\u7b7e\u7ea6': '#5B6164'
+};
+
 export const toMapMarkers = (resources: ResourcePoint[]): Marker[] => {
+  const statusLabelMap: Record<ResourcePoint['investmentStatus'], string> = {
+    '\u53ef\u62db\u5546': '\u62db',
+    '\u6d3d\u8c08\u4e2d': '\u8c08',
+    '\u5df2\u7b7e\u7ea6': '\u7b7e'
+  };
+
   return resources.map((item) => ({
     id: Number(item.id.replace('res-', '')),
     latitude: item.lat,
     longitude: item.lng,
-    width: 36,
-    height: 36,
+    width: 32,
+    height: 32,
+    alpha: 1,
     callout: {
-      content: item.name,
+      content: `${item.name} | ${item.category}`,
       color: '#2F3437',
       bgColor: '#FFFFFF',
-      borderRadius: 8,
-      padding: 6,
+      borderColor: markerColorByStatus[item.investmentStatus],
+      borderWidth: 1,
+      borderRadius: 12,
+      padding: 8,
       display: 'BYCLICK'
     },
-    iconPath: markerIconByStatus[item.investmentStatus]
+    label: {
+      content: statusLabelMap[item.investmentStatus],
+      color: '#FFFFFF',
+      fontSize: 12,
+      bgColor: markerColorByStatus[item.investmentStatus],
+      borderRadius: 999,
+      padding: 4,
+      anchorX: 16,
+      anchorY: -14
+    }
   }));
 };
 

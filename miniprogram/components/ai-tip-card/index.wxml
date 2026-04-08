@@ -1,8 +1,12 @@
 <view class="ai-tip" bindtap="onTap">
-  <view class="row-between">
-    <view class="title">{{tip.title}}</view>
+  <view class="row-between top">
+    <view class="title-wrap">
+      <view class="ai-mark">智策</view>
+      <view class="title">{{tip.title}}</view>
+    </view>
     <view class="priority">{{tip.priority}}</view>
   </view>
+  <view wx:if="{{tip.tag}}" class="tag">{{tip.tag}}</view>
   <view class="content">{{tip.content}}</view>
   <view class="action">{{tip.actionLabel}} ></view>
 </view>

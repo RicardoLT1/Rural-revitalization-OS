@@ -11,22 +11,115 @@
   border-radius: $radius-lg;
   box-shadow: $shadow-card;
   margin-bottom: $space-2;
+  border: 2rpx solid transparent;
+}
+
+.resource-card.active {
+  border-color: rgba(47, 125, 50, 0.42);
+  box-shadow: 0 10rpx 26rpx rgba(47, 125, 50, 0.18);
 }
 
 .cover {
   width: 100%;
-  height: 220rpx;
+  height: 236rpx;
+  position: relative;
+  overflow: hidden;
+}
+
+.cover-house {
+  background: linear-gradient(135deg, #e6f2df, #cfe5c2 62%, #bcd9ad);
+}
+
+.cover-land {
+  background: linear-gradient(135deg, #f2efe2, #dde7c8 62%, #c8d9ab);
+}
+
+.cover-culture {
+  background: linear-gradient(135deg, #e6efe8, #d8e6dc 62%, #c7dccc);
+}
+
+.cover-mask {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  background: radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.36), transparent 56%);
+}
+
+.cover-decor {
+  position: absolute;
+  border-radius: 999rpx;
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.decor-1 {
+  right: -42rpx;
+  top: -42rpx;
+  width: 180rpx;
+  height: 180rpx;
+}
+
+.decor-2 {
+  right: 50rpx;
+  top: 28rpx;
+  width: 80rpx;
+  height: 80rpx;
+}
+
+.cover-content {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  padding: 20rpx;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  color: #2f3437;
+}
+
+.cover-top {
+  align-items: flex-start;
+}
+
+.cover-type {
+  display: inline-block;
+  padding: 6rpx 14rpx;
+  border-radius: 999rpx;
+  background: rgba(47, 125, 50, 0.16);
+  color: $color-brand;
+  font-size: 20rpx;
+  font-weight: $weight-medium;
+}
+
+.cover-state {
+  display: inline-block;
+  padding: 6rpx 12rpx;
+  border-radius: 999rpx;
+  font-size: 20rpx;
+  color: #fff;
+  background: rgba(47, 125, 50, 0.82);
+}
+
+.cover-name {
+  margin-top: 4rpx;
+  font-size: 34rpx;
+  font-weight: $weight-bold;
+  line-height: 1.2;
+}
+
+.cover-desc {
+  margin-top: 8rpx;
+  font-size: 20rpx;
+  color: $color-text-primary;
+  opacity: 0.9;
+  line-height: 1.45;
 }
 
 .body {
   padding: $space-2;
-}
-
-.name {
-  flex: 1;
-  margin-right: $space-2;
-  font-size: $font-sm;
-  font-weight: $weight-bold;
 }
 
 .meta,
@@ -34,6 +127,10 @@
   margin-top: 8rpx;
   color: $color-text-secondary;
   font-size: $font-xs;
+}
+
+.meta {
+  margin-top: 0;
 }
 
 .actions {
@@ -58,4 +155,3 @@
   color: #fff;
   background: $color-brand;
 }
-

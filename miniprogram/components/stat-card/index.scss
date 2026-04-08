@@ -10,6 +10,7 @@
   border-radius: $radius-lg;
   box-shadow: $shadow-card;
   padding: $space-3;
+  border: 1rpx solid rgba(47, 125, 50, 0.08);
 }
 
 .title {
@@ -18,7 +19,9 @@
 }
 
 .icon {
-  font-size: 30rpx;
+  font-size: 40rpx;
+  font-weight: $weight-bold;
+  color: $color-brand;
 }
 
 .value-line {
@@ -28,7 +31,7 @@
 }
 
 .value {
-  font-size: $font-xl;
+  font-size: 48rpx;
   color: $color-text-primary;
   font-weight: $weight-bold;
 }
@@ -45,6 +48,7 @@
 
 .delta {
   font-size: $font-xs;
+  font-weight: $weight-medium;
 }
 
 .delta.up {
@@ -58,4 +62,3 @@
 .delta.flat {
   color: $color-text-secondary;
 }
-

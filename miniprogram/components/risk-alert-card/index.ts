@@ -3,15 +3,15 @@ Component({
     risk: { type: Object, value: {} }
   },
   data: {
-    levelText: '低风险',
+    levelText: '\u4f4e\u98ce\u9669',
     badgeType: 'info'
   },
   observers: {
     'risk.level': function (level: string) {
       const map: Record<string, { text: string; type: string }> = {
-        high: { text: '高风险', type: 'danger' },
-        medium: { text: '中风险', type: 'warning' },
-        low: { text: '低风险', type: 'info' }
+        high: { text: '\u9ad8\u98ce\u9669', type: 'danger' },
+        medium: { text: '\u4e2d\u98ce\u9669', type: 'warning' },
+        low: { text: '\u4f4e\u98ce\u9669', type: 'info' }
       };
       const found = map[level] || map.low;
       this.setData({ levelText: found.text, badgeType: found.type });

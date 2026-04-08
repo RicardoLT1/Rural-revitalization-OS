@@ -8,9 +8,9 @@ Component({
   observers: {
     'approval.status': function (status: string) {
       const map: Record<string, string> = {
-        待审批: 'warning',
-        已退回: 'danger',
-        已通过: 'success'
+        '\u5f85\u5ba1\u6279': 'warning',
+        '\u5df2\u9a73\u56de': 'danger',
+        '\u5df2\u901a\u8fc7': 'success'
       };
       this.setData({ statusType: map[status] || 'neutral' });
     }

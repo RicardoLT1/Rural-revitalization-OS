@@ -1,5 +1,5 @@
 {
-  "navigationBarTitleText": "智能报表",
+  "navigationBarTitleText": "\u667A\u80FD\u62A5\u8868",
   "usingComponents": {
     "section-header": "/components/section-header/index",
     "chart-card": "/components/chart-card/index",

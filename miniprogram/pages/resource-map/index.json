@@ -1,5 +1,5 @@
 {
-  "navigationBarTitleText": "资源地图",
+  "navigationBarTitleText": "\u8D44\u6E90\u5730\u56FE",
   "usingComponents": {
     "section-header": "/components/section-header/index",
     "filter-bar": "/components/filter-bar/index",

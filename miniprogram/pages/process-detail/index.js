@@ -6,8 +6,8 @@ Page({
     statusType: 'warning',
     expandedNodeId: '',
     recordFilters: [
-      { key: 'all', label: '全部记录' },
-      { key: 'current', label: '当前节点记录' }
+      { key: 'all', label: '\u5168\u90e8\u8bb0\u5f55' },
+      { key: 'current', label: '\u5f53\u524d\u8282\u70b9\u8bb0\u5f55' }
     ],
     recordFilter: 'all',
     visibleRecords: processDetails.p1.records

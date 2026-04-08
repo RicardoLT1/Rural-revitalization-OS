@@ -1,8 +1,8 @@
 <view class="page-root dashboard-page">
   <view class="hero card">
     <view class="role">{{roleName}} | {{villageName}}</view>
-    <view class="headline">Village Operations Cockpit</view>
-    <view class="sub">Flow, revenue, progress and risks in one place with AI suggestions</view>
+    <view class="headline">乡村运营驾驶舱</view>
+    <view class="sub">聚焦客流、营收、项目进度与风险预警，支持智能辅助决策</view>
   </view>
 
   <view class="stats-grid page-section">
@@ -20,9 +20,9 @@
   </view>
 
   <view class="page-section">
-    <section-header title="Visitor Trend" subtitle="7d / 30d" />
+    <section-header title="客流趋势" subtitle="近7天 / 近30天" />
     <chart-card
-      title="Visitor Line"
+      title="客流趋势图"
       periods="{{periods}}"
       activePeriod="{{trendPeriod}}"
       ecOption="{{trendOption}}"
@@ -31,23 +31,38 @@
   </view>
 
   <view class="page-section">
-    <section-header title="Risk Alerts" subtitle="Key risks to follow" />
+    <section-header title="风险预警" subtitle="重点风险闭环跟踪" />
     <risk-alert-card wx:for="{{risks}}" wx:key="id" risk="{{item}}" />
   </view>
 
   <view class="page-section">
-    <section-header title="AI Suggestions" subtitle="Auto-generated insights" />
+    <section-header title="智能建议" subtitle="系统自动生成建议输出" />
     <ai-tip-card wx:for="{{suggestions}}" wx:key="id" tip="{{item}}" bind:action="onTipAction" />
   </view>
 
   <view class="page-section">
-    <section-header title="Quick Entry" subtitle="Jump to core modules" />
+    <section-header title="快捷入口" subtitle="高频功能快速访问" />
     <view class="entry-grid">
-      <view class="entry" data-action="map" bindtap="onEntryTap">Resource Map</view>
-      <view class="entry" data-action="collab" bindtap="onEntryTap">Collab Desk</view>
-      <view class="entry" data-action="report" bindtap="onEntryTap">Smart Report</view>
-      <view class="entry" data-action="match" bindtap="onEntryTap">Match</view>
-      <view class="entry" data-action="forecast" bindtap="onEntryTap">Forecast</view>
+      <view class="entry" data-action="map" bindtap="onEntryTap">
+        <view class="entry-icon">🗺</view>
+        <view class="entry-text">资源地图</view>
+      </view>
+      <view class="entry" data-action="collab" bindtap="onEntryTap">
+        <view class="entry-icon">🧩</view>
+        <view class="entry-text">协同工作台</view>
+      </view>
+      <view class="entry" data-action="report" bindtap="onEntryTap">
+        <view class="entry-icon">📊</view>
+        <view class="entry-text">智能报表</view>
+      </view>
+      <view class="entry" data-action="match" bindtap="onEntryTap">
+        <view class="entry-icon">🤝</view>
+        <view class="entry-text">招商推荐</view>
+      </view>
+      <view class="entry" data-action="forecast" bindtap="onEntryTap">
+        <view class="entry-icon">📈</view>
+        <view class="entry-text">趋势预测</view>
+      </view>
     </view>
   </view>
 </view>

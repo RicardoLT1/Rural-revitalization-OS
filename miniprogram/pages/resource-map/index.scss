@@ -4,15 +4,55 @@
   border-radius: $radius-lg;
   overflow: hidden;
   box-shadow: $shadow-card;
+  position: relative;
+  border: 1rpx solid rgba(47, 125, 50, 0.14);
 }
 
 .map {
   width: 100%;
-  height: 520rpx;
+  height: 540rpx;
+}
+
+.map-legend {
+  position: absolute;
+  left: 16rpx;
+  bottom: 16rpx;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8rpx;
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  padding: 6rpx 10rpx;
+  border-radius: 999rpx;
+  background: rgba(255, 255, 255, 0.9);
+  font-size: 22rpx;
+  color: $color-text-secondary;
+}
+
+.dot {
+  width: 10rpx;
+  height: 10rpx;
+  border-radius: 50%;
+  margin-right: 6rpx;
+}
+
+.dot.invest {
+  background: $color-success;
+}
+
+.dot.talk {
+  background: $color-warning;
+}
+
+.dot.signed {
+  background: $color-text-secondary;
 }
 
 .popup-wrap {
-  margin-top: -52rpx;
+  margin-top: -44rpx;
   position: relative;
   z-index: 2;
 }
