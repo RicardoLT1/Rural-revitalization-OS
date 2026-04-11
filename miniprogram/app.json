@@ -11,7 +11,7 @@
     "pages/forecast/index"
   ],
   "window": {
-    "navigationBarTitleText": "乡耘OS",
+    "navigationBarTitleText": "\u4e61\u8018OS",
     "navigationBarTextStyle": "black",
     "navigationBarBackgroundColor": "#F6F1E7",
     "backgroundColor": "#F6F1E7",
@@ -26,19 +26,19 @@
     "list": [
       {
         "pagePath": "pages/dashboard/index",
-        "text": "首页驾驶舱"
+        "text": "\u9996\u9875\u9a7e\u9a76\u8231"
       },
       {
         "pagePath": "pages/resource-map/index",
-        "text": "资源地图"
+        "text": "\u8d44\u6e90\u5730\u56fe"
       },
       {
         "pagePath": "pages/collab/index",
-        "text": "协同工作台"
+        "text": "\u534f\u540c\u5de5\u4f5c\u53f0"
       },
       {
         "pagePath": "pages/report/index",
-        "text": "智能报表"
+        "text": "\u667a\u80fd\u62a5\u8868"
       }
     ]
   },

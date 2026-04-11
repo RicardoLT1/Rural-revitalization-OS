@@ -1,11 +1,13 @@
 {
-  "navigationBarTitleText": "\u534F\u540C\u5DE5\u4F5C\u53F0",
+  "navigationBarTitleText": "\u534f\u540c\u5de5\u4f5c\u53f0",
   "usingComponents": {
     "section-header": "/components/section-header/index",
     "filter-bar": "/components/filter-bar/index",
     "approval-card": "/components/approval-card/index",
     "workflow-node-strip": "/components/workflow-node-strip/index",
     "message-item": "/components/message-item/index",
-    "empty-state": "/components/empty-state/index"
+    "empty-state": "/components/empty-state/index",
+    "error-state": "/components/error-state/index",
+    "loading-state": "/components/loading-state/index"
   }
 }

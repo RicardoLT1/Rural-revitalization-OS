@@ -1,32 +1,47 @@
-import { investmentMatches, resourceDetails } from '../../mock/resources';
+import { DEFAULT_LOADING_TEXT, PageState, getErrorMessage } from '../../constants/page';
+import { getInvestmentMatchView } from '../../services/report';
+import type { PageLoadState } from '../../types/common';
+import type { InvestmentMatchViewItem, ResourceDetail } from '../../types/resource';
 import { goForecast, goResourceDetail } from '../../utils/navigation';
 
 Page({
   data: {
-    resource: resourceDetails['res-01'],
-    matches: [] as Array<Record<string, any>>,
-    aiSummary: {
-      id: 'sum-1',
-      title: '\u62db\u5546\u7b56\u7565\u5efa\u8bae',
-      content: '\u5efa\u8bae\u4f18\u5148\u63a5\u6d3d\u9ad8\u8bc4\u5206\u5bf9\u8c61\uff0c\u5e76\u5728 7 \u5929\u5185\u5b8c\u6210\u73b0\u573a\u8e0f\u52d8\uff0c\u7f29\u77ed\u8f6c\u5316\u8def\u5f84\u3002',
-      priority: 'P1',
-      actionLabel: '\u67e5\u770b\u8d8b\u52bf\u9884\u6d4b',
-      actionType: 'forecast',
-      tag: '\u667a\u80fd\u7b56\u7565'
-    }
+    pageState: PageState.Loading as PageLoadState,
+    isLoading: true,
+    errorMessage: '',
+    loadingText: DEFAULT_LOADING_TEXT,
+    errorTitle: '\u62db\u5546\u63a8\u8350\u52a0\u8f7d\u5931\u8d25',
+    emptyTitle: '\u6682\u65e0\u5339\u914d\u7ed3\u679c',
+    emptyDescription: '\u5f53\u524d\u8d44\u6e90\u6682\u672a\u5339\u914d\u5230\u5408\u9002\u7684\u62db\u5546\u5bf9\u8c61\u3002',
+    resource: {} as Partial<ResourceDetail>,
+    matches: [] as InvestmentMatchViewItem[],
+    aiSummary: {}
   },
   onLoad(query: Record<string, string>) {
     const id = query.id || 'res-01';
-    const resource = resourceDetails[id] || resourceDetails['res-01'];
-    const source = investmentMatches[id] || investmentMatches['res-01'];
-    const matches = source.map((item) => ({
-      ...item,
-      priorityType: item.priority === '\u9ad8\u4f18\u5148' ? 'danger' : item.priority === '\u4e2d\u4f18\u5148' ? 'warning' : 'info'
-    }));
-    this.setData({ resource, matches });
+    this.loadMatches(id);
+  },
+  onRetry() {
+    this.loadMatches((this.data.resource as Partial<ResourceDetail>).id || 'res-01');
+  },
+  async loadMatches(id: string) {
+    this.setData({ pageState: PageState.Loading, isLoading: true, errorMessage: '' });
+    try {
+      const view = await getInvestmentMatchView(id);
+      this.setData({
+        ...view,
+        pageState: view.matches.length ? PageState.Ready : PageState.Empty,
+        isLoading: false
+      });
+    } catch (error) {
+      this.setData({ pageState: PageState.Error, isLoading: false, errorMessage: getErrorMessage(error) });
+    }
   },
   onResourceTap() {
-    goResourceDetail(this.data.resource.id);
+    const id = (this.data.resource as Partial<ResourceDetail>).id;
+    if (id) {
+      goResourceDetail(id);
+    }
   },
   onAiAction() {
     goForecast();

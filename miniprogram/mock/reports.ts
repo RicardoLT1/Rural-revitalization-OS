@@ -1,4 +1,4 @@
-import { ChartSeries, ReportSummary } from '../types';
+import type { ChartSeries, ReportSummary } from '../types/report';
 
 export const reportSummary: ReportSummary[] = [
   { id: 's1', title: '\u672c\u6708\u7d2f\u8ba1\u5ba2\u6d41', value: '4.8 \u4e07\u4eba\u6b21', delta: '+11.2%' },

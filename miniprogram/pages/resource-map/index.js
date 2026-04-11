@@ -1,29 +1,25 @@
-const { resourcePoints, resourceTags } = require('../../mock/resources');
-const { filterResources, toMapMarkers, calcMapCenter } = require('../../utils/map');
+const { getResourceMapView } = require('../../services/resource');
 const { goResourceDetail } = require('../../utils/navigation');
-
-const formatTagOptions = resourceTags.map((tag) => ({ key: tag, label: tag }));
 
 Page({
   data: {
-    tagOptions: formatTagOptions,
+    tagOptions: [],
     activeTag: '\u5168\u90e8',
-    allResources: resourcePoints,
-    filteredResources: resourcePoints,
+    allResources: [],
+    filteredResources: [],
     selectedResource: {},
-    markers: toMapMarkers(resourcePoints),
-    mapCenter: calcMapCenter(resourcePoints)
+    markers: [],
+    mapCenter: { latitude: 30.2239, longitude: 120.1661 }
+  },
+  onLoad() {
+    this.loadResourceMap(this.data.activeTag);
   },
   onTagChange(event) {
-    const activeTag = event.detail.key;
-    const filteredResources = filterResources(resourcePoints, activeTag);
-    this.setData({
-      activeTag,
-      filteredResources,
-      selectedResource: filteredResources[0] || {},
-      markers: toMapMarkers(filteredResources),
-      mapCenter: calcMapCenter(filteredResources)
-    });
+    this.loadResourceMap(event.detail.key);
+  },
+  async loadResourceMap(activeTag) {
+    const view = await getResourceMapView(activeTag);
+    this.setData(view);
   },
   onMarkerTap(event) {
     const markerId = event.detail.markerId;
@@ -38,7 +34,4 @@ Page({
   onPopupTap(event) {
     goResourceDetail(event.detail.id);
   },
-  onLoad() {
-    this.setData({ selectedResource: resourcePoints[0] });
-  }
 });

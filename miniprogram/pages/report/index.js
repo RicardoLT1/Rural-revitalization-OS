@@ -1,39 +1,35 @@
-const { dashboardData } = require('../../mock/dashboard');
-const { flowLine, ratioRing, reportAiTips, reportAutoSummary, reportSummary, revenueBar } = require('../../mock/reports');
+const { getReportDashboard, getReportPeriods } = require('../../services/report');
 const { buildBarOption, buildLineOption, buildRingOption } = require('../../utils/chart');
 const { goForecast, goInvestmentMatch } = require('../../utils/navigation');
 
 Page({
   data: {
-    summary: reportSummary,
-    periods: [
-      { key: '7d', label: '\u8fd17\u5929' },
-      { key: '30d', label: '\u8fd130\u5929' }
-    ],
+    summary: [],
+    periods: getReportPeriods(),
     period: '7d',
-    lineOption: buildLineOption(dashboardData.trends.days7),
-    barOption: buildBarOption(revenueBar['7d'].labels, revenueBar['7d'].series),
-    ringOption: buildRingOption(ratioRing.labels, ratioRing.values, ratioRing.colors),
-    autoSummary: reportAutoSummary,
-    aiTips: reportAiTips.map((content, index) => ({
-      id: `tip-${index}`,
-      title: `\u5efa\u8bae ${index + 1}`,
-      content,
-      priority: index === 0 ? 'P1' : 'P2',
-      actionLabel: index === 2 ? '\u67e5\u770b\u8d8b\u52bf\u9884\u6d4b' : '\u67e5\u770b\u62db\u5546\u63a8\u8350',
-      actionType: index === 2 ? 'forecast' : 'match',
-      tag: index === 0 ? '\u8fd0\u8425\u4f18\u5316' : index === 1 ? '\u62db\u5546\u5339\u914d' : '\u98ce\u9669\u89c4\u907f'
-    }))
+    lineOption: buildLineOption([]),
+    barOption: buildBarOption([], []),
+    ringOption: buildRingOption([], [], []),
+    autoSummary: '',
+    aiTips: []
+  },
+  onLoad() {
+    this.loadReport(this.data.period);
   },
   onPeriodChange(event) {
-    const period = event.detail.key;
+    this.loadReport(event.detail.key);
+  },
+  async loadReport(period) {
+    const view = await getReportDashboard(period);
     this.setData({
-      period,
-      lineOption: buildLineOption(flowLine[period].labels.map((label, index) => ({
-        date: label,
-        value: flowLine[period].series[0].values[index]
-      }))),
-      barOption: buildBarOption(revenueBar[period].labels, revenueBar[period].series)
+      summary: view.summary,
+      periods: view.periods,
+      period: view.period,
+      lineOption: buildLineOption(view.flowPoints),
+      barOption: buildBarOption(view.revenueBar.labels, view.revenueBar.series),
+      ringOption: buildRingOption(view.ratioRing.labels, view.ratioRing.values, view.ratioRing.colors),
+      autoSummary: view.autoSummary,
+      aiTips: view.aiTips
     });
   },
   onQuickTap(event) {

@@ -1,0 +1,20 @@
+.loading-state {
+  margin: 32rpx;
+  padding: 64rpx 32rpx;
+  border-radius: 28rpx;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1rpx solid rgba(47, 125, 50, 0.08);
+  text-align: center;
+  color: #5b6164;
+}
+.spinner {
+  width: 54rpx;
+  height: 54rpx;
+  margin: 0 auto 20rpx;
+  border-radius: 50%;
+  border: 6rpx solid rgba(47, 125, 50, 0.14);
+  border-top-color: #2f7d32;
+  animation: spin 0.9s linear infinite;
+}
+.text { font-size: 26rpx; }
+@keyframes spin { to { transform: rotate(360deg); } }

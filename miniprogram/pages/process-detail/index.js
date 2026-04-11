@@ -1,8 +1,8 @@
-const { processDetails } = require('../../mock/workflows');
+const { DEFAULT_PROCESS_ID, getProcessDetail, getProcessRecords, getProcessStatusType } = require('../../services/workflow');
 
 Page({
   data: {
-    detail: processDetails.p1,
+    detail: {},
     statusType: 'warning',
     expandedNodeId: '',
     recordFilters: [
@@ -10,15 +10,17 @@ Page({
       { key: 'current', label: '\u5f53\u524d\u8282\u70b9\u8bb0\u5f55' }
     ],
     recordFilter: 'all',
-    visibleRecords: processDetails.p1.records
+    visibleRecords: []
   },
   onLoad(query) {
-    const id = query.id || 'p1';
-    const detail = processDetails[id] || processDetails.p1;
-    const statusType = detail.blocker ? 'danger' : 'success';
+    const id = query.id || DEFAULT_PROCESS_ID;
+    this.loadProcess(id);
+  },
+  async loadProcess(id) {
+    const detail = await getProcessDetail(id);
     this.setData({
       detail,
-      statusType,
+      statusType: getProcessStatusType(detail),
       visibleRecords: detail.records
     });
   },
@@ -41,9 +43,7 @@ Page({
     this.applyRecordFilter(recordFilter, this.data.detail.currentNodeId);
   },
   applyRecordFilter(filter, nodeId) {
-    const visibleRecords = filter === 'current'
-      ? this.data.detail.records.filter((item) => item.nodeId === nodeId)
-      : this.data.detail.records;
+    const visibleRecords = getProcessRecords(this.data.detail, filter, nodeId);
     this.setData({ visibleRecords });
   }
 });

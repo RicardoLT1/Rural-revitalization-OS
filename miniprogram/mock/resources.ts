@@ -1,4 +1,4 @@
-import { InvestmentMatch, ResourceDetail, ResourcePoint } from '../types';
+import type { InvestmentMatch, ResourceDetail, ResourcePoint } from '../types/resource';
 
 export const resourceTags = ['\u5168\u90e8', '\u95f2\u7f6e\u519c\u623f', '\u571f\u5730', '\u6587\u65c5\u7a7a\u95f4', '\u53ef\u62db\u5546'];
 

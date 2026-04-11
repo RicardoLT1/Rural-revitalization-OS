@@ -1,4 +1,5 @@
-import { ChartSeries, ForecastPoint, TrendPoint } from '../types';
+import type { TrendPoint } from '../types/dashboard';
+import type { ChartSeries, ForecastPoint } from '../types/report';
 
 const baseGrid = { left: 28, right: 16, top: 26, bottom: 30, containLabel: true };
 

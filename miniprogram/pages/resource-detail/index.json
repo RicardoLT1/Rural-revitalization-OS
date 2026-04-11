@@ -1,8 +1,11 @@
 {
-  "navigationBarTitleText": "\u8D44\u6E90\u8BE6\u60C5",
+  "navigationBarTitleText": "\u8d44\u6e90\u8be6\u60c5",
   "usingComponents": {
     "section-header": "/components/section-header/index",
     "status-badge": "/components/status-badge/index",
-    "tag-group": "/components/tag-group/index"
+    "tag-group": "/components/tag-group/index",
+    "empty-state": "/components/empty-state/index",
+    "error-state": "/components/error-state/index",
+    "loading-state": "/components/loading-state/index"
   }
 }

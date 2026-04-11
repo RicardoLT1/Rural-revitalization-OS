@@ -1,4 +1,4 @@
-import { ApprovalItem, ProcessDetail, TodoItem, WorkflowNode } from '../types';
+import type { ApprovalItem, ProcessDetail, TodoItem, WorkflowMessage, WorkflowNode } from '../types/workflow';
 
 export const todoStats = {
   total: 16,
@@ -26,7 +26,7 @@ export const workflowStrip: WorkflowNode[] = [
   { id: 'n4', name: '\u5f52\u6863\u5907\u6848', owner: '\u6863\u6848\u5458', status: 'pending', time: '-', remark: '\u6d41\u7a0b\u5b8c\u6210\u540e\u5f52\u6863\u3002' }
 ];
 
-export const messages = [
+export const messages: WorkflowMessage[] = [
   { id: 'm1', title: '\u6d41\u7a0b p1 \u5728\u201c\u4e61\u9547\u590d\u6838\u201d\u8282\u70b9\u505c\u7559\u8d85\u8fc7 24 \u5c0f\u65f6', time: '5 \u5206\u949f\u524d', processId: 'p1', level: 'warning' },
   { id: 'm2', title: '\u6625\u8015\u6d3b\u52a8\u5ba1\u6279\u5df2\u88ab\u9a73\u56de\uff0c\u8bf7\u8865\u5145\u9884\u7b97\u660e\u7ec6', time: '20 \u5206\u949f\u524d', processId: 'p2', level: 'danger' },
   { id: 'm3', title: '\u5f52\u6863\u4e2d\u5fc3\u65b0\u589e 3 \u6761\u53ef\u5f52\u6863\u8bb0\u5f55', time: '1 \u5c0f\u65f6\u524d', processId: 'p3', level: 'info' }

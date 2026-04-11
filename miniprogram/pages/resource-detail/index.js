@@ -1,14 +1,17 @@
-const { resourceDetails } = require('../../mock/resources');
+const { getResourceDetail } = require('../../services/resource');
 const { goInvestmentMatch } = require('../../utils/navigation');
 
 Page({
   data: {
-    detail: resourceDetails['res-01'],
+    detail: {},
     statusType: 'success'
   },
   onLoad(query) {
     const id = query.id || 'res-01';
-    const detail = resourceDetails[id] || resourceDetails['res-01'];
+    this.loadDetail(id);
+  },
+  async loadDetail(id) {
+    const detail = await getResourceDetail(id);
     const statusMap = {
       '\u53ef\u62db\u5546': 'success',
       '\u6d3d\u8c08\u4e2d': 'warning',

@@ -1,23 +1,28 @@
-<view class="page-root">
-  <section-header title="趋势预测" subtitle="预测 + 置信区间 + 策略建议" />
+<loading-state wx:if="{{pageState === 'loading'}}" text="{{loadingText}}" />
+<error-state wx:elif="{{pageState === 'error'}}" title="{{errorTitle}}" message="{{errorMessage}}" bind:retry="onRetry" />
+<empty-state wx:elif="{{pageState === 'empty'}}" title="{{emptyTitle}}" description="{{emptyDescription}}" />
+<block wx:else>
+  <view class="page-root">
+    <section-header title="趋势预测" subtitle="预测 + 置信区间 + 策略建议" />
 
-  <view class="page-section">
-    <chart-card title="客流时序预测" ecOption="{{forecastOption}}" />
-  </view>
+    <view class="page-section">
+      <chart-card title="客流时序预测" ecOption="{{forecastOption}}" />
+    </view>
 
-  <view class="page-section card band-box">
-    <view class="title">置信区间</view>
-    <view class="confidence">置信度：{{band.confidence}}</view>
-    <view class="range">{{band.range}}</view>
-  </view>
+    <view class="page-section card band-box">
+      <view class="title">置信区间</view>
+      <view class="confidence">置信度：{{band.confidence}}</view>
+      <view class="range">{{band.range}}</view>
+    </view>
 
-  <view class="page-section">
-    <section-header title="风险预警" />
-    <risk-alert-card wx:for="{{risks}}" wx:key="id" risk="{{item}}" />
-  </view>
+    <view class="page-section">
+      <section-header title="风险预警" />
+      <risk-alert-card wx:for="{{risks}}" wx:key="id" risk="{{item}}" />
+    </view>
 
-  <view class="page-section card strategy-box">
-    <section-header title="智能策略建议" />
-    <view wx:for="{{strategies}}" wx:key="*this" class="strategy-item">{{index + 1}}. {{item}}</view>
+    <view class="page-section card strategy-box">
+      <section-header title="智能策略建议" />
+      <view wx:for="{{strategies}}" wx:key="*this" class="strategy-item">{{index + 1}}. {{item}}</view>
+    </view>
   </view>
-</view>
+</block>

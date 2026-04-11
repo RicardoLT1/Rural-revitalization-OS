@@ -1,10 +1,13 @@
 {
-  "navigationBarTitleText": "\u6D41\u7A0B\u8BE6\u60C5",
+  "navigationBarTitleText": "\u6d41\u7a0b\u8be6\u60c5",
   "usingComponents": {
     "section-header": "/components/section-header/index",
     "status-badge": "/components/status-badge/index",
     "timeline-node": "/components/timeline-node/index",
     "filter-bar": "/components/filter-bar/index",
-    "workflow-node-strip": "/components/workflow-node-strip/index"
+    "workflow-node-strip": "/components/workflow-node-strip/index",
+    "empty-state": "/components/empty-state/index",
+    "error-state": "/components/error-state/index",
+    "loading-state": "/components/loading-state/index"
   }
 }

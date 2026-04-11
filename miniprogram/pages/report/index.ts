@@ -1,46 +1,58 @@
-import { flowLine, ratioRing, reportAiTips, reportAutoSummary, reportSummary, revenueBar } from '../../mock/reports';
+import { DEFAULT_LOADING_TEXT, PageState, getErrorMessage } from '../../constants/page';
+import { getReportDashboard, getReportPeriods } from '../../services/report';
+import type { PageLoadState } from '../../types/common';
+import type { ReportPeriod } from '../../types/report';
 import { buildBarOption, buildLineOption, buildRingOption } from '../../utils/chart';
 import { goForecast, goInvestmentMatch } from '../../utils/navigation';
 
-const toFlowPoints = (period: '7d' | '30d') => {
-  return flowLine[period].labels.map((label, index) => ({
-    date: label,
-    value: flowLine[period].series[0].values[index]
-  }));
-};
-
 Page({
   data: {
-    summary: reportSummary,
-    periods: [
-      { key: '7d', label: '\u8fd17\u5929' },
-      { key: '30d', label: '\u8fd130\u5929' }
-    ],
+    pageState: PageState.Loading as PageLoadState,
+    isLoading: true,
+    errorMessage: '',
+    loadingText: DEFAULT_LOADING_TEXT,
+    errorTitle: '\u667a\u80fd\u62a5\u8868\u52a0\u8f7d\u5931\u8d25',
+    emptyTitle: '\u6682\u65e0\u62a5\u8868\u6570\u636e',
+    emptyDescription: '\u5f53\u524d\u65f6\u95f4\u7ef4\u5ea6\u4e0b\u6ca1\u6709\u53ef\u5c55\u793a\u7684\u5206\u6790\u6570\u636e\u3002',
+    summary: [],
+    periods: getReportPeriods(),
     period: '7d',
-    lineOption: buildLineOption(toFlowPoints('7d')),
-    barOption: buildBarOption(revenueBar['7d'].labels, revenueBar['7d'].series),
-    ringOption: buildRingOption(ratioRing.labels, ratioRing.values, ratioRing.colors),
-    autoSummary: reportAutoSummary,
-    aiTips: reportAiTips.map((content, index) => ({
-      id: 'tip-' + index,
-      title: '\u5efa\u8bae ' + (index + 1),
-      content,
-      priority: index === 0 ? 'P1' : 'P2',
-      actionLabel: index === 2 ? '\u67e5\u770b\u8d8b\u52bf\u9884\u6d4b' : '\u67e5\u770b\u62db\u5546\u63a8\u8350',
-      actionType: index === 2 ? 'forecast' : 'match',
-      tag: index === 0 ? '\u8fd0\u8425\u4f18\u5316' : index === 1 ? '\u62db\u5546\u5339\u914d' : '\u98ce\u9669\u89c4\u907f'
-    }))
+    lineOption: buildLineOption([]),
+    barOption: buildBarOption([], []),
+    ringOption: buildRingOption([], [], []),
+    autoSummary: '',
+    aiTips: []
   },
-
+  onLoad() {
+    this.loadReport(this.data.period as ReportPeriod);
+  },
+  onRetry() {
+    this.loadReport(this.data.period as ReportPeriod);
+  },
   onPeriodChange(event: WechatMiniprogram.CustomEvent<{ key: '7d' | '30d' }>) {
-    const period = event.detail.key;
-    this.setData({
-      period,
-      lineOption: buildLineOption(toFlowPoints(period)),
-      barOption: buildBarOption(revenueBar[period].labels, revenueBar[period].series)
-    });
+    this.loadReport(event.detail.key);
   },
-
+  async loadReport(period: ReportPeriod) {
+    this.setData({ pageState: PageState.Loading, isLoading: true, errorMessage: '' });
+    try {
+      const view = await getReportDashboard(period);
+      const isEmpty = !view.summary.length && !view.flowPoints.length && !view.revenueBar.series.length && !view.ratioRing.values.length;
+      this.setData({
+        pageState: isEmpty ? PageState.Empty : PageState.Ready,
+        isLoading: false,
+        summary: view.summary,
+        periods: view.periods,
+        period: view.period,
+        lineOption: buildLineOption(view.flowPoints),
+        barOption: buildBarOption(view.revenueBar.labels, view.revenueBar.series),
+        ringOption: buildRingOption(view.ratioRing.labels, view.ratioRing.values, view.ratioRing.colors),
+        autoSummary: view.autoSummary,
+        aiTips: view.aiTips
+      });
+    } catch (error) {
+      this.setData({ pageState: PageState.Error, isLoading: false, errorMessage: getErrorMessage(error) });
+    }
+  },
   onQuickTap(event: WechatMiniprogram.TouchEvent) {
     const action = event.currentTarget.dataset.action;
     if (action === 'match') {
@@ -49,7 +61,6 @@ Page({
     }
     goForecast();
   },
-
   onTipAction(event: WechatMiniprogram.CustomEvent<{ actionType: string }>) {
     if (event.detail.actionType === 'forecast') {
       goForecast();

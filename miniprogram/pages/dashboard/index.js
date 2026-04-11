@@ -1,24 +1,38 @@
-const { dashboardData } = require('../../mock/dashboard');
+const { getDashboardData, getDashboardPeriods, getDashboardTrend } = require('../../services/dashboard');
 const { buildLineOption } = require('../../utils/chart');
 const { goCollab, goForecast, goInvestmentMatch, goMap, goReport } = require('../../utils/navigation');
 
 Page({
   data: {
-    roleName: dashboardData.roleName,
-    villageName: dashboardData.villageName,
-    stats: dashboardData.stats,
-    risks: dashboardData.risks,
-    suggestions: dashboardData.suggestions,
-    periods: [
-      { key: '7d', label: '\u8fd17\u5929' },
-      { key: '30d', label: '\u8fd130\u5929' }
-    ],
+    roleName: '',
+    villageName: '',
+    stats: [],
+    risks: [],
+    suggestions: [],
+    periods: getDashboardPeriods(),
     trendPeriod: '7d',
-    trendOption: buildLineOption(dashboardData.trends.days7)
+    trendOption: buildLineOption([])
+  },
+  onLoad() {
+    this.loadDashboard();
+  },
+  async loadDashboard() {
+    const dashboard = await getDashboardData();
+    this.setData({
+      roleName: dashboard.roleName,
+      villageName: dashboard.villageName,
+      stats: dashboard.stats,
+      risks: dashboard.risks,
+      suggestions: dashboard.suggestions,
+      trendOption: buildLineOption(dashboard.trends.days7)
+    });
   },
   onTrendPeriodChange(event) {
     const trendPeriod = event.detail.key;
-    const trendData = trendPeriod === '30d' ? dashboardData.trends.days30 : dashboardData.trends.days7;
+    this.loadTrend(trendPeriod);
+  },
+  async loadTrend(trendPeriod) {
+    const trendData = await getDashboardTrend(trendPeriod);
     this.setData({
       trendPeriod,
       trendOption: buildLineOption(trendData)

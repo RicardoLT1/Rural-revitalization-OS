@@ -1,8 +1,11 @@
 {
-  "navigationBarTitleText": "\u8D8B\u52BF\u9884\u6D4B",
+  "navigationBarTitleText": "\u8d8b\u52bf\u9884\u6d4b",
   "usingComponents": {
     "section-header": "/components/section-header/index",
     "chart-card": "/components/chart-card/index",
-    "risk-alert-card": "/components/risk-alert-card/index"
+    "risk-alert-card": "/components/risk-alert-card/index",
+    "empty-state": "/components/empty-state/index",
+    "error-state": "/components/error-state/index",
+    "loading-state": "/components/loading-state/index"
   }
 }

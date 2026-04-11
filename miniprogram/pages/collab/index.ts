@@ -1,42 +1,44 @@
-import { approvals, messages, todoItems, todoStats, workflowStrip } from '../../mock/workflows';
+import { DEFAULT_LOADING_TEXT, PageState, getErrorMessage } from '../../constants/page';
+import { getCollabWorkbench } from '../../services/workflow';
+import type { PageLoadState } from '../../types/common';
 import { goProcessDetail } from '../../utils/navigation';
-
-const statusClassMap: Record<string, string> = {
-  '\u5f85\u5904\u7406': 'pending',
-  '\u8fdb\u884c\u4e2d': 'processing',
-  '\u5df2\u903e\u671f': 'overdue'
-};
-
-const enrichTodos = (items: typeof todoItems) => {
-  return items.map((item) => ({
-    ...item,
-    statusClass: statusClassMap[item.status] || 'pending'
-  }));
-};
 
 Page({
   data: {
-    todoStats,
-    approvals,
-    workflowStrip,
-    workflowStripCurrent: workflowStrip.find((item) => item.status === 'doing')?.id || '',
-    messages,
-    categoryOptions: [
-      { key: '\u5168\u90e8', label: '\u5168\u90e8' },
-      { key: '\u9879\u76ee\u7533\u62a5', label: '\u9879\u76ee\u7533\u62a5' },
-      { key: '\u8d44\u4ea7\u6d41\u8f6c', label: '\u8d44\u4ea7\u6d41\u8f6c' },
-      { key: '\u6d3b\u52a8\u7b79\u5907', label: '\u6d3b\u52a8\u7b79\u5907' },
-      { key: '\u6751\u6c11\u8bae\u4e8b', label: '\u6751\u6c11\u8bae\u4e8b' }
-    ],
+    pageState: PageState.Loading as PageLoadState,
+    isLoading: true,
+    errorMessage: '',
+    loadingText: DEFAULT_LOADING_TEXT,
+    errorTitle: '\u534f\u540c\u5de5\u4f5c\u53f0\u52a0\u8f7d\u5931\u8d25',
+    emptyTitle: '\u6682\u65e0\u534f\u540c\u4e8b\u9879',
+    emptyDescription: '\u5f53\u524d\u5206\u7c7b\u4e0b\u6ca1\u6709\u5f85\u529e\u3001\u5ba1\u6279\u6216\u63d0\u9192\u6d88\u606f\u3002',
+    todoStats: {},
+    approvals: [],
+    workflowStrip: [],
+    workflowStripCurrent: '',
+    messages: [],
+    categoryOptions: [],
     activeCategory: '\u5168\u90e8',
-    filteredTodos: enrichTodos(todoItems)
+    filteredTodos: []
+  },
+  onLoad() {
+    this.loadWorkbench(this.data.activeCategory);
+  },
+  onRetry() {
+    this.loadWorkbench(this.data.activeCategory);
   },
   onCategoryChange(event: WechatMiniprogram.CustomEvent<{ key: string }>) {
-    const activeCategory = event.detail.key;
-    const filteredTodos = activeCategory === '\u5168\u90e8'
-      ? todoItems
-      : todoItems.filter((item) => item.category === activeCategory);
-    this.setData({ activeCategory, filteredTodos: enrichTodos(filteredTodos) });
+    this.loadWorkbench(event.detail.key);
+  },
+  async loadWorkbench(activeCategory: string) {
+    this.setData({ pageState: PageState.Loading, isLoading: true, errorMessage: '' });
+    try {
+      const view = await getCollabWorkbench(activeCategory);
+      const isEmpty = !view.filteredTodos.length && !view.approvals.length && !view.messages.length;
+      this.setData({ ...view, pageState: isEmpty ? PageState.Empty : PageState.Ready, isLoading: false });
+    } catch (error) {
+      this.setData({ pageState: PageState.Error, isLoading: false, errorMessage: getErrorMessage(error) });
+    }
   },
   onTodoTap(event: WechatMiniprogram.TouchEvent) {
     const processId = event.currentTarget.dataset.processid;

@@ -1,4 +1,4 @@
-import { DashboardMetrics } from '../types';
+import type { DashboardMetrics } from '../types/dashboard';
 
 export const dashboardData: DashboardMetrics = {
   villageName: '\u9752\u79be\u793a\u8303\u6751',

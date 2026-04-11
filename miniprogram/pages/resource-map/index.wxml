@@ -1,41 +1,46 @@
-<view class="page-root">
-  <section-header title="资源地图" subtitle="资源一张图：可视、可查、可招商" />
-  <filter-bar options="{{tagOptions}}" activeKey="{{activeTag}}" bind:change="onTagChange" />
+<loading-state wx:if="{{pageState === 'loading'}}" text="{{loadingText}}" />
+<error-state wx:elif="{{pageState === 'error'}}" title="{{errorTitle}}" message="{{errorMessage}}" bind:retry="onRetry" />
+<empty-state wx:elif="{{pageState === 'empty'}}" title="{{emptyTitle}}" description="{{emptyDescription}}" />
+<block wx:else>
+  <view class="page-root">
+    <section-header title="资源地图" subtitle="资源一张图：可视、可查、可招商" />
+    <filter-bar options="{{tagOptions}}" activeKey="{{activeTag}}" bind:change="onTagChange" />
 
-  <view class="map-wrap page-section">
-    <map
-      id="resourceMap"
-      class="map"
-      latitude="{{mapCenter.latitude}}"
-      longitude="{{mapCenter.longitude}}"
-      scale="14"
-      markers="{{markers}}"
-      bindmarkertap="onMarkerTap"
-      show-location="true"
-      enable-3D="true"
-      enable-poi="true"
-    ></map>
-    <view class="map-legend">
-      <view class="legend-item"><text class="dot invest"></text> 可招商</view>
-      <view class="legend-item"><text class="dot talk"></text> 洽谈中</view>
-      <view class="legend-item"><text class="dot signed"></text> 已签约</view>
+    <view class="map-wrap page-section">
+      <map
+        id="resourceMap"
+        class="map"
+        latitude="{{mapCenter.latitude}}"
+        longitude="{{mapCenter.longitude}}"
+        scale="14"
+        markers="{{markers}}"
+        bindmarkertap="onMarkerTap"
+        show-location="true"
+        enable-3D="true"
+        enable-poi="true"
+      ></map>
+      <view class="map-legend">
+        <view class="legend-item"><text class="dot invest"></text> 可招商</view>
+        <view class="legend-item"><text class="dot talk"></text> 洽谈中</view>
+        <view class="legend-item"><text class="dot signed"></text> 已签约</view>
+      </view>
+    </view>
+
+    <view wx:if="{{selectedResource.id}}" class="popup-wrap">
+      <map-resource-popup resource="{{selectedResource}}" bind:tap="onPopupTap" />
+    </view>
+
+    <view class="page-section">
+      <section-header title="资源列表" subtitle="点击卡片查看资源详情" />
+      <empty-state wx:if="{{!filteredResources.length}}" title="当前筛选下暂无资源" description="请切换标签查看其他资源" />
+      <resource-card
+        wx:for="{{filteredResources}}"
+        wx:key="id"
+        resource="{{item}}"
+        active="{{selectedResource.id === item.id}}"
+        showActions="{{false}}"
+        bind:tap="onResourceTap"
+      />
     </view>
   </view>
-
-  <view wx:if="{{selectedResource.id}}" class="popup-wrap">
-    <map-resource-popup resource="{{selectedResource}}" bind:tap="onPopupTap" />
-  </view>
-
-  <view class="page-section">
-    <section-header title="资源列表" subtitle="点击卡片查看资源详情" />
-    <empty-state wx:if="{{!filteredResources.length}}" title="当前筛选下暂无资源" description="请切换标签查看其他资源" />
-    <resource-card
-      wx:for="{{filteredResources}}"
-      wx:key="id"
-      resource="{{item}}"
-      active="{{selectedResource.id === item.id}}"
-      showActions="{{false}}"
-      bind:tap="onResourceTap"
-    />
-  </view>
-</view>
+</block>

@@ -1,0 +1,6 @@
+<view class="state-card error-state">
+  <view class="state-icon">!</view>
+  <view class="state-title">{{title}}</view>
+  <view class="state-desc">{{message}}</view>
+  <view class="state-btn" bindtap="onRetry">{{retryText}}</view>
+</view>

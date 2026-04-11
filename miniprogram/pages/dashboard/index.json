@@ -1,10 +1,13 @@
 {
-  "navigationBarTitleText": "\u9996\u9875\u9A7E\u9A76\u8231",
+  "navigationBarTitleText": "\u9996\u9875\u9a7e\u9a76\u8231",
   "usingComponents": {
     "section-header": "/components/section-header/index",
     "stat-card": "/components/stat-card/index",
     "chart-card": "/components/chart-card/index",
     "risk-alert-card": "/components/risk-alert-card/index",
-    "ai-tip-card": "/components/ai-tip-card/index"
+    "ai-tip-card": "/components/ai-tip-card/index",
+    "empty-state": "/components/empty-state/index",
+    "error-state": "/components/error-state/index",
+    "loading-state": "/components/loading-state/index"
   }
 }
