@@ -1,0 +1,91 @@
+@import '../../styles/tokens.scss';
+
+.splash-page {
+  min-height: 100vh;
+  box-sizing: border-box;
+  padding: 120rpx 48rpx 64rpx;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background: linear-gradient(160deg, #eef6e8 0%, #f6f1e7 48%, #ffffff 100%);
+  color: $color-text-primary;
+}
+
+.brand-card {
+  margin-top: 80rpx;
+}
+
+.brand-mark {
+  width: 112rpx;
+  height: 112rpx;
+  border-radius: 28rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-size: 56rpx;
+  font-weight: $weight-bold;
+  background: linear-gradient(145deg, #2f7d32, #6faf5e);
+  box-shadow: 0 16rpx 34rpx rgba(47, 125, 50, 0.2);
+}
+
+.brand-title {
+  margin-top: 34rpx;
+  font-size: 52rpx;
+  font-weight: $weight-bold;
+  color: $color-brand;
+  letter-spacing: 0;
+}
+
+.brand-subtitle {
+  margin-top: 14rpx;
+  font-size: 28rpx;
+  color: $color-text-primary;
+  font-weight: $weight-medium;
+}
+
+.brand-line {
+  margin-top: 34rpx;
+  width: 180rpx;
+  height: 8rpx;
+  border-radius: 999rpx;
+  background: linear-gradient(90deg, #2f7d32, #d58a2a);
+}
+
+.brand-desc {
+  margin-top: 28rpx;
+  font-size: 24rpx;
+  color: $color-text-secondary;
+}
+
+.loading-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-bottom: 40rpx;
+}
+
+.loading-dot {
+  width: 18rpx;
+  height: 18rpx;
+  margin-right: 14rpx;
+  border-radius: 50%;
+  background: $color-brand;
+  animation: pulse 1.1s ease-in-out infinite;
+}
+
+.loading-text {
+  font-size: 24rpx;
+  color: $color-text-secondary;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.35;
+    transform: scale(0.82);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.12);
+  }
+}

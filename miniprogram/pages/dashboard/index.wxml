@@ -44,23 +44,23 @@
     <section-header title="快捷入口" subtitle="高频功能快速访问" />
     <view class="entry-grid">
       <view class="entry" data-action="map" bindtap="onEntryTap">
-        <view class="entry-icon">🗺</view>
+        <view class="entry-icon">图</view>
         <view class="entry-text">资源地图</view>
       </view>
       <view class="entry" data-action="collab" bindtap="onEntryTap">
-        <view class="entry-icon">🧩</view>
+        <view class="entry-icon">协</view>
         <view class="entry-text">协同工作台</view>
       </view>
       <view class="entry" data-action="report" bindtap="onEntryTap">
-        <view class="entry-icon">📊</view>
+        <view class="entry-icon">报</view>
         <view class="entry-text">智能报表</view>
       </view>
       <view class="entry" data-action="match" bindtap="onEntryTap">
-        <view class="entry-icon">🤝</view>
+        <view class="entry-icon">招</view>
         <view class="entry-text">招商推荐</view>
       </view>
       <view class="entry" data-action="forecast" bindtap="onEntryTap">
-        <view class="entry-icon">📈</view>
+        <view class="entry-icon">预</view>
         <view class="entry-text">趋势预测</view>
       </view>
     </view>

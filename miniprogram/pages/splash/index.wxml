@@ -1,0 +1,14 @@
+<view class="splash-page">
+  <view class="brand-card">
+    <view class="brand-mark">乡</view>
+    <view class="brand-title">乡耘OS</view>
+    <view class="brand-subtitle">乡村数字化运营平台</view>
+    <view class="brand-line"></view>
+    <view class="brand-desc">资源管理 · 流程协同 · 数据决策</view>
+  </view>
+
+  <view class="loading-wrap">
+    <view class="loading-dot"></view>
+    <view class="loading-text">正在进入运营驾驶舱</view>
+  </view>
+</view>

@@ -47,12 +47,82 @@
   padding: 12rpx 12rpx 10rpx;
 }
 
-.line-canvas {
-  width: 100%;
+.line-stage {
   height: 280rpx;
-  display: block;
+  position: relative;
+  overflow: visible;
+  border-left: 2rpx solid rgba(217, 212, 200, 0.9);
+  border-bottom: 2rpx solid rgba(217, 212, 200, 0.9);
 }
 
+.grid-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2rpx;
+  background: rgba(236, 231, 219, 0.86);
+}
+
+.grid-line.g1 {
+  top: 25%;
+}
+
+.grid-line.g2 {
+  top: 50%;
+}
+
+.grid-line.g3 {
+  top: 75%;
+}
+
+.line-area {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 72%;
+  background: linear-gradient(180deg, rgba(47, 125, 50, 0.1), rgba(47, 125, 50, 0.02));
+}
+
+.line-segment {
+  position: absolute;
+  height: 6rpx;
+  margin-top: -3rpx;
+  border-radius: 999rpx;
+  background: #2f7d32;
+  box-shadow: 0 4rpx 10rpx rgba(47, 125, 50, 0.18);
+  transform-origin: left center;
+  z-index: 2;
+}
+
+.line-dot {
+  position: absolute;
+  width: 16rpx;
+  height: 16rpx;
+  margin-left: -8rpx;
+  margin-top: -8rpx;
+  border-radius: 50%;
+  background: #fff;
+  border: 4rpx solid #2f7d32;
+  box-sizing: border-box;
+  z-index: 3;
+}
+
+.line-value {
+  position: absolute;
+  min-width: 52rpx;
+  padding: 4rpx 8rpx;
+  margin-left: -26rpx;
+  margin-top: -42rpx;
+  border-radius: 8rpx;
+  background: rgba(255, 255, 255, 0.92);
+  color: #2f7d32;
+  font-size: 18rpx;
+  font-weight: $weight-medium;
+  text-align: center;
+  box-shadow: 0 4rpx 12rpx rgba(47, 125, 50, 0.12);
+  z-index: 4;
+}
 .x-axis {
   margin-top: 8rpx;
   display: flex;

@@ -15,13 +15,30 @@
   </view>
 
   <view class="line-chart" wx:if="{{kind === 'line' || kind === 'forecast'}}">
-    <canvas
-      id="{{lineCanvasId}}"
-      canvas-id="{{lineCanvasId}}"
-      class="line-canvas"
-      width="{{canvasWidth}}"
-      height="{{canvasHeight}}"
-    ></canvas>
+    <view class="line-stage">
+      <view class="grid-line g1"></view>
+      <view class="grid-line g2"></view>
+      <view class="grid-line g3"></view>
+      <view class="line-area"></view>
+      <view
+        wx:for="{{lineSegments}}"
+        wx:key="index"
+        class="line-segment"
+        style="left: {{item.left}}%; top: {{item.top}}%; width: {{item.width}}%; transform: rotate({{item.rotate}}deg);"
+      ></view>
+      <view
+        wx:for="{{linePoints}}"
+        wx:key="index"
+        class="line-dot"
+        style="left: {{item.left}}%; top: {{item.top}}%;"
+      ></view>
+      <view
+        wx:for="{{linePoints}}"
+        wx:key="index"
+        class="line-value"
+        style="left: {{item.left}}%; top: {{item.top}}%;"
+      >{{item.valueLabel}}</view>
+    </view>
     <view class="x-axis">
       <view wx:for="{{lineLabels}}" wx:key="index" class="x-label">{{item}}</view>
     </view>
