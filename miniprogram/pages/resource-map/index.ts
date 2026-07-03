@@ -1,4 +1,4 @@
-﻿import { DEFAULT_LOADING_TEXT, PageState, getErrorMessage } from '../../constants/page';
+import { DEFAULT_LOADING_TEXT, PageState, getErrorMessage } from '../../constants/page';
 import { getResourceTags, getResources } from '../../services/resource';
 import type { PageLoadState } from '../../types/common';
 import type { ResourcePoint } from '../../types/resource';

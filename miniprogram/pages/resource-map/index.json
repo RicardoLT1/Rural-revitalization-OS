@@ -1,1 +1,10 @@
-{"navigationBarTitleText":"资源列表","enablePullDownRefresh":true,"usingComponents":{"section-header":"/components/section-header/index","empty-state":"/components/empty-state/index","error-state":"/components/error-state/index","loading-state":"/components/loading-state/index"}}
+{
+  "navigationBarTitleText": "\u8d44\u6e90\u5217\u8868",
+  "enablePullDownRefresh": true,
+  "usingComponents": {
+    "section-header": "/components/section-header/index",
+    "empty-state": "/components/empty-state/index",
+    "error-state": "/components/error-state/index",
+    "loading-state": "/components/loading-state/index"
+  }
+}

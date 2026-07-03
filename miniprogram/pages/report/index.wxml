@@ -3,50 +3,56 @@
 <empty-state wx:elif="{{pageState === 'empty'}}" title="{{emptyTitle}}" description="{{emptyDescription}}" />
 <block wx:else>
   <view class="page-root report-page">
-    <section-header title="智能报表" subtitle="申请趋势、资源结构与运营建议" />
+    <view class="report-hero">
+      <view class="hero-label">智能报表</view>
+      <view class="hero-title">运营数据一眼看清</view>
+      <view class="hero-desc">汇总资源热度、申请趋势和结构分布，辅助你选择更合适的合作机会。</view>
+    </view>
+
+    <view class="period-card">
+      <view class="period-title">统计周期</view>
+      <view class="period-tabs">
+        <view wx:for="{{periods}}" wx:key="key" data-key="{{item.key}}" class="period-tab {{period === item.key ? 'active' : ''}}" bindtap="onPeriodTap">{{item.label}}</view>
+      </view>
+    </view>
 
     <view class="summary-grid page-section">
       <view wx:for="{{summary}}" wx:key="id" class="summary-card">
+        <view class="summary-icon">{{index + 1}}</view>
         <view class="title">{{item.title}}</view>
         <view class="value mono">{{item.value}}</view>
         <view class="delta">{{item.delta}}</view>
       </view>
     </view>
 
-    <view class="page-section">
-      <chart-card
-        title="申请趋势"
-        periods="{{periods}}"
-        activePeriod="{{period}}"
-        ecOption="{{lineOption}}"
-        bind:periodchange="onPeriodChange"
-      />
+    <view class="page-section chart-shell">
+      <chart-card title="申请趋势" ecOption="{{lineOption}}" />
     </view>
 
-    <view class="page-section">
+    <view class="page-section chart-shell">
       <chart-card title="资源热度对比" ecOption="{{barOption}}" />
     </view>
 
-    <view class="page-section">
+    <view class="page-section chart-shell">
       <chart-card title="资源类型结构" ecOption="{{ringOption}}" />
     </view>
 
-    <view class="page-section card summary-box">
-      <section-header title="自动摘要" />
+    <view class="page-section summary-box">
+      <view class="section-title">自动摘要</view>
       <view class="text">{{autoSummary}}</view>
     </view>
 
     <view class="page-section">
-      <section-header title="智能建议" />
+      <view class="section-title">智能建议</view>
       <ai-tip-card wx:for="{{aiTips}}" wx:key="id" tip="{{item}}" bind:action="onTipAction" />
     </view>
 
     <view class="page-section quick-actions">
       <view class="btn" data-action="match" bindtap="onQuickTap">
-        <text class="btn-icon">招</text> 招商推荐
+        <text class="btn-icon">握</text>招商推荐
       </view>
       <view class="btn" data-action="forecast" bindtap="onQuickTap">
-        <text class="btn-icon">趋</text> 趋势预测
+        <text class="btn-icon">趋</text>趋势预测
       </view>
     </view>
   </view>

@@ -1,24 +1,43 @@
-﻿<loading-state wx:if="{{pageState === 'loading'}}" text="{{loadingText}}" />
+<loading-state wx:if="{{pageState === 'loading'}}" text="{{loadingText}}" />
 <error-state wx:elif="{{pageState === 'error'}}" title="{{errorTitle}}" message="{{errorMessage}}" bind:retry="onRetry" />
 <block wx:else>
   <view class="page-root applications-page">
-    <section-header title="我的申请" subtitle="查看合作申请状态、审批意见和处理时间" />
-
-    <view class="filter-line">
-      <view wx:for="{{statusOptions}}" wx:key="key" data-value="{{item.key}}" class="filter-chip {{activeStatus === item.key ? 'active' : ''}}" bindtap="onStatusTap">{{item.label}}</view>
+    <view class="application-hero">
+      <view class="hero-label">协同工作台</view>
+      <view class="hero-title">我的合作申请</view>
+      <view class="hero-desc">查看申请状态、审批意见与处理时间，重要进度会集中展示在这里。</view>
+      <view class="summary-row">
+        <view class="summary-item">
+          <view class="summary-num">{{allApplications.length}}</view>
+          <view class="summary-text">全部申请</view>
+        </view>
+        <view class="summary-item">
+          <view class="summary-num">{{myApplications.length}}</view>
+          <view class="summary-text">当前筛选</view>
+        </view>
+      </view>
     </view>
+
+    <scroll-view class="filter-line" scroll-x="true" show-scrollbar="false">
+      <view wx:for="{{statusOptions}}" wx:key="key" data-value="{{item.key}}" class="filter-chip {{activeStatus === item.key ? 'active' : ''}}" bindtap="onStatusTap">{{item.label}}</view>
+    </scroll-view>
 
     <empty-state wx:if="{{pageState === 'empty'}}" title="{{emptyTitle}}" description="{{emptyDescription}}" />
 
     <view wx:else class="application-list">
       <view wx:for="{{myApplications}}" wx:key="id" class="application-card" data-processid="{{item.id}}" bindtap="onApplicationTap">
-        <view class="row-between">
-          <view class="title">{{item.title}}</view>
-          <view class="status {{item.statusClass}}">{{item.statusText}}</view>
+        <view class="timeline-node {{item.statusClass}}">单</view>
+        <view class="card-main">
+          <view class="row-between top-row">
+            <view class="title">{{item.title}}</view>
+            <view class="status {{item.statusClass}}">{{item.statusText}}</view>
+          </view>
+          <view class="meta">申请编号：{{item.id}}</view>
+          <view class="meta">资源编号：{{item.resourceId}}</view>
+          <view class="meta">提交时间：{{item.createdAt}}</view>
+          <view wx:if="{{item.remark}}" class="remark">审批意见：{{item.remark}}</view>
+          <view class="detail-link">查看进度</view>
         </view>
-        <view class="meta">申请编号：{{item.id}}</view>
-        <view class="meta">资源编号：{{item.resourceId}} · 提交时间：{{item.createdAt}}</view>
-        <view wx:if="{{item.remark}}" class="remark">审批意见：{{item.remark}}</view>
       </view>
     </view>
   </view>

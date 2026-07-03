@@ -4,10 +4,125 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>乡耘 OS 综合工作台</title>
-    <link rel="stylesheet" href="./styles.css" />
+    <link rel="stylesheet" href="./styles.css?v=20260703-table-fix" />
   </head>
   <body>
-    <div class="app-shell">
+    <section class="login-page" id="loginPage">
+      <div class="login-bg-lines" aria-hidden="true"></div>
+      <div class="login-scenery" aria-hidden="true">
+        <span class="scenery-hill hill-a"></span>
+        <span class="scenery-hill hill-b"></span>
+        <span class="scenery-card card-a"></span>
+        <span class="scenery-card card-b"></span>
+        <span class="scenery-card card-c"></span>
+      </div>
+      <div class="login-top-brand">
+        <div class="brand-mark">乡</div>
+        <div>
+          <h1>乡耘 OS</h1>
+          <p>综合工作台</p>
+        </div>
+      </div>
+      <div class="login-shell">
+        <aside class="login-brand-panel">
+          <div class="field-lines" aria-hidden="true"></div>
+          <div class="brand-copy">
+            <h2>乡村运营协同平台</h2>
+            <p class="lead">资源运营、合作审批与数据看板</p>
+            <p>连接人、资源与流程，提升乡村运营效率，让协同更简单，让决策更有数据支撑。</p>
+          </div>
+
+          <div class="login-capability-grid">
+            <div class="login-capability-card">
+              <span class="cap-icon">协</span>
+              <strong>STAFF</strong>
+              <em>审批与资源</em>
+              <p>高效处理日常工作</p>
+            </div>
+            <div class="login-capability-card">
+              <span class="cap-icon">管</span>
+              <strong>ADMIN</strong>
+              <em>用户与系统</em>
+              <p>配置权限与组织</p>
+            </div>
+            <div class="login-capability-card">
+              <span class="cap-icon">析</span>
+              <strong>DATA</strong>
+              <em>运营看板</em>
+              <p>数据洞察与分析</p>
+            </div>
+          </div>
+        </aside>
+
+        <main class="login-form-panel">
+          <section class="auth-card" id="authCard">
+            <div class="login-emblem">乡</div>
+            <div class="auth-heading">
+              <h2>登录工作台</h2>
+              <p>使用工作人员或管理员账号进入</p>
+            </div>
+
+            <p class="form-message" id="formMessage" aria-live="polite"></p>
+
+            <div class="form-grid">
+              <div class="register-only hidden" id="displayNameField">
+                <label for="registerDisplayName">姓名</label>
+                <div class="input-shell">
+                  <span class="input-icon" aria-hidden="true">名</span>
+                  <input id="registerDisplayName" autocomplete="name" placeholder="请输入姓名" />
+                </div>
+              </div>
+
+              <label for="username">账号</label>
+              <div class="input-shell">
+                <span class="input-icon" aria-hidden="true">账</span>
+                <input id="username" autocomplete="username" placeholder="请输入账号" />
+              </div>
+
+              <label for="password">密码</label>
+              <div class="input-shell">
+                <span class="input-icon" aria-hidden="true">密</span>
+                <input id="password" autocomplete="current-password" type="password" placeholder="请输入密码" />
+                <button class="password-toggle" id="passwordToggle" type="button" aria-label="显示密码">显示</button>
+              </div>
+
+              <div class="register-only hidden" id="confirmPasswordField">
+                <label for="confirmPassword">确认密码</label>
+                <div class="input-shell">
+                  <span class="input-icon" aria-hidden="true">确</span>
+                  <input id="confirmPassword" autocomplete="new-password" type="password" placeholder="请再次输入密码" />
+                </div>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <label class="remember-option">
+                <input id="rememberMe" type="checkbox" checked />
+                <span>记住登录状态</span>
+              </label>
+              <button class="link-button" type="button">忘记密码</button>
+            </div>
+
+            <button class="primary login-submit" id="submitAuthBtn" type="button">登录</button>
+            <p class="auth-switch">
+              <span id="authSwitchText">没有账号？</span>
+              <button class="link-button" id="authModeToggle" type="button">注册普通用户</button>
+            </p>
+            <p class="login-rule"><span>◆</span> 安全加密登录</p>
+          </section>
+        </main>
+      </div>
+      <div class="login-footer">
+        <span>安全登录</span>
+        <i></i>
+        <span>权限分级</span>
+        <i></i>
+        <span>数据协同</span>
+        <strong>© 2026 乡耘 OS 综合工作台 · 让乡村运营更高效</strong>
+      </div>
+    </section>
+
+    <div class="app-shell hidden" id="appShell">
       <aside class="sidebar">
         <div class="brand">
           <div class="brand-mark">乡</div>
@@ -16,23 +131,6 @@
             <p>综合工作台</p>
           </div>
         </div>
-
-        <section class="auth-card" id="authCard">
-          <div class="auth-heading">
-            <h2>登录工作台</h2>
-            <p>使用工作人员或管理员账号进入</p>
-          </div>
-          <div class="form-grid">
-            <label for="username">账号</label>
-            <input id="username" autocomplete="username" placeholder="请输入账号" />
-
-            <label for="password">密码</label>
-            <input id="password" autocomplete="current-password" type="password" placeholder="请输入密码" />
-          </div>
-
-          <button class="primary" id="submitAuthBtn" type="button">登录</button>
-          <p class="form-message" id="formMessage" aria-live="polite"></p>
-        </section>
 
         <section class="session-panel hidden" id="sessionPanel">
           <div class="profile">
@@ -51,7 +149,21 @@
             <p id="eyebrow">欢迎使用</p>
             <h2 id="pageTitle">综合工作台</h2>
           </div>
-          <button class="ghost hidden" id="refreshBtn" type="button">刷新</button>
+          <div class="topbar-tools">
+            <label class="global-search">
+              <span>⌕</span>
+              <input type="search" placeholder="全局搜索" aria-label="全局搜索" />
+            </label>
+            <button class="icon-btn notification-btn" type="button" aria-label="通知">
+              <span>铃</span>
+              <strong>5</strong>
+            </button>
+            <button class="ghost hidden" id="refreshBtn" type="button">刷新</button>
+            <div class="top-avatar">
+              <span id="topAvatar">A</span>
+              <strong id="topRole">ADMIN</strong>
+            </div>
+          </div>
         </header>
 
         <section id="content" class="content"></section>
@@ -69,6 +181,6 @@
       </aside>
     </div>
 
-    <script src="./app.js"></script>
+    <script src="./app.js?v=20260703-table-fix"></script>
   </body>
 </html>

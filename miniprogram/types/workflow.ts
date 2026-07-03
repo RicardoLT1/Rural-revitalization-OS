@@ -1,4 +1,4 @@
-﻿import { OptionItem, StatusType } from './common';
+import { OptionItem, StatusType } from './common';
 
 export type WorkflowStatus = 'done' | 'doing' | 'pending' | 'blocked';
 export type TodoStatus = '待处理' | '进行中' | '已逾期' | '已完成' | 'PENDING' | 'APPROVED' | 'REJECTED';

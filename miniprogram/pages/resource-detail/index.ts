@@ -1,10 +1,17 @@
-﻿import { DEFAULT_LOADING_TEXT, PageState, getErrorMessage } from '../../constants/page';
+import { DEFAULT_LOADING_TEXT, PageState, getErrorMessage } from '../../constants/page';
 import { getInvestmentStatusType, getResourceDetail } from '../../services/resource';
 import { submitCooperationApplication } from '../../services/workflow';
 import type { PageLoadState } from '../../types/common';
 import type { ResourceDetail } from '../../types/resource';
 
 const PHONE_REG = /^1\d{10}$/;
+const canSubmitApplication = (status = '') => {
+  const value = String(status).toUpperCase();
+  if (!value) {
+    return true;
+  }
+  return !['已签约', '下架', '不可用', 'CLOSED', 'SIGNED', 'OFFLINE'].some((item) => value.includes(item.toUpperCase()));
+};
 
 Page({
   data: {
@@ -40,7 +47,7 @@ Page({
     this.setData({ pageState: PageState.Loading, isLoading: true, errorMessage: '' });
     try {
       const detail = await getResourceDetail(id);
-      const canApply = detail.investmentStatus === '可招商';
+      const canApply = canSubmitApplication(detail.investmentStatus);
       this.setData({
         pageState: detail?.id ? PageState.Ready : PageState.Empty,
         isLoading: false,

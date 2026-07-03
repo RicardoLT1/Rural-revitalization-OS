@@ -1,15 +1,21 @@
 @import './tokens.scss';
 
 page {
-  background: $color-bg;
+  background:
+    radial-gradient(circle at 92% 2%, rgba(47, 141, 87, 0.12), transparent 34%),
+    linear-gradient(180deg, #f8faf5 0%, $color-bg 100%);
   color: $color-text-primary;
   font-size: $font-sm;
   font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
 }
 
+button::after {
+  border: 0;
+}
+
 .page-root {
   min-height: 100vh;
-  padding: $space-3;
+  padding: 24rpx 24rpx 132rpx;
   box-sizing: border-box;
 }
 

@@ -1,4 +1,4 @@
-﻿<loading-state wx:if="{{pageState === 'loading'}}" text="{{loadingText}}" />
+<loading-state wx:if="{{pageState === 'loading'}}" text="{{loadingText}}" />
 <error-state wx:elif="{{pageState === 'error'}}" title="{{errorTitle}}" message="{{errorMessage}}" bind:retry="onRetry" />
 <empty-state wx:elif="{{pageState === 'empty'}}" title="{{emptyTitle}}" description="{{emptyDescription}}" />
 <block wx:else>

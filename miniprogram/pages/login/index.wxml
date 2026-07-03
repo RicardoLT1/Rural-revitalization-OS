@@ -1,25 +1,34 @@
 <view class="auth-page">
   <view class="brand">
-    <view class="brand-mark">耘</view>
+    <view class="brand-mark">乡</view>
     <view>
       <view class="brand-title">乡耘 OS</view>
       <view class="brand-subtitle">乡村资源协同服务</view>
     </view>
   </view>
 
+  <view class="slogan-block">
+    <view class="slogan-kicker">让乡村资源被看见</view>
+    <view class="slogan-title">连接资源、申请与审批，让合作更顺畅。</view>
+  </view>
+
   <view class="auth-panel">
     <view class="panel-title">账号登录</view>
     <view class="field">
       <view class="label">账号</view>
-      <input class="input" placeholder="请输入账号" value="{{username}}" bindinput="onUsernameInput" />
+      <view class="input-wrap">
+        <input class="input" placeholder="请输入账号" value="{{username}}" bindinput="onUsernameInput" />
+      </view>
     </view>
     <view class="field">
       <view class="label">密码</view>
-      <input class="input" password placeholder="请输入密码" value="{{password}}" bindinput="onPasswordInput" />
+      <view class="input-wrap">
+        <input class="input" password placeholder="请输入密码" value="{{password}}" bindinput="onPasswordInput" />
+      </view>
     </view>
     <button class="primary-btn" loading="{{isSubmitting}}" disabled="{{isSubmitting}}" bindtap="onLogin">
-      {{isSubmitting ? '登录中' : '登录'}}
+      {{isSubmitting ? '登录中...' : '登录'}}
     </button>
-    <button class="ghost-btn" bindtap="onGoRegister">注册普通用户</button>
+    <button class="ghost-btn" bindtap="onGoRegister">注册账号</button>
   </view>
 </view>

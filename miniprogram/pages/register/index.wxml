@@ -1,26 +1,39 @@
-<view class="auth-page">
-  <view class="page-title">注册普通用户</view>
-  <view class="page-subtitle">注册后可浏览资源、提交合作申请并查看审批结果。</view>
+<view class="auth-page register-page">
+  <view class="brand compact">
+    <view class="brand-mark">乡</view>
+    <view>
+      <view class="brand-title">创建账号</view>
+      <view class="brand-subtitle">注册后可浏览资源并提交合作申请</view>
+    </view>
+  </view>
 
   <view class="auth-panel">
     <view class="field">
       <view class="label">账号</view>
-      <input class="input" placeholder="至少 3 个字符" data-key="username" value="{{username}}" bindinput="onInput" />
+      <view class="input-wrap">
+        <input class="input" placeholder="至少 3 个字符" data-key="username" value="{{username}}" bindinput="onInput" />
+      </view>
     </view>
     <view class="field">
       <view class="label">姓名</view>
-      <input class="input" placeholder="用于申请展示" data-key="displayName" value="{{displayName}}" bindinput="onInput" />
+      <view class="input-wrap">
+        <input class="input" placeholder="用于申请展示" data-key="displayName" value="{{displayName}}" bindinput="onInput" />
+      </view>
     </view>
     <view class="field">
       <view class="label">密码</view>
-      <input class="input" password placeholder="至少 6 位" data-key="password" value="{{password}}" bindinput="onInput" />
+      <view class="input-wrap">
+        <input class="input" password placeholder="至少 6 位" data-key="password" value="{{password}}" bindinput="onInput" />
+      </view>
     </view>
     <view class="field">
       <view class="label">确认密码</view>
-      <input class="input" password placeholder="再次输入密码" data-key="confirmPassword" value="{{confirmPassword}}" bindinput="onInput" />
+      <view class="input-wrap">
+        <input class="input" password placeholder="再次输入密码" data-key="confirmPassword" value="{{confirmPassword}}" bindinput="onInput" />
+      </view>
     </view>
     <button class="primary-btn" loading="{{isSubmitting}}" disabled="{{isSubmitting}}" bindtap="onRegister">
-      {{isSubmitting ? '注册中' : '注册并登录'}}
+      {{isSubmitting ? '创建中...' : '创建并登录'}}
     </button>
   </view>
 </view>

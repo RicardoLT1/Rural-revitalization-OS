@@ -1,4 +1,8 @@
-﻿@import '../../styles/tokens.scss';
+@import '../../styles/tokens.scss';
+
+.detail-page {
+  padding-bottom: 190rpx;
+}
 
 .detail-hero {
   min-height: 280rpx;
@@ -61,24 +65,46 @@
 }
 
 .actions {
+  display: none;
+}
+
+.bottom-actions {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 12;
   display: flex;
   gap: 16rpx;
+  padding: 18rpx 24rpx calc(18rpx + env(safe-area-inset-bottom));
+  background: rgba(255, 255, 255, 0.96);
+  border-top: 1rpx solid rgba(47, 141, 87, 0.12);
+  box-shadow: 0 -12rpx 30rpx rgba(31, 72, 53, 0.08);
+  box-sizing: border-box;
 }
 
 .btn {
   flex: 1;
-  border-radius: 12rpx;
+  height: 82rpx;
+  padding: 0;
+  border-radius: 22rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: normal;
   font-size: 28rpx;
+  font-weight: 800;
 }
 
 .btn.primary {
   color: #fff;
-  background: #2f7d32;
+  background: linear-gradient(135deg, #2f8d57, #55ae6e);
+  box-shadow: 0 14rpx 30rpx rgba(47, 141, 87, 0.18);
 }
 
 .btn.ghost {
-  color: #2f7d32;
-  background: #eef6e8;
+  color: #2f8d57;
+  background: #eaf6ee;
 }
 
 .form-mask {

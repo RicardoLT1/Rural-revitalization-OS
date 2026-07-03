@@ -140,12 +140,8 @@ export const getMyApplications = async () => {
   if (isMockMode('workflow')) {
     return [];
   }
-  try {
-    const payload = await get<unknown>('/workflows/my');
-    return enrichApplications(unwrapList<MyApplicationItem>(payload));
-  } catch (error) {
-    return [];
-  }
+  const payload = await get<unknown>('/workflows/my');
+  return enrichApplications(unwrapList<MyApplicationItem>(payload));
 };
 
 export const approveWorkflow = async (workflowId: string, remark = '') => {

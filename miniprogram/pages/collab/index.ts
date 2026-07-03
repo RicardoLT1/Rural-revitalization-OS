@@ -1,4 +1,4 @@
-﻿import { DEFAULT_LOADING_TEXT, PageState, getErrorMessage } from '../../constants/page';
+import { DEFAULT_LOADING_TEXT, PageState, getErrorMessage } from '../../constants/page';
 import { getMyApplications } from '../../services/workflow';
 import type { PageLoadState } from '../../types/common';
 import type { MyApplicationItem } from '../../types/workflow';

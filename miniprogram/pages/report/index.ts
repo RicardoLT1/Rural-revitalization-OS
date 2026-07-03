@@ -32,6 +32,12 @@ Page({
   onPeriodChange(event: WechatMiniprogram.CustomEvent<{ key: '7d' | '30d' }>) {
     this.loadReport(event.detail.key);
   },
+  onPeriodTap(event: WechatMiniprogram.TouchEvent) {
+    const key = event.currentTarget.dataset.key as ReportPeriod;
+    if (key && key !== this.data.period) {
+      this.loadReport(key);
+    }
+  },
   async loadReport(period: ReportPeriod) {
     this.setData({ pageState: PageState.Loading, isLoading: true, errorMessage: '' });
     try {

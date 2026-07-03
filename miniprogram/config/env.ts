@@ -2,7 +2,7 @@ export type DataSource = 'mock' | 'api';
 export type ApiModule = 'dashboard' | 'resource' | 'workflow' | 'report';
 
 export const envConfig = {
-  dataSource: 'mock' as DataSource,
+  dataSource: 'api' as DataSource,
   baseURL: 'http://127.0.0.1:8080/api',
   demoAutoLogin: false,
   demoAccount: {

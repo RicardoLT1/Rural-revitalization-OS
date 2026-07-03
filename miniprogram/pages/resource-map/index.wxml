@@ -1,34 +1,50 @@
-﻿<loading-state wx:if="{{pageState === 'loading'}}" text="{{loadingText}}" />
+<loading-state wx:if="{{pageState === 'loading'}}" text="{{loadingText}}" />
 <error-state wx:elif="{{pageState === 'error'}}" title="{{errorTitle}}" message="{{errorMessage}}" bind:retry="onRetry" />
 <block wx:else>
   <view class="page-root resource-page">
-    <section-header title="资源列表" subtitle="搜索可合作资源，查看详情后提交申请" />
+    <view class="resource-hero">
+      <view class="hero-label">资源地图</view>
+      <view class="hero-title">发现适合合作的乡村资源</view>
+      <view class="hero-desc">按分类、状态和关键词快速筛选，进入详情后即可发起合作申请。</view>
+    </view>
 
     <view class="search-card">
       <view class="search-row">
-        <input class="search-input" placeholder="搜索资源名称或位置" value="{{keyword}}" confirm-type="search" bindinput="onKeywordInput" bindconfirm="onSearch" />
+        <view class="search-box">
+          <text class="search-icon">⌕</text>
+          <input class="search-input" placeholder="搜索资源名称、位置" value="{{keyword}}" confirm-type="search" bindinput="onKeywordInput" bindconfirm="onSearch" />
+        </view>
         <button class="search-btn" bindtap="onSearch">搜索</button>
       </view>
-      <view class="filter-line">
-        <view wx:for="{{categoryOptions}}" wx:key="*this" data-value="{{item}}" class="filter-chip {{activeCategory === item ? 'active' : ''}}" bindtap="onCategoryTap">{{item}}</view>
-      </view>
-      <view class="filter-line compact">
-        <view wx:for="{{statusOptions}}" wx:key="*this" data-value="{{item}}" class="filter-chip {{activeStatus === item ? 'active' : ''}}" bindtap="onStatusTap">{{item}}</view>
-      </view>
+      <scroll-view class="filter-scroll" scroll-x="true" show-scrollbar="false">
+        <view class="filter-chip {{activeCategory === item ? 'active' : ''}}" wx:for="{{categoryOptions}}" wx:key="*this" data-value="{{item}}" bindtap="onCategoryTap">{{item}}</view>
+      </scroll-view>
+      <scroll-view class="filter-scroll compact" scroll-x="true" show-scrollbar="false">
+        <view class="filter-chip status {{activeStatus === item ? 'active' : ''}}" wx:for="{{statusOptions}}" wx:key="*this" data-value="{{item}}" bindtap="onStatusTap">{{item}}</view>
+      </scroll-view>
     </view>
 
-    <view class="map-wrap" wx:if="{{markers.length}}">
+    <view class="map-card" wx:if="{{markers.length}}">
       <map class="map" latitude="{{mapCenter.latitude}}" longitude="{{mapCenter.longitude}}" scale="13" markers="{{markers}}"></map>
+      <view class="map-badge">附近 {{resources.length}} 个资源</view>
     </view>
 
     <empty-state wx:if="{{pageState === 'empty'}}" title="{{emptyTitle}}" description="{{emptyDescription}}" />
 
     <view class="resource-list" wx:else>
+      <view class="list-head">
+        <view class="section-title">资源推荐</view>
+        <view class="section-count">{{resources.length}} 项</view>
+      </view>
       <view wx:for="{{resources}}" wx:key="id" class="resource-card" data-id="{{item.id}}" bindtap="onResourceTap">
+        <view class="thumb">
+          <view class="thumb-icon">资</view>
+        </view>
         <view class="card-main">
           <view class="resource-title">{{item.name}}</view>
           <view class="resource-meta">{{item.category}} · {{item.address}}</view>
           <view class="resource-desc">面积 {{item.area}}㎡ · 预计年收益 {{item.annualEstimate}} 万元</view>
+          <view class="resource-link">查看详情</view>
         </view>
         <view class="status-pill">{{item.investmentStatus}}</view>
       </view>

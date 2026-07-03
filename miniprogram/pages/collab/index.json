@@ -1,1 +1,10 @@
-{"navigationBarTitleText":"我的申请","enablePullDownRefresh":true,"usingComponents":{"section-header":"/components/section-header/index","empty-state":"/components/empty-state/index","error-state":"/components/error-state/index","loading-state":"/components/loading-state/index"}}
+{
+  "navigationBarTitleText": "\u6211\u7684\u7533\u8bf7",
+  "enablePullDownRefresh": true,
+  "usingComponents": {
+    "section-header": "/components/section-header/index",
+    "empty-state": "/components/empty-state/index",
+    "error-state": "/components/error-state/index",
+    "loading-state": "/components/loading-state/index"
+  }
+}

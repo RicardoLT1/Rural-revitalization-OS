@@ -1,81 +1,209 @@
-﻿@import '../../styles/tokens.scss';
+@import '../../styles/tokens.scss';
 
 .applications-page {
-  padding-bottom: 48rpx;
+  padding-bottom: 150rpx;
+}
+
+.application-hero {
+  position: relative;
+  overflow: hidden;
+  padding: 30rpx;
+  border-radius: 30rpx;
+  color: #fff;
+  background:
+    radial-gradient(circle at 84% 18%, rgba(255, 231, 145, 0.55), transparent 16%),
+    linear-gradient(135deg, #174f3a 0%, #2f8d57 62%, #7fbd73 100%);
+  box-shadow: 0 20rpx 46rpx rgba(31, 72, 53, 0.18);
+}
+
+.application-hero::after {
+  content: '';
+  position: absolute;
+  right: -50rpx;
+  bottom: -70rpx;
+  width: 280rpx;
+  height: 160rpx;
+  border-radius: 50% 50% 0 0;
+  background: rgba(255, 255, 255, 0.17);
+}
+
+.hero-label {
+  display: inline-flex;
+  padding: 8rpx 18rpx;
+  border-radius: 999rpx;
+  color: rgba(255, 255, 255, 0.95);
+  background: rgba(255, 255, 255, 0.16);
+  font-size: 22rpx;
+}
+
+.hero-title {
+  position: relative;
+  z-index: 1;
+  margin-top: 20rpx;
+  font-size: 40rpx;
+  font-weight: 800;
+}
+
+.hero-desc {
+  position: relative;
+  z-index: 1;
+  width: 82%;
+  margin-top: 14rpx;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 24rpx;
+  line-height: 1.65;
+}
+
+.summary-row {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  gap: 16rpx;
+  margin-top: 24rpx;
+}
+
+.summary-item {
+  min-width: 150rpx;
+  padding: 16rpx 18rpx;
+  border-radius: 20rpx;
+  background: rgba(255, 255, 255, 0.16);
+  border: 1rpx solid rgba(255, 255, 255, 0.22);
+}
+
+.summary-num {
+  font-size: 34rpx;
+  font-weight: 800;
+}
+
+.summary-text {
+  margin-top: 4rpx;
+  color: rgba(255, 255, 255, 0.84);
+  font-size: 21rpx;
 }
 
 .filter-line {
   margin: 24rpx 0;
-  display: flex;
-  gap: 12rpx;
-  overflow-x: auto;
   white-space: nowrap;
 }
 
 .filter-chip {
-  flex: 0 0 auto;
-  padding: 14rpx 24rpx;
+  display: inline-flex;
+  margin-right: 12rpx;
+  padding: 13rpx 25rpx;
   border-radius: 999rpx;
-  color: #526156;
-  background: #f3f5f1;
-  font-size: 24rpx;
-  border: 1rpx solid rgba(47, 125, 50, 0.08);
+  color: #52635a;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1rpx solid rgba(47, 141, 87, 0.12);
+  box-shadow: 0 8rpx 22rpx rgba(31, 72, 53, 0.05);
+  font-size: 23rpx;
 }
 
 .filter-chip.active {
   color: #fff;
-  background: #2f7d32;
+  background: #2f8d57;
+  box-shadow: 0 8rpx 20rpx rgba(47, 141, 87, 0.18);
 }
 
 .application-card {
+  position: relative;
+  display: flex;
+  gap: 18rpx;
   margin-bottom: 18rpx;
-  padding: 26rpx;
-  border-radius: 22rpx;
-  background: #fff;
-  border: 1rpx solid rgba(47, 125, 50, 0.12);
-  box-shadow: 0 10rpx 24rpx rgba(30, 54, 38, 0.05);
+  padding: 22rpx;
+  border-radius: 26rpx;
+  background: rgba(255, 255, 255, 0.94);
+  border: 1rpx solid rgba(47, 141, 87, 0.12);
+  box-shadow: 0 14rpx 36rpx rgba(31, 72, 53, 0.08);
+  transition: transform 0.18s ease;
+}
+
+.application-card:active {
+  transform: scale(0.98);
+}
+
+.timeline-node {
+  flex: 0 0 auto;
+  width: 54rpx;
+  height: 54rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  background: #ed9b32;
+  font-size: 22rpx;
+  font-weight: 800;
+}
+
+.timeline-node.done { background: #2f8d57; }
+.timeline-node.rejected { background: #d55349; }
+.timeline-node.pending { background: #ed9b32; }
+
+.card-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.top-row {
+  align-items: flex-start;
+  gap: 12rpx;
 }
 
 .title {
   flex: 1;
   min-width: 0;
-  font-size: 30rpx;
-  font-weight: 700;
-  color: #1f3324;
+  color: #21342a;
+  font-size: 28rpx;
+  font-weight: 800;
+  line-height: 1.4;
+  word-break: break-all;
 }
 
 .status {
-  margin-left: 16rpx;
+  flex: 0 0 auto;
+  max-width: 128rpx;
   padding: 8rpx 14rpx;
   border-radius: 999rpx;
-  font-size: 22rpx;
-  font-weight: 600;
+  font-size: 21rpx;
+  font-weight: 800;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .status.pending {
-  color: #8a5a00;
-  background: #fff5d6;
+  color: #d07815;
+  background: #fff3df;
 }
 
 .status.done {
-  color: #2f7d32;
-  background: #eef6e8;
+  color: #2f8d57;
+  background: #eaf6ee;
 }
 
 .status.rejected {
-  color: #a7352a;
-  background: #fdecea;
+  color: #c9433e;
+  background: #fff0ee;
 }
 
 .meta,
 .remark {
-  margin-top: 12rpx;
-  font-size: 24rpx;
-  line-height: 1.5;
-  color: #68736b;
+  margin-top: 8rpx;
+  color: #68776f;
+  font-size: 22rpx;
+  line-height: 1.45;
 }
 
 .remark {
+  padding: 12rpx 14rpx;
+  border-radius: 16rpx;
   color: #3f4b42;
+  background: #f6faf5;
+}
+
+.detail-link {
+  margin-top: 12rpx;
+  color: #2f8d57;
+  font-size: 23rpx;
+  font-weight: 800;
 }

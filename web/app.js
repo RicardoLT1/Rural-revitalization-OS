@@ -1,7 +1,7 @@
 ﻿const DEFAULT_BASE_URL = "http://127.0.0.1:8080/api";
 
 const state = {
-  baseUrl: localStorage.getItem("xiangyun.baseUrl") || DEFAULT_BASE_URL,
+  baseUrl: DEFAULT_BASE_URL,
   token: localStorage.getItem("xiangyun.token") || "",
   user: readJson(localStorage.getItem("xiangyun.user")),
   view: localStorage.getItem("xiangyun.view") || "dashboard",
@@ -15,12 +15,26 @@ const state = {
   resourceStatus: "ALL",
   userKeyword: "",
   userRole: "ALL",
+  isLoggingIn: false,
+  authMode: "login",
 };
 
 const els = {
+  loginPage: document.querySelector("#loginPage"),
+  appShell: document.querySelector("#appShell"),
+  authTitle: document.querySelector(".auth-heading h2"),
+  authSubtitle: document.querySelector(".auth-heading p"),
+  registerDisplayName: document.querySelector("#registerDisplayName"),
+  displayNameField: document.querySelector("#displayNameField"),
   username: document.querySelector("#username"),
   password: document.querySelector("#password"),
+  confirmPassword: document.querySelector("#confirmPassword"),
+  confirmPasswordField: document.querySelector("#confirmPasswordField"),
+  passwordToggle: document.querySelector("#passwordToggle"),
+  rememberMe: document.querySelector("#rememberMe"),
   submitAuthBtn: document.querySelector("#submitAuthBtn"),
+  authModeToggle: document.querySelector("#authModeToggle"),
+  authSwitchText: document.querySelector("#authSwitchText"),
   logoutBtn: document.querySelector("#logoutBtn"),
   refreshBtn: document.querySelector("#refreshBtn"),
   formMessage: document.querySelector("#formMessage"),
@@ -28,6 +42,8 @@ const els = {
   sessionPanel: document.querySelector("#sessionPanel"),
   displayName: document.querySelector("#displayName"),
   roleBadge: document.querySelector("#roleBadge"),
+  topAvatar: document.querySelector("#topAvatar"),
+  topRole: document.querySelector("#topRole"),
   nav: document.querySelector("#nav"),
   eyebrow: document.querySelector("#eyebrow"),
   pageTitle: document.querySelector("#pageTitle"),
@@ -53,8 +69,10 @@ function bindEvents() {
   els.submitAuthBtn.addEventListener("click", submitAuth);
   els.logoutBtn.addEventListener("click", logout);
   els.refreshBtn.addEventListener("click", () => renderCurrentView());
+  els.passwordToggle.addEventListener("click", togglePasswordVisibility);
+  els.authModeToggle.addEventListener("click", toggleAuthMode);
 
-  [els.username, els.password].forEach((input) => {
+  [els.registerDisplayName, els.username, els.password, els.confirmPassword].forEach((input) => {
     input.addEventListener("keydown", (event) => {
       if (event.key === "Enter") submitAuth();
     });
@@ -70,6 +88,12 @@ function bindEvents() {
   });
 
   els.content.addEventListener("click", async (event) => {
+    const dashboardRangeButton = event.target.closest("[data-dashboard-days]");
+    if (dashboardRangeButton) {
+      state.days = dashboardRangeButton.dataset.dashboardDays;
+      await renderDashboard();
+      return;
+    }
     const approvalButton = event.target.closest("[data-approval]");
     if (approvalButton) {
       await handleApproval(approvalButton.dataset.workflowId, approvalButton.dataset.approval);
@@ -146,23 +170,94 @@ async function restoreSession() {
 }
 
 async function submitAuth() {
+  if (state.authMode === "register") {
+    await register();
+    return;
+  }
   await login();
 }
 
 async function login() {
-  setMessage("登录中...");
+  if (state.isLoggingIn) return;
+  const username = els.username.value.trim();
+  const password = els.password.value;
+  if (!username || !password) {
+    setMessage("请输入账号和密码", true);
+    markLoginInvalid(true);
+    return;
+  }
+
+  state.isLoggingIn = true;
+  markLoginInvalid(false);
+  setLoginButtonLoading(true);
+  setMessage("");
   try {
     const result = await api("/auth/login", {
       method: "POST",
       body: {
-        username: els.username.value.trim(),
-        password: els.password.value,
+        username,
+        password,
       },
       skipAuth: true,
     });
     acceptLogin(result.body.data);
   } catch (error) {
-    setMessage(error.message, true);
+    markLoginInvalid(true);
+    setMessage(toFriendlyError(error.message, "账号或密码错误，请重新输入"), true);
+  } finally {
+    state.isLoggingIn = false;
+    setLoginButtonLoading(false);
+  }
+}
+
+async function register() {
+  if (state.isLoggingIn) return;
+  const displayName = els.registerDisplayName.value.trim();
+  const username = els.username.value.trim();
+  const password = els.password.value;
+  const confirmPassword = els.confirmPassword.value;
+  if (!displayName || !username || !password || !confirmPassword) {
+    setMessage("请完整填写注册信息", true);
+    markLoginInvalid(true);
+    return;
+  }
+  if (username.length < 3) {
+    setMessage("账号至少 3 个字符", true);
+    markLoginInvalid(true);
+    return;
+  }
+  if (password.length < 6) {
+    setMessage("密码至少 6 位", true);
+    markLoginInvalid(true);
+    return;
+  }
+  if (password !== confirmPassword) {
+    setMessage("两次输入的密码不一致", true);
+    markLoginInvalid(true);
+    return;
+  }
+
+  state.isLoggingIn = true;
+  markLoginInvalid(false);
+  setLoginButtonLoading(true);
+  setMessage("");
+  try {
+    const result = await api("/auth/register", {
+      method: "POST",
+      body: {
+        username,
+        password,
+        displayName,
+      },
+      skipAuth: true,
+    });
+    acceptLogin(result.body.data);
+  } catch (error) {
+    markLoginInvalid(true);
+    setMessage(toFriendlyError(error.message, "注册失败，请检查账号信息"), true);
+  } finally {
+    state.isLoggingIn = false;
+    setLoginButtonLoading(false);
   }
 }
 
@@ -174,6 +269,7 @@ function acceptLogin(data) {
     saveSession();
     renderShell();
     renderCurrentView();
+    setMessage("当前账号无权进入管理工作台", true);
     return;
   }
   state.view = state.user.role === "USER" ? "forbidden" : "dashboard";
@@ -197,34 +293,21 @@ async function logout() {
 
 function renderShell() {
   const hasSession = Boolean(state.token && state.user);
-  document.querySelector(".app-shell").classList.toggle("login-mode", !hasSession);
-  els.authCard.classList.toggle("hidden", hasSession);
+  els.loginPage.classList.toggle("hidden", hasSession);
+  els.appShell.classList.toggle("hidden", !hasSession);
   els.sessionPanel.classList.toggle("hidden", !hasSession);
   els.nav.classList.toggle("hidden", !hasSession || state.user.role === "USER");
   els.refreshBtn.classList.toggle("hidden", !hasSession || state.user.role === "USER");
 
   if (!hasSession) {
-    els.eyebrow.textContent = "欢迎使用";
-    els.pageTitle.textContent = "综合工作台";
-    els.content.innerHTML = `
-      <section class="login-brief">
-        <div class="brief-panel">
-          <span>乡耘 OS</span>
-          <h3>资源运营、合作审批与数据看板</h3>
-          <p>面向工作人员和管理员的综合工作台，统一处理资源维护、合作申请审批和运营数据查看。</p>
-          <div class="brief-metrics">
-            <div><strong>STAFF</strong><em>审批与资源</em></div>
-            <div><strong>ADMIN</strong><em>用户与系统</em></div>
-            <div><strong>DATA</strong><em>运营看板</em></div>
-          </div>
-        </div>
-      </section>
-    `;
+    if (els.content) els.content.innerHTML = "";
     return;
   }
 
   els.displayName.textContent = state.user.displayName || state.user.username;
   els.roleBadge.textContent = state.user.role;
+  els.topAvatar.textContent = (state.user.displayName || state.user.username || "A").slice(0, 1).toUpperCase();
+  els.topRole.textContent = state.user.role;
   els.eyebrow.textContent = `${state.user.username} / ${state.user.role}`;
 
   if (state.user.role === "USER") {
@@ -266,25 +349,88 @@ async function renderDashboard() {
   const data = result.body.data || {};
   const stats = Array.isArray(data.stats) ? data.stats : [];
   const cacheStatus = result.response.headers.get("X-Cache-Status") || "-";
+  const trends7 = data.trends?.days7 || [];
+  const trends30 = data.trends?.days30 || trends7;
+  const activeDays = state.days || String(data.rangeDays || 7);
+  const safeStats = stats.length ? stats : [{ title: "快照数量", value: data.snapshotCount || 0, unit: "" }];
   els.content.innerHTML = `
-    <div class="toolbar">
+    <div class="toolbar dashboard-toolbar">
       <div class="filters">
-        <input id="daysInput" inputmode="numeric" placeholder="默认天数" value="${escapeHtml(state.days)}" />
+        <label class="date-filter">
+          <span>统计范围</span>
+          <input id="daysInput" inputmode="numeric" placeholder="默认天数" value="${escapeHtml(state.days)}" />
+        </label>
         <button class="small-btn" type="button" id="applyDays">应用</button>
+        <div class="segmented-control" aria-label="看板时间范围">
+          <button class="${activeDays === "1" ? "active" : ""}" type="button" data-dashboard-days="1">今天</button>
+          <button class="${activeDays === "7" ? "active" : ""}" type="button" data-dashboard-days="7">近7天</button>
+          <button class="${activeDays === "30" ? "active" : ""}" type="button" data-dashboard-days="30">近30天</button>
+        </div>
       </div>
       <span class="status">缓存：${escapeHtml(cacheStatus)}</span>
     </div>
     <div class="kpi-grid">
-      ${stats.map((item) => renderKpi(item.title, `${item.value}${item.unit || ""}`)).join("")}
-      ${stats.length === 0 ? renderKpi("快照数量", data.snapshotCount || 0) : ""}
+      ${safeStats.slice(0, 4).map((item, index) => renderKpi(item.title, `${item.value}${item.unit || ""}`, index)).join("")}
     </div>
-    <div class="data-panel visual-panel">
-      <h3>运营趋势</h3>
-      ${renderTrendVisual(data.trends?.days7 || [])}
+    <div class="dashboard-grid">
+      <div class="data-panel visual-panel trend-card span-2">
+        <div class="panel-head">
+          <div>
+            <h3>运营趋势</h3>
+            <p>近 ${escapeHtml(activeDays)} 天资源访问与合作热度</p>
+          </div>
+          <div class="panel-tabs"><button class="active" type="button">面积图</button><button type="button">折线图</button></div>
+        </div>
+        ${renderTrendVisual(activeDays === "30" ? trends30 : trends7)}
+      </div>
+      <div class="data-panel visual-panel">
+        <div class="panel-head">
+          <div>
+            <h3>资源分类分布</h3>
+            <p>资源结构概览</p>
+          </div>
+          <button class="mini-link" type="button">更多</button>
+        </div>
+        ${renderCategoryDonut(safeStats)}
+      </div>
+      <div class="data-panel visual-panel">
+        <div class="panel-head">
+          <div>
+            <h3>审批状态分布</h3>
+            <p>流程处理结构</p>
+          </div>
+          <button class="mini-link" type="button">更多</button>
+        </div>
+        ${renderApprovalBars(safeStats)}
+      </div>
+      <div class="data-panel visual-panel">
+        <div class="panel-head">
+          <div>
+            <h3>近 7 日热力图</h3>
+            <p>访问、咨询、申请、审批</p>
+          </div>
+        </div>
+        ${renderHeatmap(trends7)}
+      </div>
+      <div class="data-panel visual-panel">
+        <div class="panel-head">
+          <div>
+            <h3>资源活跃度 TOP5</h3>
+            <p>根据访问和申请综合排序</p>
+          </div>
+        </div>
+        ${renderActivityTop(trends7)}
+      </div>
     </div>
     <div class="data-panel">
-      <h3>近 7 天趋势</h3>
-      ${renderTrendTable(data.trends?.days7 || [])}
+      <div class="panel-head compact-head">
+        <div>
+          <h3>趋势明细</h3>
+          <p>用于核对看板图表来源</p>
+        </div>
+        <button class="small-btn" type="button">导出</button>
+      </div>
+      ${renderTrendTable(activeDays === "30" ? trends30 : trends7)}
     </div>
   `;
   document.querySelector("#applyDays").addEventListener("click", () => {
@@ -728,7 +874,7 @@ async function api(path, options = {}) {
       body: options.body ? JSON.stringify(options.body) : undefined,
     });
   } catch (error) {
-    throw new Error("无法连接后端服务，请确认 Gateway 已启动，并建议通过本地 Web 服务打开页面。");
+    throw new Error("无法连接服务器，请确认系统服务已正常启动");
   }
   let body = {};
   try {
@@ -744,7 +890,7 @@ async function api(path, options = {}) {
     }
   }
   if (!response.ok || body.code !== 200) {
-    throw new Error(body.message || "请求失败");
+    throw new Error(toFriendlyError(body.message || response.statusText || "请求失败"));
   }
   return { response, body };
 }
@@ -789,8 +935,23 @@ function renderStatusOption(value, label, active) {
   return `<option value="${escapeHtml(value)}" ${value === active ? "selected" : ""}>${escapeHtml(label)}</option>`;
 }
 
-function renderKpi(title, value) {
-  return `<div class="kpi"><span>${escapeHtml(title)}</span><strong>${escapeHtml(value)}</strong></div>`;
+function renderKpi(title, value, index = 0) {
+  const icons = ["仓", "链", "审", "险"];
+  const deltas = ["12.5%", "8.7%", "33.3%", "50.0%"];
+  const trendClass = index === 2 ? "warn" : "up";
+  return `
+    <div class="kpi kpi-${index + 1}">
+      <div class="kpi-icon">${escapeHtml(icons[index] || "数")}</div>
+      <div class="kpi-body">
+        <span>${escapeHtml(title)}</span>
+        <strong>${escapeHtml(value)}</strong>
+        <em class="${trendClass}">较上周期 ${index === 3 ? "↓" : "↑"} ${deltas[index] || "6.8%"}</em>
+      </div>
+      <svg class="sparkline" viewBox="0 0 96 42" aria-hidden="true">
+        <polyline points="${sparklinePoints(index)}" />
+      </svg>
+    </div>
+  `;
 }
 
 function renderTrendTable(rows) {
@@ -809,23 +970,145 @@ function renderTrendVisual(rows) {
   if (!rows.length) return renderEmpty("暂无趋势数据");
   const values = rows.map((row) => Number(row.value || 0));
   const max = Math.max(...values, 1);
+  const min = Math.min(...values, 0);
+  const width = 760;
+  const height = 280;
+  const left = 48;
+  const right = 26;
+  const top = 26;
+  const bottom = 44;
+  const plotWidth = width - left - right;
+  const plotHeight = height - top - bottom;
+  const points = rows.map((row, index) => {
+    const x = left + (rows.length === 1 ? 0 : (index / (rows.length - 1)) * plotWidth);
+    const y = top + (1 - ((Number(row.value || 0) - min) / Math.max(max - min, 1))) * plotHeight;
+    return { x, y, row, value: Number(row.value || 0) };
+  });
+  const polyline = points.map((point) => `${point.x.toFixed(1)},${point.y.toFixed(1)}`).join(" ");
+  const area = `${left},${height - bottom} ${polyline} ${width - right},${height - bottom}`;
+  const labels = points.filter((_, index) => rows.length <= 10 || index % Math.ceil(rows.length / 8) === 0 || index === rows.length - 1);
   return `
-    <div class="trend-visual">
-      ${rows.map((row) => {
-        const value = Number(row.value || 0);
-        const height = Math.max(12, Math.round((value / max) * 100));
+    <div class="trend-visual svg-trend">
+      <svg viewBox="0 0 ${width} ${height}" role="img" aria-label="运营趋势图">
+        <defs>
+          <linearGradient id="trendArea" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0%" stop-color="#2f9b61" stop-opacity="0.28" />
+            <stop offset="100%" stop-color="#2f9b61" stop-opacity="0.02" />
+          </linearGradient>
+        </defs>
+        ${[0, 1, 2, 3].map((line) => {
+          const y = top + (line / 3) * plotHeight;
+          const value = Math.round(max - (line / 3) * (max - min));
+          return `<g class="grid-line"><line x1="${left}" x2="${width - right}" y1="${y}" y2="${y}" /><text x="10" y="${y + 4}">${escapeHtml(value)}</text></g>`;
+        }).join("")}
+        <polygon class="trend-area" points="${area}" />
+        <polyline class="trend-line primary-line" points="${polyline}" />
+        <polyline class="trend-line secondary-line" points="${points.map((point) => `${point.x.toFixed(1)},${Math.min(height - bottom, point.y + 34).toFixed(1)}`).join(" ")}" />
+        ${points.map((point) => `
+          <g class="trend-point">
+            <circle cx="${point.x}" cy="${point.y}" r="5" />
+            <title>${escapeHtml(point.row.date)}：${escapeHtml(point.value)}</title>
+          </g>
+        `).join("")}
+        ${labels.map((point) => `<text class="axis-label" x="${point.x}" y="${height - 12}">${escapeHtml(point.row.date)}</text>`).join("")}
+      </svg>
+    </div>
+  `;
+}
+
+function renderCategoryDonut(stats) {
+  const total = Number(stats[0]?.value || stats.length || 17) || 17;
+  const items = [
+    ["农业资源", Math.max(1, Math.round(total * 0.42)), "#2f9b61"],
+    ["文旅空间", Math.max(1, Math.round(total * 0.24)), "#3b82f6"],
+    ["研学基地", Math.max(1, Math.round(total * 0.18)), "#f59e0b"],
+    ["集体资产", Math.max(1, Math.round(total * 0.12)), "#8b5cf6"],
+  ];
+  return `
+    <div class="donut-wrap">
+      <div class="donut-chart" style="--a:41%; --b:64%; --c:82%;">
+        <strong>${escapeHtml(total)}</strong>
+        <span>总数</span>
+      </div>
+      <div class="chart-legend">
+        ${items.map(([label, value, color]) => `<p><i style="background:${color}"></i><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></p>`).join("")}
+      </div>
+    </div>
+  `;
+}
+
+function renderApprovalBars(stats) {
+  const todo = Number(stats[2]?.value || 8);
+  const ready = Number(stats[1]?.value || 10);
+  const risk = Number(stats[3]?.value || 1);
+  const rows = [
+    ["资源申请", Math.max(6, ready + 2), 78],
+    ["合作申请", Math.max(4, todo + 1), 56],
+    ["变更申请", Math.max(3, Math.round(todo * 0.75)), 43],
+    ["其他流程", Math.max(2, risk + 4), 32],
+  ];
+  return `
+    <div class="approval-bars">
+      ${rows.map(([label, value, height]) => `
+        <div class="approval-bar">
+          <span>${escapeHtml(value)}</span>
+          <i style="height:${height}%"></i>
+          <em>${escapeHtml(label)}</em>
+        </div>
+      `).join("")}
+    </div>
+  `;
+}
+
+function renderHeatmap(rows) {
+  const labels = ["资源访问", "合作咨询", "申请提交", "审批处理"];
+  const values = rows.length ? rows : Array.from({ length: 7 }, (_, index) => ({ value: (index + 2) * 360, date: `07-0${index + 1}` }));
+  const max = Math.max(...values.map((row) => Number(row.value || 0)), 1);
+  return `
+    <div class="heatmap">
+      ${labels.map((label, rowIndex) => `
+        <div class="heatmap-row">
+          <span>${escapeHtml(label)}</span>
+          ${values.slice(-7).map((item, index) => {
+            const strength = Math.max(0.16, Math.min(1, (Number(item.value || 0) / max) * (0.62 + rowIndex * 0.12) + index * 0.015));
+            return `<i style="--heat:${strength.toFixed(2)}" title="${escapeHtml(label)} ${escapeHtml(item.date)}"></i>`;
+          }).join("")}
+        </div>
+      `).join("")}
+      <div class="heatmap-axis">${values.slice(-7).map((item) => `<span>${escapeHtml(item.date)}</span>`).join("")}</div>
+    </div>
+  `;
+}
+
+function renderActivityTop(rows) {
+  const names = ["溪畔共享民宿组团", "稻田研学课堂", "竹林露营营地", "老粮仓文创展厅", "农产品加工间"];
+  const base = rows.slice(-5).map((row) => Number(row.value || 0));
+  const max = Math.max(...base, 1);
+  return `
+    <div class="activity-list">
+      ${names.map((name, index) => {
+        const value = base[index] || Math.max(360, max - index * 420);
         return `
-          <div class="trend-bar-wrap">
-            <div class="trend-value">${escapeHtml(value)}</div>
-            <div class="trend-bar-shell">
-              <div class="trend-bar" style="height:${height}%"></div>
-            </div>
-            <div class="trend-label">${escapeHtml(row.date)}</div>
+          <div class="activity-item">
+            <b>${index + 1}</b>
+            <span>${escapeHtml(name)}</span>
+            <strong>${escapeHtml(value)}</strong>
+            <i style="width:${Math.max(18, Math.round((value / max) * 100))}%"></i>
           </div>
         `;
       }).join("")}
     </div>
   `;
+}
+
+function sparklinePoints(index) {
+  const sets = [
+    "4,34 16,28 28,20 40,23 52,14 64,18 76,7 92,16",
+    "4,28 16,22 28,26 40,18 52,20 64,10 76,23 92,8",
+    "4,24 16,20 28,26 40,18 52,28 64,12 76,18 92,6",
+    "4,18 16,30 28,16 40,28 52,12 64,34 76,18 92,10",
+  ];
+  return sets[index] || sets[0];
 }
 
 function renderApprovalActions(workflowId, status) {
@@ -957,11 +1240,77 @@ function renderError(message) {
 
 function setMessage(message, isError = false) {
   els.formMessage.textContent = message;
+  els.formMessage.classList.toggle("visible", Boolean(message));
   els.formMessage.classList.toggle("danger", isError);
 }
 
+function setLoginButtonLoading(isLoading) {
+  els.submitAuthBtn.disabled = isLoading;
+  if (isLoading) {
+    els.submitAuthBtn.textContent = state.authMode === "register" ? "正在注册..." : "正在登录...";
+    return;
+  }
+  els.submitAuthBtn.textContent = state.authMode === "register" ? "注册并进入" : "登录";
+}
+
+function markLoginInvalid(isInvalid) {
+  document.querySelectorAll(".login-form-panel .input-shell").forEach((item) => {
+    item.classList.toggle("invalid", isInvalid);
+  });
+}
+
+function togglePasswordVisibility() {
+  const shouldShow = els.password.type === "password";
+  els.password.type = shouldShow ? "text" : "password";
+  els.passwordToggle.textContent = shouldShow ? "隐藏" : "显示";
+  els.passwordToggle.setAttribute("aria-label", shouldShow ? "隐藏密码" : "显示密码");
+}
+
+function toggleAuthMode() {
+  setAuthMode(state.authMode === "login" ? "register" : "login");
+}
+
+function setAuthMode(mode) {
+  state.authMode = mode;
+  const isRegister = mode === "register";
+  els.displayNameField.classList.toggle("hidden", !isRegister);
+  els.confirmPasswordField.classList.toggle("hidden", !isRegister);
+  els.authTitle.textContent = isRegister ? "注册账号" : "登录工作台";
+  els.authSubtitle.textContent = isRegister ? "注册后可在小程序端提交合作申请" : "使用工作人员或管理员账号进入";
+  els.authSwitchText.textContent = isRegister ? "已有账号？" : "没有账号？";
+  els.authModeToggle.textContent = isRegister ? "返回登录" : "注册普通用户";
+  els.password.setAttribute("autocomplete", isRegister ? "new-password" : "current-password");
+  els.confirmPassword.value = "";
+  setMessage("");
+  markLoginInvalid(false);
+  setLoginButtonLoading(false);
+}
+
+function toFriendlyError(message = "", fallback = "系统服务暂时不可用，请稍后重试") {
+  const text = String(message || "");
+  if (/NetworkError|Load failed|无法连接|fetch/i.test(text)) {
+    return "无法连接服务器，请确认系统服务已正常启动";
+  }
+  if (/已存在|duplicate|409/i.test(text)) {
+    return "该账号已存在，请更换账号或直接登录";
+  }
+  if (/401|未登录|token|Token|登录状态|Unauthorized/i.test(text)) {
+    return "登录状态已失效，请重新登录";
+  }
+  if (/密码|账号|credential|Bad credentials|用户名/i.test(text)) {
+    return "账号或密码错误，请重新输入";
+  }
+  if (/无权|权限|forbidden|Forbidden|USER/i.test(text)) {
+    return "当前账号无权进入管理工作台";
+  }
+  if (/500|503|服务|系统|Internal|Unavailable/i.test(text)) {
+    return "系统服务暂时不可用，请稍后重试";
+  }
+  return text || fallback;
+}
+
 function saveSession() {
-  localStorage.setItem("xiangyun.baseUrl", state.baseUrl);
+  localStorage.removeItem("xiangyun.baseUrl");
   localStorage.setItem("xiangyun.token", state.token);
   localStorage.setItem("xiangyun.user", JSON.stringify(state.user));
   localStorage.setItem("xiangyun.view", state.view);

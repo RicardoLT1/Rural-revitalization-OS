@@ -6,7 +6,6 @@
     "noImplicitAny": false,
     "noImplicitReturns": false,
     "alwaysStrict": false,
-    "ignoreDeprecations": "6.0",
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,

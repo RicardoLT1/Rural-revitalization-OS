@@ -13,34 +13,41 @@
     "pages/forecast/index"
   ],
   "window": {
-    "navigationBarTitleText": "\u4e61\u8018OS",
+    "navigationBarTitleText": "\u4e61\u8018 OS",
     "navigationBarTextStyle": "black",
-    "navigationBarBackgroundColor": "#F6F1E7",
-    "backgroundColor": "#F6F1E7",
+    "navigationBarBackgroundColor": "#F4F8F3",
+    "backgroundColor": "#F4F8F3",
     "backgroundTextStyle": "dark"
   },
   "tabBar": {
-    "position": "top",
-    "color": "#5B6164",
-    "selectedColor": "#2F7D32",
+    "color": "#7A8580",
+    "selectedColor": "#2F8D57",
     "backgroundColor": "#FFFFFF",
-    "borderStyle": "black",
+    "borderStyle": "white",
     "list": [
       {
         "pagePath": "pages/dashboard/index",
-        "text": "\u9996\u9875\u9a7e\u9a76\u8231"
+        "text": "\u8d44\u6e90\u6f2b\u6e38",
+        "iconPath": "assets/tabbar/home.png",
+        "selectedIconPath": "assets/tabbar/home-active.png"
       },
       {
         "pagePath": "pages/resource-map/index",
-        "text": "\u8d44\u6e90\u5730\u56fe"
+        "text": "\u8d44\u6e90\u5730\u56fe",
+        "iconPath": "assets/tabbar/map.png",
+        "selectedIconPath": "assets/tabbar/map-active.png"
       },
       {
         "pagePath": "pages/collab/index",
-        "text": "\u534f\u540c\u5de5\u4f5c\u53f0"
+        "text": "\u6211\u7684\u7533\u8bf7",
+        "iconPath": "assets/tabbar/apply.png",
+        "selectedIconPath": "assets/tabbar/apply-active.png"
       },
       {
         "pagePath": "pages/report/index",
-        "text": "\u667a\u80fd\u62a5\u8868"
+        "text": "\u667a\u80fd\u62a5\u8868",
+        "iconPath": "assets/tabbar/report.png",
+        "selectedIconPath": "assets/tabbar/report-active.png"
       }
     ]
   },

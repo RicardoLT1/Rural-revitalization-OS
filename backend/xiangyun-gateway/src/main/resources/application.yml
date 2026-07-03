@@ -36,14 +36,20 @@ spring:
           uri: lb://xiangyun-auth-service
           predicates:
             - Path=/api/auth/**,/api/users,/api/users/**,/api/roles,/api/roles/**
+          filters:
+            - RemoveResponseHeader=Content-Length
         - id: operation-service
           uri: lb://xiangyun-operation-service
           predicates:
             - Path=/api/villages,/api/villages/**,/api/resources,/api/resources/**,/api/resource-tags,/api/resource-tags/**,/api/workflows/**,/api/todos,/api/todos/**
+          filters:
+            - RemoveResponseHeader=Content-Length
         - id: analysis-service
           uri: lb://xiangyun-analysis-service
           predicates:
             - Path=/api/dashboard,/api/dashboard/**,/api/reports/**,/api/forecasts,/api/forecasts/**,/api/investment-matches,/api/investment-matches/**
+          filters:
+            - RemoveResponseHeader=Content-Length
   data:
     redis:
       host: ${REDIS_HOST:127.0.0.1}

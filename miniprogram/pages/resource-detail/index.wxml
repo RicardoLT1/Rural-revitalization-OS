@@ -1,8 +1,8 @@
-﻿<loading-state wx:if="{{pageState === 'loading'}}" text="{{loadingText}}" />
+<loading-state wx:if="{{pageState === 'loading'}}" text="{{loadingText}}" />
 <error-state wx:elif="{{pageState === 'error'}}" title="{{errorTitle}}" message="{{errorMessage}}" bind:retry="onRetry" />
 <empty-state wx:elif="{{pageState === 'empty'}}" title="{{emptyTitle}}" description="{{emptyDescription}}" />
 <block wx:else>
-  <view class="page-root" wx:if="{{detail.id}}">
+  <view class="page-root detail-page" wx:if="{{detail.id}}">
     <view class="detail-hero">
       <view class="hero-label">{{detail.category}}</view>
       <view class="hero-title">{{detail.name}}</view>
@@ -27,7 +27,7 @@
       <view wx:else class="apply-note warning">{{cannotApplyReason}}</view>
     </view>
 
-    <view class="page-section actions">
+    <view class="bottom-actions">
       <button class="btn primary" disabled="{{!canApply || isSubmittingApplication}}" bindtap="onShowApplyForm">提交合作申请</button>
       <button class="btn ghost" bindtap="onContact">联系对接</button>
     </view>

@@ -25,7 +25,8 @@ const getAuthHeader = (): Record<string, string> => {
 
 let demoLoginTask: Promise<void> | null = null;
 
-const isAuthRequest = (url: string) => url.includes('/auth/login') || url.includes('/auth/logout') || url.includes('/auth/register');
+const isAuthRequest = (url: string) =>
+  url.includes('/auth/login') || url.includes('/auth/logout') || url.includes('/auth/register');
 
 const clearSession = () => {
   wx.removeStorageSync('XIANGYUN_TOKEN');
@@ -35,6 +36,17 @@ const clearSession = () => {
 
 const goLogin = () => {
   wx.reLaunch({ url: '/pages/login/index' });
+};
+
+const normalizeNetworkMessage = (message?: string) => {
+  const text = message || '';
+  if (text.includes('timeout')) {
+    return '\u8bf7\u6c42\u8d85\u65f6\uff0c\u8bf7\u786e\u8ba4 Gateway \u548c Operation \u670d\u52a1\u5df2\u542f\u52a8';
+  }
+  if (text.includes('fail') || text.includes('ERR_CONNECTION') || text.includes('refused')) {
+    return '\u65e0\u6cd5\u8fde\u63a5\u670d\u52a1\u5668\uff0c\u8bf7\u786e\u8ba4\u7cfb\u7edf\u670d\u52a1\u5df2\u6b63\u5e38\u542f\u52a8';
+  }
+  return text || '\u7f51\u7edc\u8bf7\u6c42\u5f02\u5e38';
 };
 
 const toRequestError = (error: unknown, fallback: string, statusCode?: number): RequestError => {
@@ -57,13 +69,14 @@ const parseResponse = <T>(raw: unknown): T => {
     try {
       return parseResponse<T>(JSON.parse(text));
     } catch (error) {
-      throw { message: '响应数据格式错误', raw: error };
+      throw { message: '\u54cd\u5e94\u6570\u636e\u683c\u5f0f\u9519\u8bef', raw: error };
     }
   }
+
   const response = raw as ApiResponse<T>;
   if (response && typeof response === 'object' && 'data' in response) {
     if (response.code && response.code !== 200 && response.code !== 0) {
-      throw toRequestError(response, response.message || '请求失败', response.code);
+      throw toRequestError(response, response.message || '\u8bf7\u6c42\u5931\u8d25', response.code);
     }
     return response.data as T;
   }
@@ -101,11 +114,11 @@ const ensureDemoLogin = (url: string): Promise<void> => {
           wx.setStorageSync('XIANGYUN_ROLE', data.user.role);
           resolve();
         } catch (error) {
-          reject(toRequestError(error, '自动登录失败'));
+          reject(toRequestError(error, '\u81ea\u52a8\u767b\u5f55\u5931\u8d25'));
         }
       },
       fail(error) {
-        reject(toRequestError(error, error.errMsg || '自动登录失败'));
+        reject(toRequestError(error, normalizeNetworkMessage(error.errMsg)));
       }
     });
   }).finally(() => {
@@ -135,7 +148,7 @@ export const request = <T = unknown, D = unknown>(options: RequestOptions<D>): P
           if (statusCode === 401 && !isAuthRequest(url)) {
             clearSession();
             goLogin();
-            reject(toRequestError(result.data, '登录已过期，请重新登录', statusCode));
+            reject(toRequestError(result.data, '\u767b\u5f55\u5df2\u8fc7\u671f\uff0c\u8bf7\u91cd\u65b0\u767b\u5f55', statusCode));
             return;
           }
           if (statusCode < 200 || statusCode >= 300) {
@@ -143,11 +156,11 @@ export const request = <T = unknown, D = unknown>(options: RequestOptions<D>): P
           }
           resolve(parseResponse<T>(result.data));
         } catch (error) {
-          reject(toRequestError(error, '请求失败'));
+          reject(toRequestError(error, '\u8bf7\u6c42\u5931\u8d25'));
         }
       },
       fail(error) {
-        reject(toRequestError(error, error.errMsg || '网络请求异常'));
+        reject(toRequestError(error, normalizeNetworkMessage(error.errMsg)));
       }
     });
   });
