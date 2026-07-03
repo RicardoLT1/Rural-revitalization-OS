@@ -1,8 +1,8 @@
-import { OptionItem, StatusType } from './common';
+﻿import { OptionItem, StatusType } from './common';
 
 export type WorkflowStatus = 'done' | 'doing' | 'pending' | 'blocked';
-export type TodoStatus = '\u5f85\u5904\u7406' | '\u8fdb\u884c\u4e2d' | '\u5df2\u903e\u671f' | '\u5df2\u5b8c\u6210';
-export type ApprovalStatus = '\u5f85\u5ba1\u6279' | '\u5df2\u9a73\u56de' | '\u5df2\u901a\u8fc7';
+export type TodoStatus = '待处理' | '进行中' | '已逾期' | '已完成' | 'PENDING' | 'APPROVED' | 'REJECTED';
+export type ApprovalStatus = '待审批' | '已驳回' | '已通过' | 'PENDING' | 'APPROVED' | 'REJECTED';
 export type RecordFilter = 'all' | 'current';
 
 export interface TodoStats {
@@ -34,6 +34,20 @@ export interface ApprovalItem {
   time: string;
 }
 
+export interface MyApplicationItem {
+  id: string;
+  title: string;
+  category: string;
+  resourceId: string;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED' | string;
+  currentNodeId: string;
+  createdAt: string;
+  remark?: string;
+  handledAt?: string;
+  statusText?: string;
+  statusClass?: string;
+}
+
 export interface WorkflowNode {
   id: string;
   name: string;
@@ -46,10 +60,10 @@ export interface WorkflowNode {
 export type WorkflowTimelineItem = WorkflowNode;
 
 export interface ProcessRecord {
-  id: string;
-  operator: string;
+  id?: string;
+  operator?: string;
   action: string;
-  time: string;
+  time?: string;
   remark: string;
   nodeId: string;
 }
@@ -67,10 +81,11 @@ export interface WorkflowDetail {
   title: string;
   status: string;
   currentNodeId: string;
-  blocker: string;
+  blocker?: string;
+  applicantName?: string;
   nodes: WorkflowNode[];
   records: ProcessRecord[];
-  archive: ArchiveRecord;
+  archive?: ArchiveRecord;
 }
 
 export type ProcessDetail = WorkflowDetail;

@@ -1,0 +1,74 @@
+﻿<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>乡耘 OS 综合工作台</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="brand-mark">乡</div>
+          <div>
+            <h1>乡耘 OS</h1>
+            <p>综合工作台</p>
+          </div>
+        </div>
+
+        <section class="auth-card" id="authCard">
+          <div class="auth-heading">
+            <h2>登录工作台</h2>
+            <p>使用工作人员或管理员账号进入</p>
+          </div>
+          <div class="form-grid">
+            <label for="username">账号</label>
+            <input id="username" autocomplete="username" placeholder="请输入账号" />
+
+            <label for="password">密码</label>
+            <input id="password" autocomplete="current-password" type="password" placeholder="请输入密码" />
+          </div>
+
+          <button class="primary" id="submitAuthBtn" type="button">登录</button>
+          <p class="form-message" id="formMessage" aria-live="polite"></p>
+        </section>
+
+        <section class="session-panel hidden" id="sessionPanel">
+          <div class="profile">
+            <span id="displayName">未登录</span>
+            <strong id="roleBadge">-</strong>
+          </div>
+          <button class="ghost" id="logoutBtn" type="button">退出登录</button>
+        </section>
+
+        <nav class="nav hidden" id="nav"></nav>
+      </aside>
+
+      <main class="workspace">
+        <header class="topbar">
+          <div>
+            <p id="eyebrow">欢迎使用</p>
+            <h2 id="pageTitle">综合工作台</h2>
+          </div>
+          <button class="ghost hidden" id="refreshBtn" type="button">刷新</button>
+        </header>
+
+        <section id="content" class="content"></section>
+      </main>
+    </div>
+
+    <div class="drawer hidden" id="detailDrawer" aria-hidden="true">
+      <div class="drawer-mask" data-close-detail></div>
+      <aside class="drawer-panel">
+        <div class="drawer-head">
+          <h3 id="detailTitle">申请详情</h3>
+          <button class="ghost" type="button" data-close-detail>关闭</button>
+        </div>
+        <div id="detailContent" class="drawer-content"></div>
+      </aside>
+    </div>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

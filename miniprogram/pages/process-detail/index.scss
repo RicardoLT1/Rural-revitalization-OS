@@ -1,52 +1,99 @@
-@import '../../styles/tokens.scss';
+﻿@import '../../styles/tokens.scss';
 
-.head,
-.records,
-.archive {
-  padding: $space-2;
+.detail-card {
+  margin-bottom: 20rpx;
+  padding: 26rpx;
+  border-radius: 16rpx;
+  background: #fff;
+  border: 1rpx solid rgba(47, 125, 50, 0.12);
+}
+
+.head {
+  position: relative;
 }
 
 .title {
-  flex: 1;
-  margin-right: $space-2;
-  font-size: $font-md;
-  font-weight: $weight-bold;
+  padding-right: 140rpx;
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #1f3324;
 }
 
-.blocker {
-  margin-top: 10rpx;
-  padding: 10rpx 12rpx;
-  border-radius: $radius-md;
-  color: $color-danger;
-  background: rgba(201, 74, 59, 0.1);
-  font-size: $font-xs;
+.status {
+  position: absolute;
+  top: 26rpx;
+  right: 26rpx;
+  padding: 8rpx 14rpx;
+  border-radius: 999rpx;
+  font-size: 22rpx;
+}
+
+.status.pending {
+  color: #8a5a00;
+  background: #fff5d6;
+}
+
+.status.done {
+  color: #2f7d32;
+  background: #eef6e8;
+}
+
+.status.rejected {
+  color: #a7352a;
+  background: #fdecea;
+}
+
+.meta {
+  margin-top: 12rpx;
+  color: #68736b;
+  font-size: 24rpx;
+}
+
+.timeline-item {
+  display: flex;
+  gap: 18rpx;
+  margin-top: 22rpx;
+}
+
+.timeline-dot {
+  width: 18rpx;
+  height: 18rpx;
+  margin-top: 8rpx;
+  border-radius: 50%;
+  background: #d8dfd6;
+}
+
+.timeline-dot.done {
+  background: #2f7d32;
+}
+
+.timeline-body {
+  flex: 1;
+}
+
+.timeline-title {
+  font-size: 27rpx;
+  font-weight: 700;
+  color: #1f3324;
+}
+
+.timeline-desc,
+.record-remark {
+  margin-top: 8rpx;
+  font-size: 24rpx;
+  line-height: 1.5;
+  color: #68736b;
 }
 
 .record-item {
-  margin-top: $space-2;
-  padding: $space-2;
-  border-radius: $radius-md;
-  background: rgba(47, 125, 50, 0.08);
+  margin-top: 18rpx;
+  padding: 18rpx;
+  border-radius: 12rpx;
+  background: #f7f8f5;
 }
 
-.record-item .action {
-  font-size: $font-sm;
-  color: $color-text-primary;
-}
-
-.record-item .time {
-  font-size: $font-xs;
-  color: $color-text-light;
-}
-
-.record-item .meta {
-  margin-top: 8rpx;
-  font-size: $font-xs;
-  color: $color-text-secondary;
-}
-
-.archive .line {
-  margin-top: 8rpx;
-  color: $color-text-secondary;
-  font-size: $font-xs;
+.record-action {
+  font-size: 26rpx;
+  font-weight: 700;
+  color: #1f3324;
 }

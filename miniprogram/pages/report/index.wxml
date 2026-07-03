@@ -3,7 +3,7 @@
 <empty-state wx:elif="{{pageState === 'empty'}}" title="{{emptyTitle}}" description="{{emptyDescription}}" />
 <block wx:else>
   <view class="page-root report-page">
-    <section-header title="智能报表" subtitle="自动分析与建议" />
+    <section-header title="智能报表" subtitle="申请趋势、资源结构与运营建议" />
 
     <view class="summary-grid page-section">
       <view wx:for="{{summary}}" wx:key="id" class="summary-card">
@@ -15,7 +15,7 @@
 
     <view class="page-section">
       <chart-card
-        title="客流趋势"
+        title="申请趋势"
         periods="{{periods}}"
         activePeriod="{{period}}"
         ecOption="{{lineOption}}"
@@ -24,11 +24,11 @@
     </view>
 
     <view class="page-section">
-      <chart-card title="营收对比" ecOption="{{barOption}}" />
+      <chart-card title="资源热度对比" ecOption="{{barOption}}" />
     </view>
 
     <view class="page-section">
-      <chart-card title="收入结构" ecOption="{{ringOption}}" />
+      <chart-card title="资源类型结构" ecOption="{{ringOption}}" />
     </view>
 
     <view class="page-section card summary-box">
@@ -43,10 +43,10 @@
 
     <view class="page-section quick-actions">
       <view class="btn" data-action="match" bindtap="onQuickTap">
-        <text class="btn-icon">推</text> 招商推荐
+        <text class="btn-icon">招</text> 招商推荐
       </view>
       <view class="btn" data-action="forecast" bindtap="onQuickTap">
-        <text class="btn-icon">测</text> 趋势预测
+        <text class="btn-icon">趋</text> 趋势预测
       </view>
     </view>
   </view>

@@ -1,59 +1,147 @@
-import { DEFAULT_LOADING_TEXT, PageState, getErrorMessage } from '../../constants/page';
-import { getResourceMapView } from '../../services/resource';
+﻿import { DEFAULT_LOADING_TEXT, PageState, getErrorMessage } from '../../constants/page';
+import { getResourceTags, getResources } from '../../services/resource';
 import type { PageLoadState } from '../../types/common';
 import type { ResourcePoint } from '../../types/resource';
 import { goResourceDetail } from '../../utils/navigation';
+
+const PAGE_SIZE = 10;
+const statusOptions = ['全部', '可招商', '洽谈中', '已签约'];
 
 Page({
   data: {
     pageState: PageState.Loading as PageLoadState,
     isLoading: true,
+    isRefreshing: false,
+    isLoadingMore: false,
+    hasMore: true,
     errorMessage: '',
     loadingText: DEFAULT_LOADING_TEXT,
-    errorTitle: '\u8d44\u6e90\u5730\u56fe\u52a0\u8f7d\u5931\u8d25',
-    emptyTitle: '\u6682\u65e0\u8d44\u6e90\u70b9\u4f4d',
-    emptyDescription: '\u5f53\u524d\u7b5b\u9009\u6761\u4ef6\u4e0b\u6682\u65e0\u53ef\u5c55\u793a\u7684\u4e61\u6751\u8d44\u6e90\u3002',
-    tagOptions: [],
-    activeTag: '\u5168\u90e8',
-    allResources: [] as ResourcePoint[],
-    filteredResources: [] as ResourcePoint[],
-    selectedResource: {} as Partial<ResourcePoint>,
-    markers: [],
-    mapCenter: { latitude: 30.2239, longitude: 120.1661 }
+    errorTitle: '资源列表加载失败',
+    emptyTitle: '暂无匹配资源',
+    emptyDescription: '请调整关键词、分类或状态后再试。',
+    keyword: '',
+    categoryOptions: ['全部'] as string[],
+    statusOptions,
+    activeCategory: '全部',
+    activeStatus: '全部',
+    page: 1,
+    resources: [] as ResourcePoint[],
+    mapCenter: { latitude: 30.2239, longitude: 120.1661 },
+    markers: [] as WechatMiniprogram.MapMarker[]
   },
+
   onLoad() {
-    this.loadResourceMap(this.data.activeTag);
+    this.initFilters();
+    this.loadResources(true);
   },
+
+  onPullDownRefresh() {
+    this.setData({ isRefreshing: true });
+    this.loadResources(true).finally(() => {
+      this.setData({ isRefreshing: false });
+      wx.stopPullDownRefresh();
+    });
+  },
+
+  onReachBottom() {
+    if (this.data.hasMore && !this.data.isLoadingMore) {
+      this.loadResources(false);
+    }
+  },
+
   onRetry() {
-    this.loadResourceMap(this.data.activeTag);
+    this.loadResources(true);
   },
-  onTagChange(event: WechatMiniprogram.CustomEvent<{ key: string }>) {
-    this.loadResourceMap(event.detail.key);
-  },
-  async loadResourceMap(activeTag: string) {
-    this.setData({ pageState: PageState.Loading, isLoading: true, errorMessage: '' });
+
+  async initFilters() {
     try {
-      const view = await getResourceMapView(activeTag);
+      const tags = await getResourceTags();
+      this.setData({ categoryOptions: ['全部', ...tags.filter((item) => item !== '全部')] });
+    } catch (error) {
+      this.setData({ categoryOptions: ['全部'] });
+    }
+  },
+
+  onKeywordInput(event: WechatMiniprogram.Input) {
+    this.setData({ keyword: event.detail.value });
+  },
+
+  onSearch() {
+    this.loadResources(true);
+  },
+
+  onCategoryTap(event: WechatMiniprogram.TouchEvent) {
+    const value = event.currentTarget.dataset.value;
+    if (value && value !== this.data.activeCategory) {
+      this.setData({ activeCategory: value });
+      this.loadResources(true);
+    }
+  },
+
+  onStatusTap(event: WechatMiniprogram.TouchEvent) {
+    const value = event.currentTarget.dataset.value;
+    if (value && value !== this.data.activeStatus) {
+      this.setData({ activeStatus: value });
+      this.loadResources(true);
+    }
+  },
+
+  async loadResources(reset: boolean) {
+    const nextPage = reset ? 1 : this.data.page + 1;
+    this.setData({
+      pageState: reset ? PageState.Loading : this.data.pageState,
+      isLoading: reset,
+      isLoadingMore: !reset,
+      errorMessage: ''
+    });
+    try {
+      const list = await getResources({
+        page: nextPage,
+        size: PAGE_SIZE,
+        keyword: this.data.keyword.trim(),
+        category: this.data.activeCategory,
+        status: this.data.activeStatus
+      });
+      const resources = reset ? list : [...this.data.resources, ...list];
       this.setData({
-        ...view,
-        pageState: view.filteredResources.length ? PageState.Ready : PageState.Empty,
-        isLoading: false
+        resources,
+        page: nextPage,
+        hasMore: list.length >= PAGE_SIZE,
+        markers: this.toMarkers(resources),
+        pageState: resources.length ? PageState.Ready : PageState.Empty,
+        isLoading: false,
+        isLoadingMore: false
       });
     } catch (error) {
-      this.setData({ pageState: PageState.Error, isLoading: false, errorMessage: getErrorMessage(error) });
+      this.setData({
+        pageState: reset ? PageState.Error : this.data.pageState,
+        isLoading: false,
+        isLoadingMore: false,
+        errorMessage: getErrorMessage(error)
+      });
+      if (!reset) {
+        wx.showToast({ title: getErrorMessage(error), icon: 'none' });
+      }
     }
   },
-  onMarkerTap(event: WechatMiniprogram.CustomEvent<{ markerId: number }>) {
-    const markerId = event.detail.markerId;
-    const selectedResource = this.data.filteredResources.find((item) => Number(item.id.replace('res-', '')) === markerId);
-    if (selectedResource) {
-      this.setData({ selectedResource });
+
+  onResourceTap(event: WechatMiniprogram.TouchEvent) {
+    const id = event.currentTarget.dataset.id;
+    if (id) {
+      goResourceDetail(id);
     }
   },
-  onResourceTap(event: WechatMiniprogram.CustomEvent<{ id: string }>) {
-    goResourceDetail(event.detail.id);
-  },
-  onPopupTap(event: WechatMiniprogram.CustomEvent<{ id: string }>) {
-    goResourceDetail(event.detail.id);
+
+  toMarkers(resources: ResourcePoint[]): WechatMiniprogram.MapMarker[] {
+    return resources
+      .filter((item) => item.lat && item.lng)
+      .map((item, index) => ({
+        id: index + 1,
+        latitude: Number(item.lat),
+        longitude: Number(item.lng),
+        title: item.name,
+        width: 28,
+        height: 28
+      }));
   }
 });

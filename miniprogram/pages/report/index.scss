@@ -6,17 +6,17 @@
 
 .summary-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: $space-2;
 }
 
 .summary-card {
   background: #fff;
-  border-radius: $radius-md;
+  border-radius: 22rpx;
   box-shadow: $shadow-soft;
-  padding: $space-2;
-  border: 1rpx solid rgba(47, 125, 50, 0.08);
-  min-height: 130rpx;
+  padding: 22rpx;
+  border: 1rpx solid rgba(47, 125, 50, 0.1);
+  min-height: 138rpx;
 }
 
 .summary-card .title {
@@ -26,8 +26,8 @@
 }
 
 .summary-card .value {
-  margin-top: 8rpx;
-  font-size: 34rpx;
+  margin-top: 10rpx;
+  font-size: 36rpx;
   color: $color-text-primary;
   font-weight: $weight-bold;
 }
@@ -39,7 +39,10 @@
 }
 
 .summary-box {
-  padding: $space-2;
+  padding: 24rpx;
+  border-radius: 22rpx;
+  border: 1rpx solid rgba(47, 125, 50, 0.1);
+  box-shadow: $shadow-soft;
 }
 
 .summary-box .text {
@@ -57,8 +60,8 @@
 .btn {
   flex: 1;
   text-align: center;
-  padding: 18rpx;
-  border-radius: $radius-md;
+  padding: 20rpx;
+  border-radius: 18rpx;
   color: #fff;
   background: linear-gradient(140deg, $color-brand, #4e9a53);
   font-size: $font-sm;

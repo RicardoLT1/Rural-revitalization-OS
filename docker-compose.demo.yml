@@ -1,0 +1,46 @@
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: xiangyun-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root123456
+      MYSQL_DATABASE: xiangyun_os
+      MYSQL_USER: xiangyun_app
+      MYSQL_PASSWORD: Xiangyun@2026
+      TZ: Asia/Shanghai
+    ports:
+      - "3307:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-proot123456"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+
+  redis:
+    image: redis:7.2
+    container_name: xiangyun-redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  nacos:
+    image: nacos/nacos-server:v2.3.2
+    container_name: xiangyun-nacos
+    environment:
+      MODE: standalone
+      TZ: Asia/Shanghai
+    ports:
+      - "8848:8848"
+      - "9848:9848"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://127.0.0.1:8848/nacos/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 20

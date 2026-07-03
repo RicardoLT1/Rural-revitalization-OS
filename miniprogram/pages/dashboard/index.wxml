@@ -4,9 +4,9 @@
 <block wx:else>
   <view class="page-root dashboard-page">
     <view class="hero card">
-      <view class="role">{{roleName}} | {{villageName}}</view>
+      <view class="role">{{roleName}} · {{villageName}}</view>
       <view class="headline">乡村运营驾驶舱</view>
-      <view class="sub">聚焦客流、营收、项目进度与风险预警，支撑智能辅助决策</view>
+      <view class="sub">聚合资源、申请、审批和运营趋势，帮助工作人员快速判断业务状态。</view>
     </view>
 
     <view class="stats-grid page-section">
@@ -24,9 +24,9 @@
     </view>
 
     <view class="page-section">
-      <section-header title="客流趋势" subtitle="近7天 / 近30天" />
+      <section-header title="运营趋势" subtitle="近 7 天 / 近 30 天" />
       <chart-card
-        title="客流趋势图"
+        title="申请趋势"
         periods="{{periods}}"
         activePeriod="{{trendPeriod}}"
         ecOption="{{trendOption}}"
@@ -35,25 +35,25 @@
     </view>
 
     <view class="page-section">
-      <section-header title="风险预警" subtitle="重点风险闭环跟踪" />
+      <section-header title="风险预警" subtitle="临近超时和待处理事项" />
       <risk-alert-card wx:for="{{risks}}" wx:key="id" risk="{{item}}" />
     </view>
 
     <view class="page-section">
-      <section-header title="智能建议" subtitle="系统自动生成建议输出" />
+      <section-header title="智能建议" subtitle="根据资源与审批数据生成" />
       <ai-tip-card wx:for="{{suggestions}}" wx:key="id" tip="{{item}}" bind:action="onTipAction" />
     </view>
 
     <view class="page-section">
-      <section-header title="快捷入口" subtitle="高频功能快速访问" />
+      <section-header title="快捷入口" subtitle="常用业务一键进入" />
       <view class="entry-grid">
         <view class="entry" data-action="map" bindtap="onEntryTap">
-          <view class="entry-icon">图</view>
-          <view class="entry-text">资源地图</view>
+          <view class="entry-icon">源</view>
+          <view class="entry-text">资源列表</view>
         </view>
         <view class="entry" data-action="collab" bindtap="onEntryTap">
-          <view class="entry-icon">协</view>
-          <view class="entry-text">协同工作台</view>
+          <view class="entry-icon">审</view>
+          <view class="entry-text">我的申请</view>
         </view>
         <view class="entry" data-action="report" bindtap="onEntryTap">
           <view class="entry-icon">报</view>
@@ -64,7 +64,7 @@
           <view class="entry-text">招商推荐</view>
         </view>
         <view class="entry" data-action="forecast" bindtap="onEntryTap">
-          <view class="entry-icon">测</view>
+          <view class="entry-icon">趋</view>
           <view class="entry-text">趋势预测</view>
         </view>
       </view>

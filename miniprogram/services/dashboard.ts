@@ -7,10 +7,14 @@ import { get } from '../utils/request';
 export type TrendPeriod = '7d' | '30d';
 
 export const getDashboardData = async (): Promise<DashboardMetrics> => {
-  if (isMockMode()) {
+  if (isMockMode('dashboard')) {
     return dashboardData;
   }
-  return get<DashboardMetrics>('/dashboard');
+  try {
+    return await get<DashboardMetrics>('/dashboard');
+  } catch (error) {
+    return dashboardData;
+  }
 };
 
 export const getDashboardTrend = async (period: TrendPeriod): Promise<TrendPoint[]> => {

@@ -30,10 +30,18 @@ const buildReportTips = (): AiSuggestion[] => reportAiTips.map((content, index) 
 }));
 
 export const getReportDashboard = async (period: ReportPeriod = '7d'): Promise<ReportDashboardView> => {
-  if (!isMockMode()) {
-    return get<ReportDashboardView>('/reports/dashboard', { period });
+  if (!isMockMode('report')) {
+    try {
+      return await get<ReportDashboardView>('/reports/dashboard', { period });
+    } catch (error) {
+      return buildMockReportDashboard(period);
+    }
   }
 
+  return buildMockReportDashboard(period);
+};
+
+const buildMockReportDashboard = (period: ReportPeriod): ReportDashboardView => {
   return {
     summary: reportSummary,
     periods: getReportPeriods(),
@@ -47,7 +55,7 @@ export const getReportDashboard = async (period: ReportPeriod = '7d'): Promise<R
 };
 
 export const getForecastView = async (): Promise<ForecastResult> => {
-  if (!isMockMode()) {
+  if (!isMockMode('report')) {
     return get<ForecastResult>('/reports/forecast');
   }
 

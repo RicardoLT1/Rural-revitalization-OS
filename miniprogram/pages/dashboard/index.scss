@@ -5,8 +5,13 @@
 }
 
 .hero {
-  padding: $space-3;
-  background: linear-gradient(145deg, #225f2a, #2f7d32 58%, #6faf5e);
+  position: relative;
+  overflow: hidden;
+  padding: 34rpx 30rpx;
+  border-radius: 26rpx;
+  background:
+    linear-gradient(135deg, rgba(28, 72, 42, 0.96), rgba(47, 125, 50, 0.94)),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.1) 0 1rpx, transparent 1rpx 28rpx);
   color: #fff;
 }
 
@@ -16,9 +21,10 @@
 }
 
 .headline {
-  margin-top: 10rpx;
-  font-size: 36rpx;
+  margin-top: 14rpx;
+  font-size: 42rpx;
   font-weight: $weight-bold;
+  letter-spacing: 0;
 }
 
 .sub {
@@ -31,7 +37,7 @@
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: $space-2;
+  gap: 18rpx;
 }
 
 .entry-grid {
@@ -42,17 +48,26 @@
 
 .entry {
   text-align: center;
-  padding: 20rpx 10rpx;
+  padding: 22rpx 10rpx;
   background: #fff;
-  border-radius: $radius-md;
-  box-shadow: $shadow-soft;
+  border-radius: 18rpx;
+  box-shadow: 0 8rpx 20rpx rgba(31, 51, 36, 0.05);
   font-size: $font-xs;
   color: $color-text-primary;
-  border: 1rpx solid rgba(47, 125, 50, 0.1);
+  border: 1rpx solid rgba(47, 125, 50, 0.12);
 }
 
 .entry-icon {
-  font-size: 34rpx;
+  display: inline-flex;
+  width: 48rpx;
+  height: 48rpx;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14rpx;
+  background: #edf6e9;
+  color: #2f7d32;
+  font-size: 26rpx;
+  font-weight: 700;
   line-height: 1;
 }
 

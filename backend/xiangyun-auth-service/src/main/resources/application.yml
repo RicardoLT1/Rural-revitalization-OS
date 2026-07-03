@@ -1,0 +1,30 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: xiangyun-auth-service
+  config:
+    import: optional:nacos:${spring.application.name}.yml
+  cloud:
+    nacos:
+      server-addr: ${NACOS_ADDR:127.0.0.1:8848}
+      discovery:
+        namespace: ${NACOS_NAMESPACE:public}
+      config:
+        namespace: ${NACOS_NAMESPACE:public}
+        file-extension: yml
+  data:
+    redis:
+      host: ${REDIS_HOST:127.0.0.1}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+
+xiangyun:
+  jwt:
+    secret: ${JWT_SECRET:xiangyun-demo-secret-2026}
+    ttl-seconds: ${JWT_TTL_SECONDS:7200}
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html

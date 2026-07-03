@@ -1,32 +1,66 @@
-const { getResourceDetail } = require('../../services/resource');
+const { getResourceDetail, getInvestmentStatusType } = require('../../services/resource');
+const { submitCooperationApplication } = require('../../services/workflow');
 const { goInvestmentMatch } = require('../../utils/navigation');
 
 Page({
   data: {
+    pageState: 'loading',
+    isLoading: true,
+    isSubmittingApplication: false,
+    errorMessage: '',
+    loadingText: '加载中...',
+    errorTitle: '资源详情加载失败',
+    emptyTitle: '未找到资源',
+    emptyDescription: '该资源可能已下架或暂未入库。',
     detail: {},
     statusType: 'success'
   },
   onLoad(query) {
-    const id = query.id || 'res-01';
+    const id = query.id || '101';
     this.loadDetail(id);
   },
+  onRetry() {
+    this.loadDetail(this.data.detail.id || '101');
+  },
   async loadDetail(id) {
-    const detail = await getResourceDetail(id);
-    const statusMap = {
-      '\u53ef\u62db\u5546': 'success',
-      '\u6d3d\u8c08\u4e2d': 'warning',
-      '\u5df2\u7b7e\u7ea6': 'info'
-    };
-    this.setData({
-      detail,
-      statusType: statusMap[detail.investmentStatus] || 'neutral'
-    });
+    this.setData({ pageState: 'loading', isLoading: true, errorMessage: '' });
+    try {
+      const detail = await getResourceDetail(id);
+      this.setData({
+        pageState: detail && detail.id ? 'ready' : 'empty',
+        isLoading: false,
+        detail,
+        statusType: getInvestmentStatusType(detail.investmentStatus)
+      });
+    } catch (error) {
+      this.setData({ pageState: 'error', isLoading: false, errorMessage: error.message || '请求失败' });
+    }
   },
   onGoMatch() {
-    goInvestmentMatch(this.data.detail.id);
+    if (this.data.detail.id) {
+      goInvestmentMatch(this.data.detail.id);
+    }
   },
-  onMockAction(event) {
-    const name = event.currentTarget.dataset.name;
-    wx.showToast({ title: `${name}\uff08\u6f14\u793a\u6001\uff09`, icon: 'none' });
+  async onSubmitApplication() {
+    const detail = this.data.detail || {};
+    if (!detail.id || this.data.isSubmittingApplication) return;
+    this.setData({ isSubmittingApplication: true });
+    try {
+      await submitCooperationApplication({
+        resourceId: detail.id,
+        title: `${detail.name || '资源'}合作申请`
+      });
+      wx.showToast({ title: '申请已提交', icon: 'success' });
+      setTimeout(() => {
+        wx.switchTab({ url: '/pages/collab/index' });
+      }, 600);
+    } catch (error) {
+      wx.showToast({ title: error.message || '提交失败', icon: 'none' });
+    } finally {
+      this.setData({ isSubmittingApplication: false });
+    }
+  },
+  onContact() {
+    wx.showToast({ title: '请等待工作人员审批对接', icon: 'none' });
   }
 });

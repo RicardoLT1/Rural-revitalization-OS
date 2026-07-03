@@ -1,6 +1,8 @@
 {
   "pages": [
     "pages/splash/index",
+    "pages/login/index",
+    "pages/register/index",
     "pages/dashboard/index",
     "pages/resource-map/index",
     "pages/collab/index",

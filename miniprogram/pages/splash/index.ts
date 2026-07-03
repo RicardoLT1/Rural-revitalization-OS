@@ -1,28 +1,34 @@
-const SPLASH_DURATION = 1800;
-let splashTimer: number | undefined;
+import { getCurrentUser } from '../../services/auth';
 
 Page({
-  onLoad() {
-    console.log('[splash] onLoad: enter splash page');
+  data: {
+    loadingText: '正在检查登录状态'
   },
 
   onReady() {
-    console.log('[splash] onReady: stay for ' + SPLASH_DURATION + 'ms before dashboard');
-    splashTimer = setTimeout(() => {
-      console.log('[splash] switchTab -> pages/dashboard/index');
-      wx.switchTab({ url: '/pages/dashboard/index' });
-    }, SPLASH_DURATION) as unknown as number;
+    this.restoreSession();
   },
 
-  onShow() {
-    console.log('[splash] onShow');
-  },
-
-  onUnload() {
-    if (splashTimer) {
-      clearTimeout(splashTimer);
-      splashTimer = undefined;
+  async restoreSession() {
+    const token = wx.getStorageSync('XIANGYUN_TOKEN');
+    if (!token) {
+      this.goLogin();
+      return;
     }
-    console.log('[splash] onUnload');
+    try {
+      const user = await getCurrentUser();
+      wx.setStorageSync('XIANGYUN_USER', user);
+      wx.setStorageSync('XIANGYUN_ROLE', user.role);
+      wx.switchTab({ url: '/pages/resource-map/index' });
+    } catch (error) {
+      wx.removeStorageSync('XIANGYUN_TOKEN');
+      wx.removeStorageSync('XIANGYUN_USER');
+      wx.removeStorageSync('XIANGYUN_ROLE');
+      this.goLogin();
+    }
+  },
+
+  goLogin() {
+    wx.reLaunch({ url: '/pages/login/index' });
   }
 });

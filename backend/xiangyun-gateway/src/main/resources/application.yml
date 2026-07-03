@@ -1,0 +1,57 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: xiangyun-gateway
+  config:
+    import: optional:nacos:${spring.application.name}.yml
+  cloud:
+    nacos:
+      server-addr: ${NACOS_ADDR:127.0.0.1:8848}
+      discovery:
+        namespace: ${NACOS_NAMESPACE:public}
+      config:
+        namespace: ${NACOS_NAMESPACE:public}
+        file-extension: yml
+    gateway:
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowed-origin-patterns:
+              - '*'
+            allowed-methods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+            allowed-headers:
+              - '*'
+            exposed-headers:
+              - X-Cache-Status
+            allow-credentials: false
+      routes:
+        - id: auth-service
+          uri: lb://xiangyun-auth-service
+          predicates:
+            - Path=/api/auth/**,/api/users,/api/users/**,/api/roles,/api/roles/**
+        - id: operation-service
+          uri: lb://xiangyun-operation-service
+          predicates:
+            - Path=/api/villages,/api/villages/**,/api/resources,/api/resources/**,/api/resource-tags,/api/resource-tags/**,/api/workflows/**,/api/todos,/api/todos/**
+        - id: analysis-service
+          uri: lb://xiangyun-analysis-service
+          predicates:
+            - Path=/api/dashboard,/api/dashboard/**,/api/reports/**,/api/forecasts,/api/forecasts/**,/api/investment-matches,/api/investment-matches/**
+  data:
+    redis:
+      host: ${REDIS_HOST:127.0.0.1}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+  flyway:
+    enabled: false
+
+xiangyun:
+  jwt:
+    secret: ${JWT_SECRET:xiangyun-demo-secret-2026}

@@ -1,0 +1,47 @@
+server:
+  port: 8082
+
+spring:
+  application:
+    name: xiangyun-operation-service
+  config:
+    import: optional:nacos:${spring.application.name}.yml
+  cloud:
+    nacos:
+      server-addr: ${NACOS_ADDR:127.0.0.1:8848}
+      discovery:
+        namespace: ${NACOS_NAMESPACE:public}
+      config:
+        namespace: ${NACOS_NAMESPACE:public}
+        file-extension: yml
+  datasource:
+    url: ${MYSQL_URL:jdbc:mysql://127.0.0.1:3307/xiangyun_os?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useSSL=false}
+    username: ${MYSQL_USER:xiangyun_app}
+    password: ${MYSQL_PASSWORD:Xiangyun@2026}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    baseline-version: 4
+    table: flyway_operation_history
+    locations: classpath:db/migration
+  data:
+    redis:
+      host: ${REDIS_HOST:127.0.0.1}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 2000
+        readTimeout: 3000
+
+xiangyun:
+  cache:
+    resource-detail-ttl-seconds: ${RESOURCE_DETAIL_CACHE_TTL_SECONDS:600}
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html

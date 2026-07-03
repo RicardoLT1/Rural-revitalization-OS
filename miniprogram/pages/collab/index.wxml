@@ -1,73 +1,24 @@
-<loading-state wx:if="{{pageState === 'loading'}}" text="{{loadingText}}" />
+﻿<loading-state wx:if="{{pageState === 'loading'}}" text="{{loadingText}}" />
 <error-state wx:elif="{{pageState === 'error'}}" title="{{errorTitle}}" message="{{errorMessage}}" bind:retry="onRetry" />
-<empty-state wx:elif="{{pageState === 'empty'}}" title="{{emptyTitle}}" description="{{emptyDescription}}" />
 <block wx:else>
-  <view class="page-root">
-    <view class="todo-overview card">
-      <view class="row-between">
-        <view class="count">
-          <view class="value mono">{{todoStats.total}}</view>
-          <view class="label">今日待办</view>
-        </view>
-        <view class="count warning">
-          <view class="value mono">{{todoStats.urgent}}</view>
-          <view class="label">紧急事项</view>
-        </view>
-        <view class="count success">
-          <view class="value mono">{{todoStats.completedToday}}</view>
-          <view class="label">今日完成</view>
-        </view>
-      </view>
+  <view class="page-root applications-page">
+    <section-header title="我的申请" subtitle="查看合作申请状态、审批意见和处理时间" />
+
+    <view class="filter-line">
+      <view wx:for="{{statusOptions}}" wx:key="key" data-value="{{item.key}}" class="filter-chip {{activeStatus === item.key ? 'active' : ''}}" bindtap="onStatusTap">{{item.label}}</view>
     </view>
 
-    <view class="page-section">
-      <section-header title="事项分类" subtitle="切换分类同步更新列表" />
-      <filter-bar options="{{categoryOptions}}" activeKey="{{activeCategory}}" bind:change="onCategoryChange" />
-    </view>
+    <empty-state wx:if="{{pageState === 'empty'}}" title="{{emptyTitle}}" description="{{emptyDescription}}" />
 
-    <view class="page-section">
-      <section-header title="待办事项" subtitle="点击进入流程详情" />
-      <empty-state wx:if="{{!filteredTodos.length}}" title="当前分类暂无待办" />
-      <view wx:for="{{filteredTodos}}" wx:key="id" class="todo-card" data-processid="{{item.processId}}" bindtap="onTodoTap">
+    <view wx:else class="application-list">
+      <view wx:for="{{myApplications}}" wx:key="id" class="application-card" data-processid="{{item.id}}" bindtap="onApplicationTap">
         <view class="row-between">
           <view class="title">{{item.title}}</view>
-          <view class="status {{item.statusClass}}">{{item.status}}</view>
+          <view class="status {{item.statusClass}}">{{item.statusText}}</view>
         </view>
-        <view class="meta">截止：{{item.dueDate}} | 分类：{{item.category}}</view>
-      </view>
-    </view>
-
-    <view class="page-section">
-      <section-header title="审批事项" subtitle="可执行通过 / 驳回操作" />
-      <approval-card wx:for="{{approvals}}" wx:key="id" approval="{{item}}" bind:tap="onApprovalTap" bind:approve="onApprovalAction" />
-    </view>
-
-    <view class="page-section">
-      <section-header title="流程节点概览" subtitle="流程执行状态一目了然" />
-      <workflow-node-strip nodes="{{workflowStrip}}" currentNodeId="{{workflowStripCurrent}}" bind:nodetap="onNodeTap" />
-    </view>
-
-    <view class="page-section">
-      <section-header title="消息提醒" subtitle="流程驱动消息通知" />
-      <message-item
-        wx:for="{{messages}}"
-        wx:key="id"
-        messageId="{{item.processId}}"
-        title="{{item.title}}"
-        time="{{item.time}}"
-        type="{{item.level}}"
-        bind:tap="onMessageTap"
-      />
-    </view>
-
-    <view class="page-section card archive">
-      <view class="section-title">归档留痕中心</view>
-      <view class="section-subtitle">流程完成后自动沉淀可追溯档案记录</view>
-      <view class="quick-grid">
-        <view class="quick">项目申报</view>
-        <view class="quick">资产流转</view>
-        <view class="quick">活动筹备</view>
-        <view class="quick">村民议事</view>
+        <view class="meta">申请编号：{{item.id}}</view>
+        <view class="meta">资源编号：{{item.resourceId}} · 提交时间：{{item.createdAt}}</view>
+        <view wx:if="{{item.remark}}" class="remark">审批意见：{{item.remark}}</view>
       </view>
     </view>
   </view>

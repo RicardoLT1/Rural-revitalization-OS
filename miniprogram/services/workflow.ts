@@ -2,32 +2,91 @@ import { isMockMode } from '../config/env';
 import { TODO_STATUS_CLASS } from '../constants/status';
 import { approvals, messages, processDetails, todoItems, todoStats, workflowStrip } from '../mock/workflows';
 import type { OptionItem, StatusType } from '../types/common';
-import type { CollabWorkbenchView, ProcessDetail, ProcessRecord, RecordFilter, TodoItem, TodoViewItem } from '../types/workflow';
-import { get } from '../utils/request';
+import type {
+  CollabWorkbenchView,
+  MyApplicationItem,
+  ProcessDetail,
+  ProcessRecord,
+  RecordFilter,
+  TodoItem,
+  TodoViewItem
+} from '../types/workflow';
+import { get, post, request } from '../utils/request';
 
 export const DEFAULT_PROCESS_ID = 'p1';
 
 const categoryOptions: OptionItem[] = [
-  { key: '\u5168\u90e8', label: '\u5168\u90e8' },
-  { key: '\u9879\u76ee\u7533\u62a5', label: '\u9879\u76ee\u7533\u62a5' },
-  { key: '\u8d44\u4ea7\u6d41\u8f6c', label: '\u8d44\u4ea7\u6d41\u8f6c' },
-  { key: '\u6d3b\u52a8\u7b79\u5907', label: '\u6d3b\u52a8\u7b79\u5907' },
-  { key: '\u6751\u6c11\u8bae\u4e8b', label: '\u6751\u6c11\u8bae\u4e8b' }
+  { key: '全部', label: '全部' },
+  { key: '合作申请', label: '合作申请' }
 ];
+
+const statusClassMap: Record<string, string> = {
+  PENDING: 'pending',
+  APPROVED: 'done',
+  REJECTED: 'rejected',
+  待处理: 'pending',
+  进行中: 'processing',
+  已逾期: 'overdue',
+  已完成: 'done'
+};
+
+const statusTextMap: Record<string, string> = {
+  PENDING: '待审批',
+  APPROVED: '已通过',
+  REJECTED: '已驳回'
+};
 
 const enrichTodos = (items: TodoItem[]): TodoViewItem[] => {
   return items.map((item) => ({
     ...item,
-    statusClass: TODO_STATUS_CLASS[item.status] || 'pending'
+    statusClass: statusClassMap[item.status] || TODO_STATUS_CLASS[item.status] || 'pending'
   }));
 };
 
-export const getCollabWorkbench = async (activeCategory = '\u5168\u90e8'): Promise<CollabWorkbenchView> => {
-  if (!isMockMode()) {
-    return get<CollabWorkbenchView>('/workflows/workbench', { category: activeCategory });
+const enrichApplications = (items: MyApplicationItem[]): MyApplicationItem[] => {
+  return items.map((item) => ({
+    ...item,
+    statusText: statusTextMap[item.status] || item.status,
+    statusClass: statusClassMap[item.status] || 'pending'
+  }));
+};
+
+const unwrapList = <T>(payload: unknown): T[] => {
+  if (Array.isArray(payload)) {
+    return payload as T[];
+  }
+  const source = payload as Record<string, unknown> | undefined;
+  if (!source || typeof source !== 'object') {
+    return [];
+  }
+  if (Array.isArray(source.items)) {
+    return source.items as T[];
+  }
+  if (Array.isArray(source.records)) {
+    return source.records as T[];
+  }
+  if (Array.isArray(source.list)) {
+    return source.list as T[];
+  }
+  if (Array.isArray(source.rows)) {
+    return source.rows as T[];
+  }
+  if (source.data) {
+    return unwrapList<T>(source.data);
+  }
+  return [];
+};
+
+export const getCollabWorkbench = async (activeCategory = '全部'): Promise<CollabWorkbenchView> => {
+  if (!isMockMode('workflow')) {
+    const view = await get<CollabWorkbenchView>('/workflows/workbench', { category: activeCategory });
+    return {
+      ...view,
+      filteredTodos: enrichTodos(view.filteredTodos || [])
+    };
   }
 
-  const filteredTodos = activeCategory === '\u5168\u90e8'
+  const filteredTodos = activeCategory === '全部'
     ? todoItems
     : todoItems.filter((item) => item.category === activeCategory);
 
@@ -44,10 +103,57 @@ export const getCollabWorkbench = async (activeCategory = '\u5168\u90e8'): Promi
 };
 
 export const getProcessDetail = async (id = DEFAULT_PROCESS_ID): Promise<ProcessDetail> => {
-  if (isMockMode()) {
+  if (isMockMode('workflow')) {
     return processDetails[id] || processDetails[DEFAULT_PROCESS_ID];
   }
-  return get<ProcessDetail>(`/workflows/processes/${id}`);
+  return get<ProcessDetail>(`/workflows/${id}`);
+};
+
+export interface CooperationApplicationRequest {
+  resourceId: string;
+  title?: string;
+  description?: string;
+  contactPhone?: string;
+  remark?: string;
+}
+
+export interface CooperationApplicationResult {
+  workflowId: string;
+  todoId: string;
+  resourceId: string;
+  status: 'PENDING';
+  created: boolean;
+}
+
+export const submitCooperationApplication = async (payload: CooperationApplicationRequest) => {
+  return request<CooperationApplicationResult>({
+    url: '/workflows/cooperation-applications',
+    method: 'POST',
+    data: payload,
+    header: {
+      'Idempotency-Key': createIdempotencyKey()
+    }
+  });
+};
+
+export const getMyApplications = async () => {
+  if (isMockMode('workflow')) {
+    return [];
+  }
+  try {
+    const payload = await get<unknown>('/workflows/my');
+    return enrichApplications(unwrapList<MyApplicationItem>(payload));
+  } catch (error) {
+    return [];
+  }
+};
+
+export const approveWorkflow = async (workflowId: string, remark = '') => {
+  return post<Record<string, unknown>>(`/workflows/${workflowId}/approve`, { remark });
+};
+
+export const rejectWorkflow = async (workflowId: string, remark = '') => {
+  return post<Record<string, unknown>>(`/workflows/${workflowId}/reject`, { remark });
 };
 
 export const getProcessStatusType = (detail: ProcessDetail): StatusType => {
@@ -58,4 +164,9 @@ export const getProcessRecords = (detail: ProcessDetail, filter: RecordFilter, n
   return filter === 'current'
     ? detail.records.filter((item) => item.nodeId === nodeId)
     : detail.records;
+};
+
+const createIdempotencyKey = () => {
+  const random = Math.random().toString(16).slice(2);
+  return `mp-${Date.now()}-${random}`;
 };

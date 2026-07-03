@@ -1,12 +1,1 @@
-{
-  "navigationBarTitleText": "\u8d44\u6e90\u5730\u56fe",
-  "usingComponents": {
-    "section-header": "/components/section-header/index",
-    "filter-bar": "/components/filter-bar/index",
-    "map-resource-popup": "/components/map-resource-popup/index",
-    "resource-card": "/components/resource-card/index",
-    "empty-state": "/components/empty-state/index",
-    "error-state": "/components/error-state/index",
-    "loading-state": "/components/loading-state/index"
-  }
-}
+{"navigationBarTitleText":"资源列表","enablePullDownRefresh":true,"usingComponents":{"section-header":"/components/section-header/index","empty-state":"/components/empty-state/index","error-state":"/components/error-state/index","loading-state":"/components/loading-state/index"}}

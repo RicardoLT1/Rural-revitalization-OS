@@ -1,58 +1,131 @@
-@import '../../styles/tokens.scss';
+﻿@import '../../styles/tokens.scss';
+
+.resource-page {
+  padding-bottom: 48rpx;
+}
+
+.search-card {
+  margin: 24rpx 0;
+  padding: 26rpx;
+  border-radius: 22rpx;
+  background: #ffffff;
+  border: 1rpx solid rgba(47, 125, 50, 0.14);
+  box-shadow: 0 12rpx 28rpx rgba(30, 54, 38, 0.07);
+}
+
+.search-row {
+  display: flex;
+  gap: 14rpx;
+  align-items: center;
+}
+
+.search-input {
+  flex: 1;
+  height: 76rpx;
+  padding: 0 20rpx;
+  border-radius: 12rpx;
+  background: #f8faf6;
+  border: 1rpx solid #d8dfd6;
+  font-size: 26rpx;
+  box-sizing: border-box;
+}
+
+.search-btn {
+  width: 132rpx;
+  height: 76rpx;
+  line-height: 76rpx;
+  padding: 0;
+  border-radius: 12rpx;
+  color: #fff;
+  background: linear-gradient(135deg, #2f7d32, #4e9a53);
+  font-size: 26rpx;
+}
+
+.filter-line {
+  margin-top: 18rpx;
+  display: flex;
+  gap: 12rpx;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.filter-line.compact {
+  margin-top: 12rpx;
+}
+
+.filter-chip {
+  flex: 0 0 auto;
+  padding: 12rpx 20rpx;
+  border-radius: 999rpx;
+  color: #526156;
+  background: #f3f5f1;
+  font-size: 24rpx;
+}
+
+.filter-chip.active {
+  color: #fff;
+  background: #2f7d32;
+  box-shadow: 0 6rpx 14rpx rgba(47, 125, 50, 0.2);
+}
 
 .map-wrap {
-  border-radius: $radius-lg;
+  height: 320rpx;
+  margin-bottom: 24rpx;
+  border-radius: 22rpx;
   overflow: hidden;
-  box-shadow: $shadow-card;
-  position: relative;
   border: 1rpx solid rgba(47, 125, 50, 0.14);
 }
 
 .map {
   width: 100%;
-  height: 540rpx;
+  height: 100%;
 }
 
-.map-legend {
-  position: absolute;
-  left: 16rpx;
-  bottom: 16rpx;
+.resource-card {
   display: flex;
-  flex-wrap: wrap;
-  gap: 8rpx;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18rpx;
+  margin-bottom: 18rpx;
+  padding: 26rpx;
+  border-radius: 22rpx;
+  background: #fff;
+  border: 1rpx solid rgba(47, 125, 50, 0.12);
+  box-shadow: 0 10rpx 24rpx rgba(30, 54, 38, 0.05);
 }
 
-.legend-item {
-  display: inline-flex;
-  align-items: center;
-  padding: 6rpx 10rpx;
+.card-main {
+  min-width: 0;
+  flex: 1;
+}
+
+.resource-title {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #1f3324;
+}
+
+.resource-meta,
+.resource-desc {
+  margin-top: 10rpx;
+  font-size: 23rpx;
+  line-height: 1.5;
+  color: #68736b;
+}
+
+.status-pill {
+  flex: 0 0 auto;
+  padding: 8rpx 14rpx;
   border-radius: 999rpx;
-  background: rgba(255, 255, 255, 0.9);
+  color: #2f7d32;
+  background: #eef6e8;
   font-size: 22rpx;
-  color: $color-text-secondary;
+  font-weight: 600;
 }
 
-.dot {
-  width: 10rpx;
-  height: 10rpx;
-  border-radius: 50%;
-  margin-right: 6rpx;
-}
-
-.dot.invest {
-  background: $color-success;
-}
-
-.dot.talk {
-  background: $color-warning;
-}
-
-.dot.signed {
-  background: $color-text-secondary;
-}
-
-.popup-wrap {
-  margin-top: -44rpx;
-  position: relative;
-  z-index: 2;
+.load-more {
+  padding: 24rpx 0;
+  text-align: center;
+  font-size: 24rpx;
+  color: #7b857d;
 }

@@ -1,7 +1,7 @@
 <view class="ai-tip" bindtap="onTap">
   <view class="row-between top">
     <view class="title-wrap">
-      <view class="ai-mark">智策</view>
+      <view class="ai-mark">建议</view>
       <view class="title">{{tip.title}}</view>
     </view>
     <view class="priority">{{tip.priority}}</view>

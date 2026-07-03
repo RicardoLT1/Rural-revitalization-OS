@@ -1,49 +1,40 @@
-<loading-state wx:if="{{pageState === 'loading'}}" text="{{loadingText}}" />
+﻿<loading-state wx:if="{{pageState === 'loading'}}" text="{{loadingText}}" />
 <error-state wx:elif="{{pageState === 'error'}}" title="{{errorTitle}}" message="{{errorMessage}}" bind:retry="onRetry" />
 <empty-state wx:elif="{{pageState === 'empty'}}" title="{{emptyTitle}}" description="{{emptyDescription}}" />
 <block wx:else>
   <view class="page-root" wx:if="{{detail.id}}">
-    <view class="card head">
-      <view class="row-between">
-        <view class="title">{{detail.title}}</view>
-        <status-badge text="{{detail.status}}" type="{{statusType}}" />
-      </view>
-      <view wx:if="{{detail.blocker}}" class="blocker">当前阻塞：{{detail.blocker}}</view>
+    <view class="detail-card head">
+      <view class="title">{{detail.title}}</view>
+      <view class="status {{statusClass}}">{{statusText}}</view>
+      <view class="meta">申请编号：{{detail.id}}</view>
+      <view class="meta">申请人：{{detail.applicantName || '小程序用户'}}</view>
     </view>
 
-    <view class="page-section">
-      <section-header title="流程节点概览" />
-      <workflow-node-strip nodes="{{detail.nodes}}" currentNodeId="{{detail.currentNodeId}}" bind:nodetap="onNodeTap" />
-    </view>
-
-    <view class="page-section">
-      <section-header title="节点时间轴" subtitle="支持展开 / 收起处理备注" />
-      <timeline-node
-        wx:for="{{detail.nodes}}"
-        wx:key="id"
-        node="{{item}}"
-        expanded="{{expandedNodeId === item.id}}"
-        bind:toggle="onNodeToggle"
-      />
-    </view>
-
-    <view class="page-section card records">
-      <section-header title="操作记录" />
-      <filter-bar options="{{recordFilters}}" activeKey="{{recordFilter}}" bind:change="onRecordFilterChange" />
-      <view wx:for="{{visibleRecords}}" wx:key="id" class="record-item">
-        <view class="row-between">
-          <view class="action">{{item.action}}</view>
-          <view class="time">{{item.time}}</view>
+    <view class="detail-card">
+      <section-header title="处理进度" />
+      <view class="timeline-item">
+        <view class="timeline-dot"></view>
+        <view class="timeline-body">
+          <view class="timeline-title">提交申请</view>
+          <view class="timeline-desc">申请已进入工作人员待办。</view>
         </view>
-        <view class="meta">{{item.operator}} | {{item.remark}}</view>
+      </view>
+      <view class="timeline-item">
+        <view class="timeline-dot {{detail.status === 'PENDING' ? '' : 'done'}}"></view>
+        <view class="timeline-body">
+          <view class="timeline-title">审批处理</view>
+          <view class="timeline-desc">{{detail.status === 'PENDING' ? '等待工作人员审批。' : '工作人员已完成审批。'}}</view>
+        </view>
       </view>
     </view>
 
-    <view class="page-section card archive">
-      <section-header title="归档留痕" />
-      <view class="line">归档编号：{{detail.archive.code}}</view>
-      <view class="line">归档时间：{{detail.archive.archivedAt}}</view>
-      <view class="line">归档说明：{{detail.archive.note}}</view>
+    <view class="detail-card">
+      <section-header title="审批记录" />
+      <empty-state wx:if="{{!detail.records.length}}" title="暂无审批记录" description="审批完成后会显示处理意见。" />
+      <view wx:for="{{detail.records}}" wx:key="nodeId" class="record-item">
+        <view class="record-action">{{item.action}}</view>
+        <view class="record-remark">{{item.remark || '无备注'}}</view>
+      </view>
     </view>
   </view>
 </block>

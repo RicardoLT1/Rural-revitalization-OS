@@ -1,98 +1,81 @@
-@import '../../styles/tokens.scss';
+﻿@import '../../styles/tokens.scss';
 
-.todo-overview {
-  padding: $space-3;
-  border: 1rpx solid rgba(47, 125, 50, 0.1);
+.applications-page {
+  padding-bottom: 48rpx;
 }
 
-.count {
-  flex: 1;
-  text-align: center;
+.filter-line {
+  margin: 24rpx 0;
+  display: flex;
+  gap: 12rpx;
+  overflow-x: auto;
+  white-space: nowrap;
 }
 
-.count .value {
-  font-size: 42rpx;
-  font-weight: $weight-bold;
-}
-
-.count .label {
-  margin-top: 6rpx;
-  font-size: 22rpx;
-  color: $color-text-secondary;
-}
-
-.count.warning .value {
-  color: $color-warning;
-}
-
-.count.success .value {
-  color: $color-success;
-}
-
-.todo-card {
-  background: #fff;
-  border-radius: $radius-md;
-  box-shadow: $shadow-soft;
-  padding: $space-2;
-  margin-bottom: $space-2;
+.filter-chip {
+  flex: 0 0 auto;
+  padding: 14rpx 24rpx;
+  border-radius: 999rpx;
+  color: #526156;
+  background: #f3f5f1;
+  font-size: 24rpx;
   border: 1rpx solid rgba(47, 125, 50, 0.08);
 }
 
-.todo-card .title {
-  flex: 1;
-  margin-right: $space-2;
-  font-size: $font-sm;
-  color: $color-text-primary;
+.filter-chip.active {
+  color: #fff;
+  background: #2f7d32;
 }
 
-.todo-card .status {
-  padding: 6rpx 14rpx;
+.application-card {
+  margin-bottom: 18rpx;
+  padding: 26rpx;
+  border-radius: 22rpx;
+  background: #fff;
+  border: 1rpx solid rgba(47, 125, 50, 0.12);
+  box-shadow: 0 10rpx 24rpx rgba(30, 54, 38, 0.05);
+}
+
+.title {
+  flex: 1;
+  min-width: 0;
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #1f3324;
+}
+
+.status {
+  margin-left: 16rpx;
+  padding: 8rpx 14rpx;
   border-radius: 999rpx;
   font-size: 22rpx;
-  border: 1rpx solid transparent;
-  font-weight: $weight-medium;
+  font-weight: 600;
+  white-space: nowrap;
 }
 
-.todo-card .status.pending {
-  color: $color-warning;
-  background: rgba(213, 138, 42, 0.14);
-  border-color: rgba(213, 138, 42, 0.28);
+.status.pending {
+  color: #8a5a00;
+  background: #fff5d6;
 }
 
-.todo-card .status.processing {
-  color: $color-info;
-  background: rgba(46, 108, 184, 0.14);
-  border-color: rgba(46, 108, 184, 0.28);
+.status.done {
+  color: #2f7d32;
+  background: #eef6e8;
 }
 
-.todo-card .status.overdue {
-  color: $color-danger;
-  background: rgba(201, 74, 59, 0.14);
-  border-color: rgba(201, 74, 59, 0.28);
+.status.rejected {
+  color: #a7352a;
+  background: #fdecea;
 }
 
-.meta {
-  margin-top: 8rpx;
-  color: $color-text-secondary;
-  font-size: $font-xs;
+.meta,
+.remark {
+  margin-top: 12rpx;
+  font-size: 24rpx;
+  line-height: 1.5;
+  color: #68736b;
 }
 
-.archive {
-  padding: $space-3;
-}
-
-.quick-grid {
-  margin-top: $space-2;
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: $space-2;
-}
-
-.quick {
-  text-align: center;
-  padding: 14rpx;
-  border-radius: $radius-md;
-  background: rgba(47, 125, 50, 0.12);
-  color: $color-brand;
-  font-size: $font-xs;
+.remark {
+  color: #3f4b42;
 }

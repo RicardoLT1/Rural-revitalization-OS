@@ -19,11 +19,29 @@ const buildUrl = (url: string) => {
 };
 
 const getAuthHeader = (): Record<string, string> => {
-  // Token can be wired here when real login is enabled.
-  return {};
+  const token = wx.getStorageSync('XIANGYUN_TOKEN');
+  return token ? { Authorization: `Bearer ${token}` } : {};
+};
+
+let demoLoginTask: Promise<void> | null = null;
+
+const isAuthRequest = (url: string) => url.includes('/auth/login') || url.includes('/auth/logout') || url.includes('/auth/register');
+
+const clearSession = () => {
+  wx.removeStorageSync('XIANGYUN_TOKEN');
+  wx.removeStorageSync('XIANGYUN_USER');
+  wx.removeStorageSync('XIANGYUN_ROLE');
+};
+
+const goLogin = () => {
+  wx.reLaunch({ url: '/pages/login/index' });
 };
 
 const toRequestError = (error: unknown, fallback: string, statusCode?: number): RequestError => {
+  const body = error as Partial<ApiResponse<unknown>> | undefined;
+  if (body && typeof body === 'object' && typeof body.message === 'string' && body.message) {
+    return { message: body.message, statusCode, raw: error };
+  }
   if (error instanceof Error) {
     return { message: error.message || fallback, statusCode, raw: error };
   }
@@ -31,20 +49,76 @@ const toRequestError = (error: unknown, fallback: string, statusCode?: number): 
 };
 
 const parseResponse = <T>(raw: unknown): T => {
+  if (typeof raw === 'string') {
+    const text = raw.trim();
+    if (!text) {
+      return undefined as T;
+    }
+    try {
+      return parseResponse<T>(JSON.parse(text));
+    } catch (error) {
+      throw { message: '响应数据格式错误', raw: error };
+    }
+  }
   const response = raw as ApiResponse<T>;
   if (response && typeof response === 'object' && 'data' in response) {
     if (response.code && response.code !== 200 && response.code !== 0) {
-      throw toRequestError(response, response.message || '\u8bf7\u6c42\u5931\u8d25', response.code);
+      throw toRequestError(response, response.message || '请求失败', response.code);
     }
     return response.data as T;
   }
   return raw as T;
 };
 
+const ensureDemoLogin = (url: string): Promise<void> => {
+  if (!envConfig.demoAutoLogin || envConfig.dataSource !== 'api' || isAuthRequest(url)) {
+    return Promise.resolve();
+  }
+  if (wx.getStorageSync('XIANGYUN_TOKEN')) {
+    return Promise.resolve();
+  }
+  if (demoLoginTask) {
+    return demoLoginTask;
+  }
+
+  demoLoginTask = new Promise<void>((resolve, reject) => {
+    wx.request({
+      url: `${envConfig.baseURL}/auth/login`,
+      method: 'POST',
+      data: envConfig.demoAccount,
+      timeout: envConfig.timeout,
+      header: { 'content-type': 'application/json' },
+      success(result) {
+        try {
+          const statusCode = result.statusCode || 0;
+          if (statusCode < 200 || statusCode >= 300) {
+            reject(toRequestError(result.data, `HTTP ${statusCode}`, statusCode));
+            return;
+          }
+          const data = parseResponse<{ token: string; user: { role: string } }>(result.data);
+          wx.setStorageSync('XIANGYUN_TOKEN', data.token);
+          wx.setStorageSync('XIANGYUN_USER', data.user);
+          wx.setStorageSync('XIANGYUN_ROLE', data.user.role);
+          resolve();
+        } catch (error) {
+          reject(toRequestError(error, '自动登录失败'));
+        }
+      },
+      fail(error) {
+        reject(toRequestError(error, error.errMsg || '自动登录失败'));
+      }
+    });
+  }).finally(() => {
+    demoLoginTask = null;
+  });
+
+  return demoLoginTask;
+};
+
 export const request = <T = unknown, D = unknown>(options: RequestOptions<D>): Promise<T> => {
   const { url, method = 'GET', data, header = {}, timeout = envConfig.timeout } = options;
 
-  return new Promise((resolve, reject) => {
+  const send = (): Promise<T> => new Promise((resolve, reject) => {
     wx.request({
       url: buildUrl(url),
       method,
@@ -58,19 +132,27 @@ export const request = <T = unknown, D = unknown>(options: RequestOptions<D>): P
       success(result) {
         try {
           const statusCode = result.statusCode || 0;
+          if (statusCode === 401 && !isAuthRequest(url)) {
+            clearSession();
+            goLogin();
+            reject(toRequestError(result.data, '登录已过期，请重新登录', statusCode));
+            return;
+          }
           if (statusCode < 200 || statusCode >= 300) {
             throw toRequestError(result.data, `HTTP ${statusCode}`, statusCode);
           }
           resolve(parseResponse<T>(result.data));
         } catch (error) {
-          reject(toRequestError(error, '\u8bf7\u6c42\u5931\u8d25'));
+          reject(toRequestError(error, '请求失败'));
         }
       },
       fail(error) {
-        reject(toRequestError(error, error.errMsg || '\u7f51\u7edc\u8bf7\u6c42\u5f02\u5e38'));
+        reject(toRequestError(error, error.errMsg || '网络请求异常'));
       }
     });
   });
+
+  return ensureDemoLogin(url).then(send);
 };
 
 export const get = <T = unknown>(url: string, data?: unknown) => request<T>({ url, method: 'GET', data });

@@ -1,54 +1,58 @@
-<loading-state wx:if="{{pageState === 'loading'}}" text="{{loadingText}}" />
+﻿<loading-state wx:if="{{pageState === 'loading'}}" text="{{loadingText}}" />
 <error-state wx:elif="{{pageState === 'error'}}" title="{{errorTitle}}" message="{{errorMessage}}" bind:retry="onRetry" />
 <empty-state wx:elif="{{pageState === 'empty'}}" title="{{emptyTitle}}" description="{{emptyDescription}}" />
 <block wx:else>
   <view class="page-root" wx:if="{{detail.id}}">
-    <view class="cover card">
-      <view class="cover-layer">
-        <view class="cover-tag">{{detail.category}}</view>
-        <view class="cover-title">{{detail.name}}</view>
-      </view>
+    <view class="detail-hero">
+      <view class="hero-label">{{detail.category}}</view>
+      <view class="hero-title">{{detail.name}}</view>
+      <view class="hero-address">{{detail.address}}</view>
     </view>
 
     <view class="page-section card info-card">
       <view class="row-between">
-        <view class="name">{{detail.name}}</view>
+        <view class="name">资源信息</view>
         <status-badge text="{{detail.investmentStatus}}" type="{{statusType}}" />
       </view>
-      <view class="meta">{{detail.category}} | {{detail.area}} ㎡ | {{detail.address}}</view>
+      <view class="info-line">面积：{{detail.area}}㎡</view>
+      <view class="info-line">预计年收益：{{detail.annualEstimate}} 万元</view>
+      <view class="info-line">运营主体：{{detail.owner}}</view>
       <view class="intro">{{detail.intro}}</view>
       <tag-group tags="{{detail.tags}}" />
     </view>
 
     <view class="page-section card info-card">
-      <section-header title="经营指标" />
-      <view class="kpi-grid">
-        <view class="kpi-item">
-          <view class="label">预估年收益</view>
-          <view class="value mono">{{detail.annualEstimate}} 万元</view>
-        </view>
-        <view class="kpi-item">
-          <view class="label">当前利用率</view>
-          <view class="value mono">{{detail.occupancyRate}}%</view>
-        </view>
-        <view class="kpi-item">
-          <view class="label">预期回报率</view>
-          <view class="value mono">{{detail.expectedROI}}%</view>
-        </view>
-      </view>
-    </view>
-
-    <view class="page-section card info-card">
-      <section-header title="关联项目" />
-      <view wx:for="{{detail.relatedProjects}}" wx:key="*this" class="project">{{item}}</view>
-      <view class="contact">运营主体：{{detail.owner}}</view>
-      <view class="contact">联系对接：{{detail.contact}}</view>
+      <section-header title="合作状态" />
+      <view wx:if="{{canApply}}" class="apply-note success">当前资源可提交合作申请。</view>
+      <view wx:else class="apply-note warning">{{cannotApplyReason}}</view>
     </view>
 
     <view class="page-section actions">
-      <view class="btn primary" bindtap="onGoMatch">查看招商推荐</view>
-      <view class="btn ghost" bindtap="onMockAction" data-name="发起流转">发起流转</view>
-      <view class="btn ghost" bindtap="onMockAction" data-name="联系对接">联系对接</view>
+      <button class="btn primary" disabled="{{!canApply || isSubmittingApplication}}" bindtap="onShowApplyForm">提交合作申请</button>
+      <button class="btn ghost" bindtap="onContact">联系对接</button>
+    </view>
+
+    <view wx:if="{{showApplyForm}}" class="form-mask">
+      <view class="apply-form">
+        <view class="form-title">合作申请</view>
+        <view class="field">
+          <view class="label">申请标题</view>
+          <input class="input" maxlength="40" data-key="title" value="{{form.title}}" bindinput="onFormInput" />
+        </view>
+        <view class="field">
+          <view class="label">联系方式</view>
+          <input class="input" type="number" maxlength="11" placeholder="请输入手机号" data-key="contactPhone" value="{{form.contactPhone}}" bindinput="onFormInput" />
+        </view>
+        <view class="field">
+          <view class="label">合作说明</view>
+          <textarea class="textarea" maxlength="300" placeholder="说明合作意向、时间和需求，至少 10 个字" data-key="description" value="{{form.description}}" bindinput="onFormInput" />
+          <view class="counter">{{form.description.length}}/300</view>
+        </view>
+        <view class="form-actions">
+          <button class="btn ghost" bindtap="onCloseApplyForm">取消</button>
+          <button class="btn primary" loading="{{isSubmittingApplication}}" disabled="{{isSubmittingApplication}}" bindtap="onSubmitApplication">确认提交</button>
+        </view>
+      </view>
     </view>
   </view>
 </block>
