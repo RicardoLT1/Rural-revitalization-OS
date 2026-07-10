@@ -1,11 +1,8 @@
 package com.xiangyun.common.security;
 
-import org.springframework.stereotype.Component;
-
 import java.time.Clock;
 import java.time.Instant;
 
-@Component
 public class InternalSignatureVerifier {
     private final InternalAuthProperties properties;
     private final InternalSignatureSigner signer;
