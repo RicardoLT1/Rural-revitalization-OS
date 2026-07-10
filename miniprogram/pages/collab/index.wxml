@@ -4,25 +4,44 @@
   <view class="page-root applications-page">
     <view class="application-hero">
       <view class="hero-label">协同工作台</view>
-      <view class="hero-title">我的合作申请</view>
-      <view class="hero-desc">查看申请状态、审批意见与处理时间，重要进度会集中展示在这里。</view>
+      <view class="hero-title">{{isStaffMode ? '待处理申请' : '我的合作申请'}}</view>
+      <view class="hero-desc">{{isStaffMode ? '集中处理合作申请，审批动作会同步写入流程记录和操作日志。' : '查看申请状态、审批意见与处理时间，重要进度会集中展示在这里。'}}</view>
       <view class="summary-row">
         <view class="summary-item">
-          <view class="summary-num">{{allApplications.length}}</view>
-          <view class="summary-text">全部申请</view>
+          <view class="summary-num">{{isStaffMode ? pendingTodos.length : allApplications.length}}</view>
+          <view class="summary-text">{{isStaffMode ? '待处理' : '全部申请'}}</view>
         </view>
-        <view class="summary-item">
+        <view class="summary-item" wx:if="{{!isStaffMode}}">
           <view class="summary-num">{{myApplications.length}}</view>
           <view class="summary-text">当前筛选</view>
         </view>
       </view>
     </view>
 
-    <scroll-view class="filter-line" scroll-x="true" show-scrollbar="false">
+    <scroll-view wx:if="{{!isStaffMode}}" class="filter-line" scroll-x="true" show-scrollbar="false">
       <view wx:for="{{statusOptions}}" wx:key="key" data-value="{{item.key}}" class="filter-chip {{activeStatus === item.key ? 'active' : ''}}" bindtap="onStatusTap">{{item.label}}</view>
     </scroll-view>
 
     <empty-state wx:if="{{pageState === 'empty'}}" title="{{emptyTitle}}" description="{{emptyDescription}}" />
+
+    <view wx:elif="{{isStaffMode}}" class="application-list">
+      <view wx:for="{{pendingTodos}}" wx:key="id" class="application-card staff-card" data-processid="{{item.processId}}" bindtap="onTodoTap">
+        <view class="timeline-node {{item.statusClass}}">审</view>
+        <view class="card-main">
+          <view class="row-between top-row">
+            <view class="title">{{item.title}}</view>
+            <view class="status {{item.statusClass}}">{{item.status === 'MATERIAL_REQUIRED' ? '待补材料' : '待审批'}}</view>
+          </view>
+          <view class="meta">流程编号：{{item.processId}}</view>
+          <view class="meta">到期时间：{{item.dueDate}}</view>
+          <view class="action-row">
+            <view class="action-btn pass" catchtap="onTodoAction" data-processid="{{item.processId}}" data-action="approve">通过</view>
+            <view class="action-btn material" catchtap="onTodoAction" data-processid="{{item.processId}}" data-action="material">补材料</view>
+            <view class="action-btn reject" catchtap="onTodoAction" data-processid="{{item.processId}}" data-action="reject">驳回</view>
+          </view>
+        </view>
+      </view>
+    </view>
 
     <view wx:else class="application-list">
       <view wx:for="{{myApplications}}" wx:key="id" class="application-card" data-processid="{{item.id}}" bindtap="onApplicationTap">

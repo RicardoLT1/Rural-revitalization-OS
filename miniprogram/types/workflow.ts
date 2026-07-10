@@ -68,6 +68,17 @@ export interface ProcessRecord {
   nodeId: string;
 }
 
+export interface OperationLogItem {
+  id: string;
+  workflowId: string;
+  resourceId?: string;
+  action: string;
+  operatorId?: string;
+  operatorName?: string;
+  remark?: string;
+  createdAt: string;
+}
+
 export interface ArchiveRecord {
   id: string;
   code: string;

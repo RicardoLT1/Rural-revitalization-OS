@@ -6,6 +6,6 @@ public record WorkflowView(String id, String title, String status, String curren
     public record Node(String id, String name, String owner, String status, String remark) {
     }
 
-    public record Record(String nodeId, String operator, String action, String remark) {
+    public record Record(String id, String nodeId, String operator, String action, String time, String remark) {
     }
 }

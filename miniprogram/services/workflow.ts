@@ -5,6 +5,7 @@ import type { OptionItem, StatusType } from '../types/common';
 import type {
   CollabWorkbenchView,
   MyApplicationItem,
+  OperationLogItem,
   ProcessDetail,
   ProcessRecord,
   RecordFilter,
@@ -22,6 +23,7 @@ const categoryOptions: OptionItem[] = [
 
 const statusClassMap: Record<string, string> = {
   PENDING: 'pending',
+  MATERIAL_REQUIRED: 'pending',
   APPROVED: 'done',
   REJECTED: 'rejected',
   待处理: 'pending',
@@ -32,6 +34,7 @@ const statusClassMap: Record<string, string> = {
 
 const statusTextMap: Record<string, string> = {
   PENDING: '待审批',
+  MATERIAL_REQUIRED: '待补材料',
   APPROVED: '已通过',
   REJECTED: '已驳回'
 };
@@ -109,6 +112,14 @@ export const getProcessDetail = async (id = DEFAULT_PROCESS_ID): Promise<Process
   return get<ProcessDetail>(`/workflows/${id}`);
 };
 
+export const getOperationLogs = async (id: string): Promise<OperationLogItem[]> => {
+  if (isMockMode('workflow')) {
+    return [];
+  }
+  const payload = await get<unknown>(`/workflows/${id}/operation-logs`);
+  return unwrapList<OperationLogItem>(payload);
+};
+
 export interface CooperationApplicationRequest {
   resourceId: string;
   title?: string;
@@ -150,6 +161,14 @@ export const approveWorkflow = async (workflowId: string, remark = '') => {
 
 export const rejectWorkflow = async (workflowId: string, remark = '') => {
   return post<Record<string, unknown>>(`/workflows/${workflowId}/reject`, { remark });
+};
+
+export const requireWorkflowMaterial = async (workflowId: string, remark = '') => {
+  return post<Record<string, unknown>>(`/workflows/processes/${workflowId}/actions`, { action: 'MATERIAL_REQUIRED', remark });
+};
+
+export const submitWorkflowMaterials = async (workflowId: string, remark = '') => {
+  return post<Record<string, unknown>>(`/workflows/${workflowId}/materials`, { remark });
 };
 
 export const getProcessStatusType = (detail: ProcessDetail): StatusType => {

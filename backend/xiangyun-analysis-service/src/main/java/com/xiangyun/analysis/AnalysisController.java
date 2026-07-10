@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 @RestController
@@ -32,11 +33,7 @@ public class AnalysisController {
                                                                       HttpServletResponse response) {
         try {
             DashboardResult result = analysisService.dashboard(villageId, days);
-            response.setHeader("X-Cache-Status", result.cacheStatus());
-            if (result.stale()) {
-                response.setHeader("X-Data-Stale", "true");
-            }
-            return ResponseEntity.ok(ApiResponse.success(ResponseTextSanitizer.cleanMap(result.data())));
+            return ResponseEntity.ok(ApiResponse.success(observableDashboard(result, response)));
         } catch (DashboardUnavailableException ex) {
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
                     .body(ApiResponse.fail(50300, "统计服务暂时不可用，请稍后重试"));
@@ -49,11 +46,7 @@ public class AnalysisController {
                                                                             HttpServletResponse response) {
         try {
             DashboardResult result = analysisService.refreshDashboard(villageId, days);
-            response.setHeader("X-Cache-Status", result.cacheStatus());
-            if (result.stale()) {
-                response.setHeader("X-Data-Stale", "true");
-            }
-            return ResponseEntity.ok(ApiResponse.success(ResponseTextSanitizer.cleanMap(result.data())));
+            return ResponseEntity.ok(ApiResponse.success(observableDashboard(result, response)));
         } catch (DashboardUnavailableException ex) {
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
                     .body(ApiResponse.fail(50300, "统计服务暂时不可用，请稍后重试"));
@@ -62,12 +55,12 @@ public class AnalysisController {
 
     @GetMapping("/reports/dashboard")
     public ApiResponse<Map<String, Object>> reportDashboard(@RequestParam(defaultValue = "7d") String period) {
-        return ApiResponse.success(ResponseTextSanitizer.cleanMap(analysisService.reportDashboard(period)));
+        return ApiResponse.success(analysisService.reportDashboard(period));
     }
 
     @GetMapping("/reports/summary")
     public ApiResponse<Object> reportSummary(@RequestParam(defaultValue = "7d") String period) {
-        return ApiResponse.success(ResponseTextSanitizer.clean(analysisService.reportDashboard(period).get("summary")));
+        return ApiResponse.success(analysisService.reportDashboard(period).get("summary"));
     }
 
     @GetMapping("/reports/visitor-trends")
@@ -77,22 +70,22 @@ public class AnalysisController {
 
     @GetMapping("/reports/revenue-bars")
     public ApiResponse<Object> revenueBars(@RequestParam(defaultValue = "7d") String period) {
-        return ApiResponse.success(ResponseTextSanitizer.clean(analysisService.reportDashboard(period).get("revenueBar")));
+        return ApiResponse.success(analysisService.reportDashboard(period).get("revenueBar"));
     }
 
     @GetMapping("/reports/revenue-ratio")
     public ApiResponse<Object> revenueRatio(@RequestParam(defaultValue = "7d") String period) {
-        return ApiResponse.success(ResponseTextSanitizer.clean(analysisService.reportDashboard(period).get("ratioRing")));
+        return ApiResponse.success(analysisService.reportDashboard(period).get("ratioRing"));
     }
 
     @GetMapping("/reports/auto-summary")
     public ApiResponse<Object> autoSummary(@RequestParam(defaultValue = "7d") String period) {
-        return ApiResponse.success(ResponseTextSanitizer.clean(analysisService.reportDashboard(period).get("autoSummary")));
+        return ApiResponse.success(analysisService.reportDashboard(period).get("autoSummary"));
     }
 
     @GetMapping("/reports/suggestions")
     public ApiResponse<Object> suggestions(@RequestParam(defaultValue = "7d") String period) {
-        return ApiResponse.success(ResponseTextSanitizer.clean(analysisService.reportDashboard(period).get("aiTips")));
+        return ApiResponse.success(analysisService.reportDashboard(period).get("aiTips"));
     }
 
     @GetMapping("/reports/forecast")
@@ -122,12 +115,12 @@ public class AnalysisController {
 
     @GetMapping("/reports/investment-match-view")
     public ApiResponse<Map<String, Object>> investmentMatchView(@RequestParam(defaultValue = "103") String resourceId) {
-        return ApiResponse.success(ResponseTextSanitizer.cleanMap(analysisService.investmentMatch(resourceId)));
+        return ApiResponse.success(analysisService.investmentMatch(resourceId));
     }
 
     @GetMapping("/investment-matches")
     public ApiResponse<Map<String, Object>> investmentMatches(@RequestParam(defaultValue = "103") String resourceId) {
-        return ApiResponse.success(ResponseTextSanitizer.cleanMap(analysisService.investmentMatch(resourceId)));
+        return ApiResponse.success(analysisService.investmentMatch(resourceId));
     }
 
     @PostMapping("/investment-matches")
@@ -143,5 +136,23 @@ public class AnalysisController {
     @DeleteMapping("/investment-matches/{id}")
     public ApiResponse<Map<String, Object>> deleteInvestmentMatch(@PathVariable String id) {
         return ApiResponse.success(Map.of("id", id, "deleted", true));
+    }
+
+    private Map<String, Object> observableDashboard(DashboardResult result, HttpServletResponse response) {
+        Map<String, Object> body = new LinkedHashMap<>(result.data());
+        body.put("cacheStatus", result.cacheStatus());
+        body.put("stale", result.stale());
+        Object generatedAt = body.get("generatedAt");
+        Object rangeDays = body.get("rangeDays");
+
+        response.setHeader("X-Cache-Status", result.cacheStatus());
+        response.setHeader("X-Data-Stale", String.valueOf(result.stale()));
+        if (generatedAt != null) {
+            response.setHeader("X-Data-Generated-At", String.valueOf(generatedAt));
+        }
+        if (rangeDays != null) {
+            response.setHeader("X-Data-Range-Days", String.valueOf(rangeDays));
+        }
+        return body;
     }
 }

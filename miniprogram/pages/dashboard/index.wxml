@@ -17,6 +17,14 @@
       <view class="weather-pill">今日可逛</view>
     </view>
 
+    <view wx:if="{{showDataHealth}}" class="data-health {{cacheStatusClass}}">
+      <view class="health-main">
+        <text class="health-dot"></text>
+        <text>{{cacheStatusText}}</text>
+      </view>
+      <view class="health-meta">{{dataStaleText}} · {{dataRangeLabel}} · {{dataGeneratedAt}}</view>
+    </view>
+
     <view class="hero-carousel">
       <swiper
         class="hero-swiper"

@@ -83,10 +83,21 @@ public class AnalysisService {
                 .map(item -> (BigDecimal) item.get("revenue"))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         int visitors = snapshots.stream().mapToInt(item -> ((Number) item.get("visitor_count")).intValue()).sum();
+        int applicationCount = safeCount("select count(*) from workflow where deleted=0 and category='COOPERATION_APPLICATION'");
+        int approvedCount = safeCount("select count(*) from workflow where deleted=0 and category='COOPERATION_APPLICATION' and status='APPROVED'");
+        int overdueTodoCount = safeCount("select count(*) from todo_item where deleted=0 and due_date < now() and status='PENDING'");
+        String approvalRate = applicationCount == 0
+                ? "0%"
+                : BigDecimal.valueOf(approvedCount)
+                .multiply(BigDecimal.valueOf(100))
+                .divide(BigDecimal.valueOf(applicationCount), 1, RoundingMode.HALF_UP) + "%";
         return Map.of(
                 "summary", List.of(
                         Map.of("id", "visitor", "title", "累计客流", "value", visitors, "delta", "+8.6%"),
-                        Map.of("id", "revenue", "title", "累计营收", "value", revenue.setScale(1, RoundingMode.HALF_UP) + "万元", "delta", "+12.3%")
+                        Map.of("id", "revenue", "title", "累计营收", "value", revenue.setScale(1, RoundingMode.HALF_UP) + "万元", "delta", "+12.3%"),
+                        Map.of("id", "applications", "title", "合作申请", "value", applicationCount, "delta", "闭环跟进"),
+                        Map.of("id", "approvalRate", "title", "审批通过率", "value", approvalRate, "delta", "已处理 " + approvedCount),
+                        Map.of("id", "overdueTodos", "title", "超时待办", "value", overdueTodoCount, "delta", overdueTodoCount == 0 ? "无超时" : "需跟进")
                 ),
                 "period", range == 30 ? "30d" : "7d",
                 "flowPoints", trend(range),
@@ -182,5 +193,14 @@ public class AnalysisService {
         return snapshots(range).stream()
                 .map(item -> Map.of("date", formatter.format(((java.sql.Date) item.get("stat_date")).toLocalDate()), "value", item.get("visitor_count")))
                 .toList();
+    }
+
+    private int safeCount(String sql) {
+        try {
+            Integer value = jdbcTemplate.queryForObject(sql, Integer.class);
+            return value == null ? 0 : value;
+        } catch (Exception ex) {
+            return 0;
+        }
     }
 }

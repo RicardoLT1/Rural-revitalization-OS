@@ -3,6 +3,10 @@ import type { DashboardMetrics } from '../types/dashboard';
 export const dashboardData: DashboardMetrics = {
   villageName: '\u9752\u79be\u793a\u8303\u6751',
   roleName: '\u4e61\u6751CEO',
+  generatedAt: '2026-07-06T08:00:00Z',
+  rangeDays: 7,
+  cacheStatus: 'MOCK',
+  stale: false,
   stats: [
     { key: 'flow', title: '\u4eca\u65e5\u5ba2\u6d41', value: 18640, unit: '\u4eba\u6b21', delta: 12.4, trend: 'up', status: 'success', icon: '\u5ba2' },
     { key: 'revenue', title: '\u672c\u6708\u8425\u6536', value: 268.7, unit: '\u4e07\u5143', delta: 8.6, trend: 'up', status: 'info', icon: '\u6536' },

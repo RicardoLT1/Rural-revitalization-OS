@@ -65,6 +65,10 @@ class OperationReliabilityTest {
                   intro varchar(255),
                   owner varchar(128),
                   contact varchar(64),
+                  ownership_status varchar(64),
+                  material_status varchar(64),
+                  field_photos varchar(1024),
+                  investment_note varchar(512),
                   related_projects varchar(255),
                   occupancy_rate int default 0,
                   expected_roi int default 0,
@@ -147,8 +151,8 @@ class OperationReliabilityTest {
                 )
                 """);
         jdbcTemplate.update("""
-                insert into resource(id, village_id, name, category, address, area, annual_estimate, investment_status, intro, owner, contact)
-                values(101, 1, '溪畔共创民宿院', '闲置农房', '青耘村', 680, 86.5, '可招商', '临溪院落', '青耘村运营公司', '0572')
+                insert into resource(id, village_id, name, category, address, area, annual_estimate, investment_status, intro, owner, contact, ownership_status, material_status, field_photos, investment_note)
+                values(101, 1, '溪畔共创民宿院', '闲置农房', '青耘村', 680, 86.5, '可招商', '临溪院落', '青耘村运营公司', '0572', '村集体确认', '基础材料齐全', '', '适合民宿合作')
                 """);
     }
 
@@ -229,6 +233,24 @@ class OperationReliabilityTest {
         assertThat(jdbcTemplate.queryForObject("select status from todo_item where workflow_id=202", String.class)).isEqualTo("PENDING");
     }
 
+    @Test
+    void supplementMaterialsReturnsWorkflowToPendingAndWritesLog() {
+        seedMaterialRequiredWorkflow(203L);
+
+        Map<String, Object> result = operationService.submitSupplementMaterials(
+                "203",
+                "1",
+                "user_demo",
+                Map.of("remark", "补充联系人和现场照片"));
+
+        assertThat(result.get("status")).isEqualTo("PENDING");
+        assertThat(result.get("submitted")).isEqualTo(true);
+        assertThat(jdbcTemplate.queryForObject("select status from workflow where id=203", String.class)).isEqualTo("PENDING");
+        assertThat(jdbcTemplate.queryForObject("select version from workflow where id=203", Integer.class)).isEqualTo(1);
+        assertThat(jdbcTemplate.queryForObject("select status from todo_item where workflow_id=203", String.class)).isEqualTo("PENDING");
+        assertThat(jdbcTemplate.queryForObject("select action from operation_log where workflow_id=203", String.class)).isEqualTo("SUPPLEMENT_MATERIAL");
+    }
+
     private void seedPendingWorkflow(long workflowId) {
         transactionTemplate.executeWithoutResult(status -> {
             jdbcTemplate.update("""
@@ -238,6 +260,19 @@ class OperationReliabilityTest {
             jdbcTemplate.update("""
                     insert into todo_item(id, workflow_id, title, category, status, due_date, assignee, assignee_id)
                     values(?, ?, '合作申请', 'COOPERATION_APPLICATION', 'PENDING', current_timestamp, 'staff_demo', '2')
+                    """, workflowId + 1000, workflowId);
+        });
+    }
+
+    private void seedMaterialRequiredWorkflow(long workflowId) {
+        transactionTemplate.executeWithoutResult(status -> {
+            jdbcTemplate.update("""
+                    insert into workflow(id, village_id, title, category, resource_id, status, current_node_id, applicant, applicant_user_id, request_id, applicant_name, version)
+                    values(?, 1, '合作申请', 'COOPERATION_APPLICATION', 101, 'MATERIAL_REQUIRED', 'material', '1', '1', ?, '小程序用户', 0)
+                    """, workflowId, "seed-material-" + workflowId);
+            jdbcTemplate.update("""
+                    insert into todo_item(id, workflow_id, title, category, status, due_date, assignee, assignee_id)
+                    values(?, ?, '补充材料', 'COOPERATION_APPLICATION', 'MATERIAL_REQUIRED', current_timestamp, 'user_demo', '1')
                     """, workflowId + 1000, workflowId);
         });
     }
