@@ -132,7 +132,8 @@ class OperationServiceTest {
     void submitCooperationApplicationCreatesWorkflowAndTodo() {
         ResourceView resource = new ResourceView("101", "溪畔民宿院", "闲置农房",
                 null, null, "青耘村", null, null, "可招商",
-                List.of(), "介绍", "村公司", "0572", List.of(), 0, 0);
+                List.of(), "介绍", "村公司", "0572", List.of(), 0, 0,
+                "村集体确认", "基础材料齐全", List.of(), "适合民宿合作");
         when(jdbcTemplate.query(startsWith("select * from resource"), any(org.springframework.jdbc.core.RowMapper.class), eq(101L)))
                 .thenReturn(List.of(resource));
         when(jdbcTemplate.queryForObject(startsWith("select count(*) from workflow"), eq(Integer.class), any(Object[].class)))
@@ -151,7 +152,8 @@ class OperationServiceTest {
     void submitCooperationApplicationRejectsDuplicatePendingRequest() {
         ResourceView resource = new ResourceView("101", "溪畔民宿院", "闲置农房",
                 null, null, "青耘村", null, null, "可招商",
-                List.of(), "介绍", "村公司", "0572", List.of(), 0, 0);
+                List.of(), "介绍", "村公司", "0572", List.of(), 0, 0,
+                "村集体确认", "基础材料齐全", List.of(), "适合民宿合作");
         when(jdbcTemplate.query(startsWith("select * from resource"), any(org.springframework.jdbc.core.RowMapper.class), eq(101L)))
                 .thenReturn(List.of(resource));
         when(jdbcTemplate.queryForObject(startsWith("select count(*) from workflow"), eq(Integer.class), any(Object[].class)))

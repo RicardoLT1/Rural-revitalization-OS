@@ -98,14 +98,17 @@ class AuthFilterTest {
         MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/api/dashboard")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token.token()));
         AtomicReference<String> role = new AtomicReference<>();
+        AtomicReference<String> traceId = new AtomicReference<>();
         GatewayFilterChain chain = next -> {
             role.set(next.getRequest().getHeaders().getFirst(SecurityHeaders.ROLE));
+            traceId.set(next.getRequest().getHeaders().getFirst(SecurityHeaders.TRACE_ID));
             return Mono.empty();
         };
 
         filter.filter(exchange, chain).block();
 
         assertThat(role.get()).isEqualTo("ADMIN");
+        assertThat(traceId.get()).isNotBlank();
     }
 
     @Test

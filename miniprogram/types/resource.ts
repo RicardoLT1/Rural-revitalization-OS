@@ -35,6 +35,10 @@ export interface ResourceDetail extends ResourcePoint {
   relatedProjects: string[];
   occupancyRate: number;
   expectedROI: number;
+  ownershipStatus?: string;
+  materialStatus?: string;
+  fieldPhotos?: string[];
+  investmentNote?: string;
 }
 
 export interface InvestmentMatch {

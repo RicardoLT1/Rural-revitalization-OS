@@ -30,6 +30,10 @@ spring:
               - '*'
             exposed-headers:
               - X-Cache-Status
+              - X-Data-Stale
+              - X-Data-Generated-At
+              - X-Data-Range-Days
+              - X-Trace-Id
             allow-credentials: false
       routes:
         - id: auth-service
@@ -61,3 +65,14 @@ spring:
 xiangyun:
   jwt:
     secret: ${JWT_SECRET:xiangyun-demo-secret-2026}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: never

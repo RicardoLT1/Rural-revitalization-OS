@@ -53,6 +53,10 @@ export interface DashboardQuickEntry {
 export interface DashboardMetrics {
   villageName: string;
   roleName: string;
+  generatedAt?: string;
+  rangeDays?: number;
+  cacheStatus?: 'HIT' | 'MISS' | 'STALE' | string;
+  stale?: boolean;
   stats: StatItem[];
   trends: TrendSeries;
   risks: RiskAlert[];

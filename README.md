@@ -1,6 +1,8 @@
 # Rural-revitalization-OS
 
-Xiangyun OS is a lightweight distributed rural revitalization platform demo for the final course project.
+Xiangyun OS is a lightweight distributed rural resource operation and collaboration platform demo.
+
+The current implementation uses WeChat Mini Program + Spring Cloud Gateway + independent Auth, Operation, and Analysis services. Historical single-service demo material has been removed so the repository follows the current distributed architecture only.
 
 ## Quick Start
 
@@ -38,4 +40,16 @@ mvn test
 
 ## Demo Notes
 
-See [docs/distributed-architecture.md](docs/distributed-architecture.md) for the final distributed architecture, endpoint coverage, Redis cache flow, Nacos/Gateway/Feign demo flow, and video recording script.
+Recommended reading order:
+
+1. [docs/architecture-technical-overview.md](docs/architecture-technical-overview.md) - overall architecture, business logic, technical points, risks, and evolution path.
+2. [docs/distributed-architecture.md](docs/distributed-architecture.md) - concrete service topology, ports, startup flow, cache flow, and demo accounts.
+3. [docs/phase-1-acceptance-checklist.md](docs/phase-1-acceptance-checklist.md) - first-stage startup, demo flow, and acceptance checklist.
+4. [docs/phase-2-business-closure-plan.md](docs/phase-2-business-closure-plan.md) - business closure plan for resources, applications, approvals, and audit logs.
+5. [docs/phase-2-e2e-demo-script.md](docs/phase-2-e2e-demo-script.md) - end-to-end demo script for the second-stage business flow.
+6. [docs/phase-3-reliability-baseline.md](docs/phase-3-reliability-baseline.md) - reliability and observability baseline for dashboard data freshness, cache status, and graceful degradation.
+7. [docs/phase-4-production-readiness.md](docs/phase-4-production-readiness.md) - health checks, trace id propagation, and production-readiness operating notes.
+8. [docs/phase-5-configuration-delivery.md](docs/phase-5-configuration-delivery.md) - environment examples, delivery boundaries, and handoff rules.
+9. [docs/v1.2-roadmap.md](docs/v1.2-roadmap.md) - V1.2 phased roadmap, acceptance gates, and delivery boundaries.
+10. [docs/delivery-checklist.md](docs/delivery-checklist.md) - final checklist for configuration, startup, tests, demo flow, and troubleshooting.
+11. [backend/STARTUP.md](backend/STARTUP.md) - backend build and startup commands.

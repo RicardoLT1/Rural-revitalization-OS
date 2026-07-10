@@ -13,13 +13,18 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 
 @Service
 public class OperationService {
+
+    private static final AtomicLong ID_SEQUENCE = new AtomicLong(System.currentTimeMillis() % 1000000000);
 
     private final JdbcTemplate jdbcTemplate;
     private final StringRedisTemplate redisTemplate;
@@ -65,11 +70,7 @@ public class OperationService {
             int offset = (actualPage - 1) * actualSize;
             sql += " limit " + actualSize + " offset " + offset;
         }
-        return jdbcTemplate.query(sql, (rs, rowNum) -> toResource(rs.getLong("id"), rs.getString("name"), rs.getString("category"),
-                rs.getBigDecimal("lat"), rs.getBigDecimal("lng"), rs.getString("address"), rs.getBigDecimal("area"),
-                rs.getBigDecimal("annual_estimate"), rs.getString("investment_status"), rs.getString("intro"),
-                rs.getString("owner"), rs.getString("contact"), rs.getString("related_projects"),
-                rs.getInt("occupancy_rate"), rs.getInt("expected_roi")));
+        return jdbcTemplate.query(sql, (rs, rowNum) -> toResource(rs));
     }
 
     public ResourceView detail(String id) {
@@ -82,11 +83,7 @@ public class OperationService {
         } catch (Exception ignored) {
         }
         List<ResourceView> list = jdbcTemplate.query("select * from resource where id=? and deleted=0",
-                (rs, rowNum) -> toResource(rs.getLong("id"), rs.getString("name"), rs.getString("category"),
-                        rs.getBigDecimal("lat"), rs.getBigDecimal("lng"), rs.getString("address"), rs.getBigDecimal("area"),
-                        rs.getBigDecimal("annual_estimate"), rs.getString("investment_status"), rs.getString("intro"),
-                        rs.getString("owner"), rs.getString("contact"), rs.getString("related_projects"),
-                        rs.getInt("occupancy_rate"), rs.getInt("expected_roi")), Long.parseLong(id));
+                (rs, rowNum) -> toResource(rs), Long.parseLong(id));
         if (list.isEmpty()) {
             throw new BusinessException(40400, "资源不存在");
         }
@@ -101,15 +98,20 @@ public class OperationService {
     public Map<String, Object> createResource(Map<String, Object> body) {
         long id = nextId();
         jdbcTemplate.update("""
-                insert into resource(id, village_id, name, category, lat, lng, address, area, annual_estimate, investment_status, intro, owner, contact, status)
-                values(?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                insert into resource(id, village_id, name, category, lat, lng, address, area, annual_estimate, investment_status, intro, owner, contact, ownership_status, material_status, field_photos, investment_note, status)
+                values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
                 """,
                 id, 1, body.getOrDefault("name", "新资源"), body.getOrDefault("category", "闲置农房"),
                 body.getOrDefault("lat", 30.638211), body.getOrDefault("lng", 119.684912),
                 body.getOrDefault("address", "青耘村"), body.getOrDefault("area", 100),
                 body.getOrDefault("annualEstimate", 10), body.getOrDefault("investmentStatus", "可招商"),
                 body.getOrDefault("intro", "新增资源"), body.getOrDefault("owner", "青耘村运营公司"),
-                body.getOrDefault("contact", "0572-8001000"), "active");
+                body.getOrDefault("contact", "0572-8001000"),
+                body.getOrDefault("ownershipStatus", "村集体确认"),
+                body.getOrDefault("materialStatus", "基础材料齐全"),
+                body.getOrDefault("fieldPhotos", ""),
+                body.getOrDefault("investmentNote", "适合轻量合作试点"),
+                "active");
         return Map.of("id", String.valueOf(id), "created", true);
     }
 
@@ -125,6 +127,10 @@ public class OperationService {
                     intro=coalesce(?, intro),
                     owner=coalesce(?, owner),
                     contact=coalesce(?, contact),
+                    ownership_status=coalesce(?, ownership_status),
+                    material_status=coalesce(?, material_status),
+                    field_photos=coalesce(?, field_photos),
+                    investment_note=coalesce(?, investment_note),
                     status=coalesce(?, status),
                     updated_at=now()
                 where id=? and deleted=0
@@ -138,6 +144,10 @@ public class OperationService {
                 body.get("intro"),
                 body.get("owner"),
                 body.get("contact"),
+                body.get("ownershipStatus"),
+                body.get("materialStatus"),
+                body.get("fieldPhotos"),
+                body.get("investmentNote"),
                 body.get("status"),
                 Long.parseLong(id));
         redisTemplate.delete("resource:detail:" + id);
@@ -196,7 +206,13 @@ public class OperationService {
                 (rs, rowNum) -> new WorkflowView.Node(rs.getString("node_key"), rs.getString("title"), rs.getString("assignee"), rs.getString("status"), rs.getString("remark")),
                 Long.parseLong(id));
         List<WorkflowView.Record> records = jdbcTemplate.query("select * from approval_record where workflow_id=? and deleted=0 order by id",
-                (rs, rowNum) -> new WorkflowView.Record(rs.getString("node_id"), rs.getString("applicant"), rs.getString("action"), rs.getString("remark")),
+                (rs, rowNum) -> new WorkflowView.Record(
+                        rs.getString("id"),
+                        rs.getString("node_id"),
+                        rs.getString("applicant"),
+                        rs.getString("action"),
+                        String.valueOf(rs.getTimestamp("handled_at")),
+                        rs.getString("remark")),
                 Long.parseLong(id));
         return new WorkflowView(String.valueOf(wf.get("id")), String.valueOf(wf.get("title")), String.valueOf(wf.get("status")),
                 String.valueOf(wf.get("current_node_id")), applicantName, nodes, records);
@@ -244,7 +260,7 @@ public class OperationService {
         }
 
         long workflowId = nextId();
-        long todoId = nextId() + 1;
+        long todoId = nextId();
         String title = String.valueOf(body.getOrDefault("title", resource.name() + "合作申请"));
         String assigneeId = String.valueOf(body.getOrDefault("assigneeId", "2"));
         jdbcTemplate.update("""
@@ -270,10 +286,51 @@ public class OperationService {
                 select w.id, w.title, w.category, w.resource_id as resourceId, w.status, w.current_node_id as currentNodeId,
                        w.created_at as createdAt, a.remark, a.handled_at as handledAt
                 from workflow w
-                left join approval_record a on a.workflow_id=w.id and a.deleted=0
+                left join (
+                    select workflow_id, max(id) as latest_id
+                    from approval_record
+                    where deleted=0
+                    group by workflow_id
+                ) latest on latest.workflow_id=w.id
+                left join approval_record a on a.id=latest.latest_id
                 where w.deleted=0 and w.category='COOPERATION_APPLICATION' and w.applicant_user_id=?
                 order by w.created_at desc, w.id desc
                 """, applicantUserId);
+    }
+
+    public List<Map<String, Object>> operationLogs(String workflowId) {
+        return jdbcTemplate.queryForList("""
+                select id, workflow_id as workflowId, resource_id as resourceId, action, operator_id as operatorId,
+                       operator_name as operatorName, remark, created_at as createdAt
+                from operation_log
+                where deleted=0 and workflow_id=?
+                order by created_at asc, id asc
+                """, Long.parseLong(workflowId));
+    }
+
+    @Transactional
+    public Map<String, Object> submitSupplementMaterials(String id, String operatorId, String operatorName, Map<String, Object> body) {
+        long workflowId = Long.parseLong(id);
+        Map<String, Object> workflow = jdbcTemplate.queryForMap("select * from workflow where id=? and deleted=0", workflowId);
+        WorkflowStatus currentStatus = WorkflowStatus.from(workflow.get("status"));
+        if (!currentStatus.canTransitionTo(WorkflowStatus.PENDING)) {
+            throw new BusinessException(40904, "当前流程不需要补充材料");
+        }
+        int version = workflow.get("version") == null ? 0 : ((Number) workflow.get("version")).intValue();
+        int updated = jdbcTemplate.update("""
+                update workflow
+                set status=?, current_node_id=?, version=version+1, updated_at=now()
+                where id=? and deleted=0 and status=? and version=?
+                """, WorkflowStatus.PENDING.name(), "approve", workflowId, WorkflowStatus.MATERIAL_REQUIRED.name(), version);
+        if (updated == 0) {
+            throw new BusinessException(40902, "流程状态已变化，请刷新后重试");
+        }
+        jdbcTemplate.update("update todo_item set status=? where workflow_id=? and deleted=0",
+                WorkflowStatus.PENDING.name(), workflowId);
+        Object resourceId = workflow.get("resource_id");
+        String remark = String.valueOf(body.getOrDefault("remark", "已补充材料"));
+        writeOperationLog(workflowId, resourceId == null ? null : Long.parseLong(String.valueOf(resourceId)), "SUPPLEMENT_MATERIAL", operatorId, operatorName, remark);
+        return Map.of("processId", id, "status", WorkflowStatus.PENDING.name(), "submitted", true);
     }
 
     public Map<String, Object> workbench(String category) {
@@ -358,14 +415,37 @@ public class OperationService {
 
     private Map<String, Object> statsMap() {
         OperationStats stats = stats();
-        return Map.of("urgent", stats.riskWorkflowCount(), "total", stats.todoCount(), "completedToday", 1);
+        Integer completedToday = jdbcTemplate.queryForObject("""
+                select count(*) from todo_item
+                where deleted=0
+                  and status in ('APPROVED','REJECTED','已完成')
+                  and date(due_date)=current_date
+                """, Integer.class);
+        return Map.of("urgent", stats.riskWorkflowCount(), "total", stats.todoCount(), "completedToday", completedToday == null ? 0 : completedToday);
     }
 
-    private ResourceView toResource(Long id, String name, String category, BigDecimal lat, BigDecimal lng, String address,
-                                    BigDecimal area, BigDecimal annualEstimate, String investmentStatus, String intro,
-                                    String owner, String contact, String relatedProjects, Integer occupancyRate, Integer expectedRoi) {
-        return new ResourceView(String.valueOf(id), name, category, lat, lng, address, area, annualEstimate, investmentStatus,
-                loadTags(id), intro, owner, contact, split(relatedProjects), occupancyRate, expectedRoi);
+    private ResourceView toResource(ResultSet rs) throws SQLException {
+        Long id = rs.getLong("id");
+        return new ResourceView(String.valueOf(id),
+                rs.getString("name"),
+                rs.getString("category"),
+                rs.getBigDecimal("lat"),
+                rs.getBigDecimal("lng"),
+                rs.getString("address"),
+                rs.getBigDecimal("area"),
+                rs.getBigDecimal("annual_estimate"),
+                rs.getString("investment_status"),
+                loadTags(id),
+                rs.getString("intro"),
+                rs.getString("owner"),
+                rs.getString("contact"),
+                split(rs.getString("related_projects")),
+                rs.getInt("occupancy_rate"),
+                rs.getInt("expected_roi"),
+                readString(rs, "ownership_status", "村集体确认"),
+                readString(rs, "material_status", "基础材料齐全"),
+                split(readString(rs, "field_photos", "")),
+                readString(rs, "investment_note", "适合轻量合作试点"));
     }
 
     private Map<String, Object> updateResourceLifecycle(String id, String status, String investmentStatus) {
@@ -403,7 +483,19 @@ public class OperationService {
         if ("reject".equalsIgnoreCase(action) || "REJECTED".equalsIgnoreCase(action)) {
             return WorkflowStatus.REJECTED;
         }
+        if ("material_required".equalsIgnoreCase(action) || "require_material".equalsIgnoreCase(action) || "MATERIAL_REQUIRED".equalsIgnoreCase(action)) {
+            return WorkflowStatus.MATERIAL_REQUIRED;
+        }
         throw new BusinessException(40001, "审批动作不合法");
+    }
+
+    private String readString(ResultSet rs, String column, String fallback) {
+        try {
+            String value = rs.getString(column);
+            return StringUtils.hasText(value) ? value : fallback;
+        } catch (SQLException ex) {
+            return fallback;
+        }
     }
 
     private void writeOperationLog(Long workflowId, Long resourceId, String action, String operatorId, String operatorName, String remark) {
@@ -414,6 +506,6 @@ public class OperationService {
     }
 
     private long nextId() {
-        return System.currentTimeMillis() % 1000000000;
+        return ID_SEQUENCE.incrementAndGet();
     }
 }

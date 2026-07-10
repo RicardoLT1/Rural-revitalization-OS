@@ -1,10 +1,22 @@
 target/
 **/target/
 .idea/
+.vscode/
 *.iml
 *.log
 logs/
 **/logs/
+.env
+.env.*
+!.env.example
 node_modules/
 dist/
 .DS_Store
+
+# WeChat DevTools local config
+project.private.config.json
+miniprogram/project.private.config.json
+
+# Mini Program TypeScript build outputs
+miniprogram/**/*.js
+miniprogram/**/*.js.map

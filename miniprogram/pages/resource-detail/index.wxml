@@ -17,8 +17,19 @@
       <view class="info-line">面积：{{detail.area}}㎡</view>
       <view class="info-line">预计年收益：{{detail.annualEstimate}} 万元</view>
       <view class="info-line">运营主体：{{detail.owner}}</view>
+      <view class="info-line">权属状态：{{detail.ownershipStatus || '村集体确认'}}</view>
+      <view class="info-line">材料状态：{{detail.materialStatus || '基础材料齐全'}}</view>
       <view class="intro">{{detail.intro}}</view>
       <tag-group tags="{{detail.tags}}" />
+    </view>
+
+    <view class="page-section card info-card">
+      <section-header title="招商档案" />
+      <view class="info-line">招商说明：{{detail.investmentNote || '适合轻量合作试点'}}</view>
+      <view class="photo-row" wx:if="{{detail.fieldPhotos && detail.fieldPhotos.length}}">
+        <view wx:for="{{detail.fieldPhotos}}" wx:key="*this" class="photo-chip">现场图 {{index + 1}}</view>
+      </view>
+      <view wx:else class="apply-note warning">暂无现场图片，后续可在资源档案中补充。</view>
     </view>
 
     <view class="page-section card info-card">

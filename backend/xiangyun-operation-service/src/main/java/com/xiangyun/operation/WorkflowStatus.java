@@ -5,13 +5,15 @@ import com.xiangyun.common.BusinessException;
 public enum WorkflowStatus {
     DRAFT,
     PENDING,
+    MATERIAL_REQUIRED,
     APPROVED,
     REJECTED;
 
     public boolean canTransitionTo(WorkflowStatus target) {
         return switch (this) {
             case DRAFT -> target == PENDING;
-            case PENDING -> target == APPROVED || target == REJECTED;
+            case PENDING -> target == MATERIAL_REQUIRED || target == APPROVED || target == REJECTED;
+            case MATERIAL_REQUIRED -> target == PENDING || target == APPROVED || target == REJECTED;
             case APPROVED, REJECTED -> false;
         };
     }

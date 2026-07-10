@@ -64,6 +64,21 @@
   color: #a05a1f;
 }
 
+.photo-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  margin-top: 16rpx;
+}
+
+.photo-chip {
+  padding: 10rpx 16rpx;
+  border-radius: 999rpx;
+  color: #2f8d57;
+  background: #eaf6ee;
+  font-size: 23rpx;
+}
+
 .actions {
   display: none;
 }

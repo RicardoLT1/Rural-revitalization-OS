@@ -20,20 +20,47 @@
         </view>
       </view>
       <view class="timeline-item">
-        <view class="timeline-dot {{detail.status === 'PENDING' ? '' : 'done'}}"></view>
+        <view class="timeline-dot {{detail.status === 'PENDING' || detail.status === 'MATERIAL_REQUIRED' ? '' : 'done'}}"></view>
         <view class="timeline-body">
           <view class="timeline-title">审批处理</view>
-          <view class="timeline-desc">{{detail.status === 'PENDING' ? '等待工作人员审批。' : '工作人员已完成审批。'}}</view>
+          <view class="timeline-desc">{{detail.status === 'MATERIAL_REQUIRED' ? '工作人员已要求补充材料。' : (detail.status === 'PENDING' ? '等待工作人员审批。' : '工作人员已完成审批。')}}</view>
         </view>
       </view>
+    </view>
+
+    <view wx:if="{{detail.status === 'MATERIAL_REQUIRED'}}" class="detail-card material-card">
+      <section-header title="补充材料" />
+      <view class="timeline-desc">请根据审批意见补充说明，提交后申请会重新进入待审批。</view>
+      <textarea class="material-input" maxlength="200" placeholder="填写已补充的材料或说明" value="{{materialRemark}}" bindinput="onMaterialInput" />
+      <button class="material-btn" loading="{{isSubmittingMaterial}}" disabled="{{isSubmittingMaterial}}" bindtap="onSubmitMaterials">提交补充材料</button>
     </view>
 
     <view class="detail-card">
       <section-header title="审批记录" />
       <empty-state wx:if="{{!detail.records.length}}" title="暂无审批记录" description="审批完成后会显示处理意见。" />
-      <view wx:for="{{detail.records}}" wx:key="nodeId" class="record-item">
-        <view class="record-action">{{item.action}}</view>
+      <view wx:for="{{detail.records}}" wx:key="id" class="record-item">
+        <view class="record-head">
+          <view class="record-action">{{item.action}}</view>
+          <view class="record-time">{{item.time}}</view>
+        </view>
+        <view class="record-operator">处理人：{{item.operator || '工作人员'}}</view>
         <view class="record-remark">{{item.remark || '无备注'}}</view>
+      </view>
+    </view>
+
+    <view class="detail-card">
+      <section-header title="操作日志" />
+      <empty-state wx:if="{{!operationLogs.length}}" title="暂无操作日志" description="提交、补正和审批动作会记录在这里。" />
+      <view wx:for="{{operationLogs}}" wx:key="id" class="log-item">
+        <view class="log-dot"></view>
+        <view class="log-main">
+          <view class="record-head">
+            <view class="record-action">{{item.action}}</view>
+            <view class="record-time">{{item.createdAt}}</view>
+          </view>
+          <view class="record-operator">操作人：{{item.operatorName || item.operatorId || '系统'}}</view>
+          <view class="record-remark">{{item.remark || '无备注'}}</view>
+        </view>
       </view>
     </view>
   </view>

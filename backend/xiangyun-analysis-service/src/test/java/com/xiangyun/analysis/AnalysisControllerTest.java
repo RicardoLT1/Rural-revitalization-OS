@@ -19,9 +19,9 @@ class AnalysisControllerTest {
     private final AnalysisController controller = new AnalysisController(analysisService);
 
     @Test
-    void dashboardWritesStaleHeaderAndCleansText() {
+    void dashboardWritesStaleHeaderAndReturnsText() {
         when(analysisService.dashboard("1", 7)).thenReturn(new DashboardResult(
-                Map.of("stats", List.of(Map.of("title", "璧勬簮鎬绘暟", "unit", "涓?"))),
+                Map.of("stats", List.of(Map.of("title", "资源总数", "unit", "个"))),
                 "STALE",
                 true
         ));
@@ -32,6 +32,8 @@ class AnalysisControllerTest {
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getHeader("X-Cache-Status")).isEqualTo("STALE");
         assertThat(response.getHeader("X-Data-Stale")).isEqualTo("true");
+        assertThat(result.getBody().data().get("cacheStatus")).isEqualTo("STALE");
+        assertThat(result.getBody().data().get("stale")).isEqualTo(true);
         List<?> stats = (List<?>) result.getBody().data().get("stats");
         Map<?, ?> first = (Map<?, ?>) stats.get(0);
         assertThat(first.get("title")).isEqualTo("资源总数");

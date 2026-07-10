@@ -19,6 +19,10 @@ public record ResourceView(
         String contact,
         List<String> relatedProjects,
         Integer occupancyRate,
-        Integer expectedROI
+        Integer expectedROI,
+        String ownershipStatus,
+        String materialStatus,
+        List<String> fieldPhotos,
+        String investmentNote
 ) {
 }

@@ -17,6 +17,12 @@ Page({
     emptyDescription: '请稍后再查看资源、申请与运营概览。',
     roleName: '',
     villageName: '',
+    dataGeneratedAt: '',
+    dataRangeLabel: '',
+    cacheStatusText: '',
+    cacheStatusClass: '',
+    dataStaleText: '',
+    showDataHealth: false,
     activeHeroIndex: 0,
     heroSlides: [
       {
@@ -84,12 +90,20 @@ Page({
     this.setData({ pageState: PageState.Loading, isLoading: true, errorMessage: '' });
     try {
       const [dashboard, applications] = await Promise.all([getDashboardData(), getMyApplications()]);
+      const role = wx.getStorageSync('XIANGYUN_ROLE') || 'USER';
+      const showDataHealth = role === 'STAFF' || role === 'ADMIN';
       const isEmpty = !dashboard.stats.length && !dashboard.risks.length && !dashboard.suggestions.length && !dashboard.trends.days7.length && !applications.length;
       this.setData({
         pageState: isEmpty ? PageState.Empty : PageState.Ready,
         isLoading: false,
         roleName: dashboard.roleName,
         villageName: dashboard.villageName,
+        dataGeneratedAt: this.formatGeneratedAt(dashboard.generatedAt),
+        dataRangeLabel: dashboard.rangeDays ? `${dashboard.rangeDays}\u5929` : '\u9ed8\u8ba4',
+        cacheStatusText: this.getCacheStatusText(dashboard.cacheStatus),
+        cacheStatusClass: this.getCacheStatusClass(dashboard.cacheStatus, dashboard.stale),
+        dataStaleText: dashboard.stale ? '\u5df2\u4f7f\u7528\u6700\u8fd1\u4e00\u6b21\u6210\u529f\u6570\u636e' : '\u6570\u636e\u6b63\u5e38',
+        showDataHealth,
         applications,
         recentApplications: applications.slice(0, 3),
         stats: dashboard.stats,
@@ -120,6 +134,30 @@ Page({
       { title: '待处理进度', value: Math.max(1, risk), unit: '条', note: '可跟进 1 条', icon: '时', tone: 'orange', action: 'collab' },
       { title: '推荐机会', value: Math.max(6, cooperable), unit: '条', note: '重点推荐', icon: '星', tone: 'violet', action: 'match' }
     ];
+  },
+  formatGeneratedAt(value?: string) {
+    if (!value) {
+      return '\u6682\u65e0';
+    }
+    return value.replace('T', ' ').slice(0, 16);
+  },
+  getCacheStatusText(status?: string) {
+    const statusMap: Record<string, string> = {
+      HIT: '\u7f13\u5b58\u547d\u4e2d',
+      MISS: '\u5b9e\u65f6\u751f\u6210',
+      STALE: '\u964d\u7ea7\u6570\u636e',
+      MOCK: '\u6f14\u793a\u6570\u636e'
+    };
+    return statusMap[status || ''] || '\u672a\u77e5\u72b6\u6001';
+  },
+  getCacheStatusClass(status?: string, stale?: boolean) {
+    if (stale || status === 'STALE') {
+      return 'warning';
+    }
+    if (status === 'MISS') {
+      return 'fresh';
+    }
+    return 'normal';
   },
   onTrendPeriodChange(event: WechatMiniprogram.CustomEvent<{ key: '7d' | '30d' }>) {
     this.loadTrend(event.detail.key);

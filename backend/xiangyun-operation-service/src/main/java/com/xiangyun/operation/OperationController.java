@@ -159,6 +159,11 @@ public class OperationController {
         return ApiResponse.success(operationService.workflow(id));
     }
 
+    @GetMapping("/workflows/{id}/operation-logs")
+    public ApiResponse<List<Map<String, Object>>> workflowOperationLogs(@PathVariable String id) {
+        return ApiResponse.success(operationService.operationLogs(id));
+    }
+
     @PostMapping("/workflows/cooperation-applications")
     public ApiResponse<Map<String, Object>> submitCooperationApplication(
             @RequestHeader(value = SecurityHeaders.USER_ID, defaultValue = "1") String applicantUserId,
@@ -224,6 +229,15 @@ public class OperationController {
             @RequestHeader(value = SecurityHeaders.USERNAME, defaultValue = "staff_demo") String approverName,
             @RequestBody(required = false) Map<String, Object> body) {
         return ApiResponse.success(operationService.approve(id, "reject", approverId, approverName, body == null ? Map.of() : body));
+    }
+
+    @PostMapping("/workflows/{id}/materials")
+    public ApiResponse<Map<String, Object>> supplementWorkflowMaterials(
+            @PathVariable String id,
+            @RequestHeader(value = SecurityHeaders.USER_ID, defaultValue = "1") String operatorId,
+            @RequestHeader(value = SecurityHeaders.USERNAME, defaultValue = "user_demo") String operatorName,
+            @RequestBody(required = false) Map<String, Object> body) {
+        return ApiResponse.success(operationService.submitSupplementMaterials(id, operatorId, operatorName, body == null ? Map.of() : body));
     }
 
     @GetMapping("/workflows/todos")
