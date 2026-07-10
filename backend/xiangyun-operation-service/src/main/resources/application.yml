@@ -39,6 +39,21 @@ feign:
         readTimeout: 3000
 
 xiangyun:
+  internal-auth:
+    enabled: ${XIANGYUN_INTERNAL_AUTH_ENABLED:true}
+    service-name: xiangyun-operation-service
+    secret: ${XIANGYUN_INTERNAL_SECRET:dev-internal-secret}
+    ttl-seconds: ${XIANGYUN_INTERNAL_TTL_SECONDS:60}
+    clock-skew-seconds: ${XIANGYUN_INTERNAL_CLOCK_SKEW_SECONDS:5}
+    allowed-services:
+      - xiangyun-gateway
+      - xiangyun-analysis-service
+    exclude-paths:
+      - /actuator/health
+      - /actuator/info
+      - /v3/api-docs/**
+      - /swagger-ui/**
+      - /swagger-ui.html
   cache:
     resource-detail-ttl-seconds: ${RESOURCE_DETAIL_CACHE_TTL_SECONDS:600}
 
