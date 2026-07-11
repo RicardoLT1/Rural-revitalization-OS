@@ -81,6 +81,27 @@ class OperationServiceTest {
     }
 
     @Test
+    void createWeeklyReportPersistsConfirmedContent() {
+        when(jdbcTemplate.update(anyString(), any(Object[].class))).thenReturn(1);
+
+        Map<String, Object> result = service.createWeeklyReport(Map.of(
+                "weekStart", "2026-07-06",
+                "weekEnd", "2026-07-12",
+                "title", "第 28 周运营周报",
+                "summary", "本周资源与审批运行稳定"
+        ), "2", "业务工作人员", "1");
+
+        assertThat(result).containsEntry("saved", true).containsEntry("status", "PUBLISHED");
+        verify(jdbcTemplate).update(startsWith("insert into weekly_report"), any(Object[].class));
+    }
+
+    @Test
+    void createWeeklyReportRejectsMissingSummary() {
+        assertThatThrownBy(() -> service.createWeeklyReport(Map.of("title", "周报"), "2", "工作人员", "1"))
+                .isInstanceOf(BusinessException.class);
+    }
+
+    @Test
     void statsCombinesOperationCounts() {
         when(jdbcTemplate.queryForObject(anyString(), eq(Integer.class))).thenReturn(3, 2, 4, 5, 1);
         OperationStats stats = service.stats();

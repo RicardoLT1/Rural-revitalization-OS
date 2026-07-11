@@ -5,4 +5,4 @@ $Root = Resolve-Path (Join-Path $PSScriptRoot "..")
 Set-Location $Root
 mvn -pl xiangyun-common -DskipTests install
 Set-Location (Join-Path $Root "xiangyun-operation-service")
-mvn exec:java "-Dexec.mainClass=com.xiangyun.operation.OperationServiceApplication"
+mvn compile exec:java "-Dexec.mainClass=com.xiangyun.operation.OperationServiceApplication"

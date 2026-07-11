@@ -1,6 +1,6 @@
 import { http } from './http'
 import type { ApiResponse } from '../types/auth'
-import type { DashboardData, ResourceItem, WorkflowItem } from '../types/business'
+import type { DashboardData, ResourceItem, WeeklyReport, WorkflowItem } from '../types/business'
 
 export async function fetchDashboard(days: number) {
   const response = await http.get<ApiResponse<DashboardData>>('/dashboard', { params: { days } })
@@ -46,4 +46,27 @@ export async function publishResource(id: string) {
 
 export async function offlineResource(id: string) {
   await http.post(`/resources/${id}/offline`)
+}
+
+export type ResourcePayload = Pick<ResourceItem, 'name' | 'category' | 'address' | 'area' | 'annualEstimate' | 'investmentStatus' | 'intro' | 'owner' | 'contact' | 'ownershipStatus' | 'materialStatus' | 'investmentNote'>
+
+export async function createResource(payload: ResourcePayload) {
+  const response = await http.post<ApiResponse<{ id: string }>>('/resources', payload)
+  return response.data.data
+}
+
+export async function updateResource(id: string, payload: ResourcePayload) {
+  await http.put(`/resources/${id}`, payload)
+}
+
+export async function fetchWeeklyReports() {
+  const response = await http.get<ApiResponse<WeeklyReport[]>>('/operation/reports/weekly')
+  return response.data.data || []
+}
+
+export type WeeklyReportPayload = Pick<WeeklyReport, 'weekStart' | 'weekEnd' | 'title' | 'summary' | 'highlights' | 'risks' | 'nextWeekPlan'>
+
+export async function createWeeklyReport(payload: WeeklyReportPayload) {
+  const response = await http.post<ApiResponse<{ id: string; status: string }>>('/operation/reports/weekly', payload)
+  return response.data.data
 }

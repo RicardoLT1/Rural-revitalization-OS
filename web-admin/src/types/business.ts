@@ -53,3 +53,27 @@ export interface ResourceItem {
   materialStatus: string
   investmentNote: string
 }
+
+export interface WeeklyReport {
+  id: string | number
+  weekStart: string
+  weekEnd: string
+  title: string
+  summary: string
+  highlights: string
+  risks: string
+  nextWeekPlan: string
+  authorId: string
+  authorName: string
+  status: string
+  createdAt: string
+}
+
+export interface UserRow {
+  id: string
+  username: string
+  displayName: string
+  role: 'USER' | 'STAFF' | 'ADMIN'
+  villageId: string
+  enabled: boolean
+}

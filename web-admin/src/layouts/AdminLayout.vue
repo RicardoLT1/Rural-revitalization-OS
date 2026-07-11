@@ -14,7 +14,7 @@ const items = computed(() => [
   { to: '/dashboard', label: '运营看板', icon: BarChart3 },
   { to: '/approvals', label: '审批工作台', icon: ClipboardCheck },
   { to: '/resources', label: '资源档案', icon: LandPlot },
-  { to: '/weekly-report', label: '周报草稿', icon: FileText },
+  { to: '/weekly-report', label: '周报管理', icon: FileText },
   ...(session.user?.role === 'ADMIN' ? [{ to: '/users', label: '用户与权限', icon: Users }] : []),
 ])
 const pageTitle = computed(() => items.value.find((item) => item.to === route.path)?.label || '乡耘工作台')
