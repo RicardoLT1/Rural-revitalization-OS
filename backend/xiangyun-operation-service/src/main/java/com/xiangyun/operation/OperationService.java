@@ -16,6 +16,7 @@ import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Duration;
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -187,6 +188,64 @@ public class OperationService {
                 where deleted=0 and category='COOPERATION_APPLICATION' and resource_id=?
                 """, Integer.class, Long.parseLong(id));
         return Map.of("resourceId", id, "applicationCount", total == null ? 0 : total);
+    }
+
+    public List<Map<String, Object>> weeklyReports() {
+        return jdbcTemplate.queryForList("""
+                select id, week_start as weekStart, week_end as weekEnd, title, summary,
+                       highlights, risks, next_week_plan as nextWeekPlan,
+                       author_id as authorId, author_name as authorName, status, created_at as createdAt
+                from weekly_report
+                where deleted=0
+                order by week_start desc, id desc
+                """);
+    }
+
+    @Transactional
+    public Map<String, Object> createWeeklyReport(Map<String, Object> body,
+                                                   String authorId,
+                                                   String authorName,
+                                                   String villageId) {
+        String title = bodyText(body, "title", "");
+        String summary = bodyText(body, "summary", "");
+        if (!StringUtils.hasText(title) || !StringUtils.hasText(summary)) {
+            throw new BusinessException(40005, "周报标题和总结不能为空");
+        }
+        LocalDate weekStart = parseDate(body.get("weekStart"), LocalDate.now().minusDays(6));
+        LocalDate weekEnd = parseDate(body.get("weekEnd"), LocalDate.now());
+        if (weekEnd.isBefore(weekStart)) {
+            throw new BusinessException(40006, "周报结束日期不能早于开始日期");
+        }
+        long id = nextId();
+        jdbcTemplate.update("""
+                insert into weekly_report(
+                  id, village_id, week_start, week_end, title, summary, highlights, risks,
+                  next_week_plan, author_id, author_name, status
+                ) values(?,?,?,?,?,?,?,?,?,?,?,?)
+                """,
+                id, Long.parseLong(StringUtils.hasText(villageId) ? villageId : "1"), weekStart, weekEnd,
+                title, summary, bodyText(body, "highlights", ""), bodyText(body, "risks", ""),
+                bodyText(body, "nextWeekPlan", ""), authorId, authorName, "PUBLISHED");
+        return Map.of("id", String.valueOf(id), "status", "PUBLISHED", "saved", true);
+    }
+
+    private LocalDate parseDate(Object value, LocalDate fallback) {
+        if (value == null || !StringUtils.hasText(String.valueOf(value))) {
+            return fallback;
+        }
+        try {
+            return LocalDate.parse(String.valueOf(value));
+        } catch (Exception ex) {
+            throw new BusinessException(40007, "日期格式必须为 YYYY-MM-DD");
+        }
+    }
+
+    private String bodyText(Map<String, Object> body, String key, String fallback) {
+        Object value = body.get(key);
+        if (value == null || !StringUtils.hasText(String.valueOf(value))) {
+            return fallback;
+        }
+        return String.valueOf(value).trim();
     }
 
     public List<String> tags() {

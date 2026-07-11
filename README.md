@@ -38,6 +38,16 @@ cd backend
 mvn test
 ```
 
+Formal Web admin (Phase 3 in progress):
+
+```bash
+cd web-admin
+npm install
+npm run dev
+```
+
+Open `http://127.0.0.1:5173`. The Vite development server proxies `/api` to the Gateway at port `8080`. The legacy static `web/` demo remains available until Phase 3 acceptance is complete.
+
 ## Demo Notes
 
 Recommended reading order:

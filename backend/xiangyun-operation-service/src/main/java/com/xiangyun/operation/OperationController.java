@@ -139,6 +139,20 @@ public class OperationController {
         return ApiResponse.success(operationService.updateInvestmentStatus(id, String.valueOf(body.getOrDefault("investmentStatus", "洽谈中"))));
     }
 
+    @GetMapping("/operation/reports/weekly")
+    public ApiResponse<List<Map<String, Object>>> weeklyReports() {
+        return ApiResponse.success(operationService.weeklyReports());
+    }
+
+    @PostMapping("/operation/reports/weekly")
+    public ApiResponse<Map<String, Object>> createWeeklyReport(
+            @RequestHeader(value = SecurityHeaders.USER_ID, defaultValue = "") String authorId,
+            @RequestHeader(value = SecurityHeaders.USERNAME, defaultValue = "") String authorName,
+            @RequestHeader(value = SecurityHeaders.VILLAGE_ID, defaultValue = "1") String villageId,
+            @RequestBody Map<String, Object> body) {
+        return ApiResponse.success(operationService.createWeeklyReport(body, authorId, authorName, villageId));
+    }
+
     @GetMapping("/resources/{id}/applications/count")
     public ApiResponse<Map<String, Object>> resourceApplicationCount(@PathVariable String id) {
         return ApiResponse.success(operationService.resourceApplicationCount(id));
