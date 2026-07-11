@@ -307,8 +307,14 @@ class OperationReliabilityTest {
         @Bean
         OperationService operationService(JdbcTemplate jdbcTemplate,
                                           StringRedisTemplate redisTemplate,
-                                          AuthClient authClient) {
-            return new OperationService(jdbcTemplate, redisTemplate, authClient, new ObjectMapper(), 600);
+                                          AuthClient authClient,
+                                          OutboxService outboxService) {
+            return new OperationService(jdbcTemplate, redisTemplate, authClient, new ObjectMapper(), outboxService, 600);
+        }
+
+        @Bean
+        OutboxService outboxService() {
+            return mock(OutboxService.class);
         }
 
         @Bean

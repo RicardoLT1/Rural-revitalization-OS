@@ -5,6 +5,7 @@ import com.xiangyun.common.BusinessException;
 import com.xiangyun.common.dto.OperationStats;
 import com.xiangyun.common.dto.ResourceSummary;
 import com.xiangyun.common.dto.UserSummary;
+import com.xiangyun.common.event.WorkflowChangedEvent;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -17,9 +18,11 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Duration;
 import java.time.LocalDate;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
 
 @Service
@@ -31,17 +34,20 @@ public class OperationService {
     private final StringRedisTemplate redisTemplate;
     private final AuthClient authClient;
     private final ObjectMapper objectMapper;
+    private final OutboxService outboxService;
     private final long resourceDetailTtlSeconds;
 
     public OperationService(JdbcTemplate jdbcTemplate,
                             StringRedisTemplate redisTemplate,
                             AuthClient authClient,
                             ObjectMapper objectMapper,
+                            OutboxService outboxService,
                             @Value("${xiangyun.cache.resource-detail-ttl-seconds}") long resourceDetailTtlSeconds) {
         this.jdbcTemplate = jdbcTemplate;
         this.redisTemplate = redisTemplate;
         this.authClient = authClient;
         this.objectMapper = objectMapper;
+        this.outboxService = outboxService;
         this.resourceDetailTtlSeconds = resourceDetailTtlSeconds;
     }
 
@@ -455,6 +461,17 @@ public class OperationService {
                 """, nextId(), workflowId, body.getOrDefault("nodeId", "approve"), title, approverId, nextStatus.name(), nextStatus.name(), remark);
         Object resourceId = workflow.get("resource_id");
         writeOperationLog(workflowId, resourceId == null ? null : Long.parseLong(String.valueOf(resourceId)), "APPROVE_WORKFLOW", approverId, approverName, remark);
+        String eventId = UUID.randomUUID().toString();
+        outboxService.enqueue(new WorkflowChangedEvent(
+                eventId,
+                "workflow.status.changed",
+                "workflow",
+                id,
+                nextStatus.name(),
+                Instant.now().toString(),
+                "",
+                Map.of("title", title, "approverId", approverId, "approverName", approverName, "remark", remark)
+        ));
         return Map.of("processId", id, "action", nextStatus.name(), "status", nextStatus.name(), "saved", true);
     }
 

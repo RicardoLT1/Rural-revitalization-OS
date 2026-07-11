@@ -28,6 +28,7 @@ class OperationServiceTest {
     private JdbcTemplate jdbcTemplate;
     private StringRedisTemplate redisTemplate;
     private AuthClient authClient;
+    private OutboxService outboxService;
     private OperationService service;
 
     @BeforeEach
@@ -35,7 +36,8 @@ class OperationServiceTest {
         jdbcTemplate = mock(JdbcTemplate.class);
         redisTemplate = mock(StringRedisTemplate.class);
         authClient = mock(AuthClient.class);
-        service = new OperationService(jdbcTemplate, redisTemplate, authClient, new ObjectMapper(), 600);
+        outboxService = mock(OutboxService.class);
+        service = new OperationService(jdbcTemplate, redisTemplate, authClient, new ObjectMapper(), outboxService, 600);
     }
 
     @Test
