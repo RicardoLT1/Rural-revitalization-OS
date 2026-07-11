@@ -3,6 +3,8 @@ package com.xiangyun.gateway;
 import com.xiangyun.common.JwtUtils;
 import com.xiangyun.common.SecurityHeaders;
 import com.xiangyun.common.TokenPayload;
+import com.xiangyun.common.security.InternalAuthProperties;
+import com.xiangyun.common.security.InternalSignatureSigner;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
@@ -29,6 +31,7 @@ class AuthFilterTest {
     private ReactiveValueOperations<String, String> valueOperations;
     private ReactiveSetOperations<String, String> setOperations;
     private AuthFilter filter;
+    private InternalAuthProperties internalAuthProperties;
 
     @BeforeEach
     void setUp() {
@@ -39,7 +42,10 @@ class AuthFilterTest {
         when(redisTemplate.opsForSet()).thenReturn(setOperations);
         when(redisTemplate.delete(anyString())).thenReturn(Mono.just(1L));
         when(setOperations.remove(anyString(), anyString())).thenReturn(Mono.just(1L));
-        filter = new AuthFilter(redisTemplate, "gateway-secret");
+        internalAuthProperties = new InternalAuthProperties();
+        internalAuthProperties.setServiceName("xiangyun-gateway");
+        internalAuthProperties.setSecret("internal-secret");
+        filter = new AuthFilter(redisTemplate, new InternalSignatureSigner(internalAuthProperties), "gateway-secret");
     }
 
     @Test
@@ -99,9 +105,13 @@ class AuthFilterTest {
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token.token()));
         AtomicReference<String> role = new AtomicReference<>();
         AtomicReference<String> traceId = new AtomicReference<>();
+        AtomicReference<String> internalService = new AtomicReference<>();
+        AtomicReference<String> internalSignature = new AtomicReference<>();
         GatewayFilterChain chain = next -> {
             role.set(next.getRequest().getHeaders().getFirst(SecurityHeaders.ROLE));
             traceId.set(next.getRequest().getHeaders().getFirst(SecurityHeaders.TRACE_ID));
+            internalService.set(next.getRequest().getHeaders().getFirst(SecurityHeaders.INTERNAL_SERVICE));
+            internalSignature.set(next.getRequest().getHeaders().getFirst(SecurityHeaders.INTERNAL_SIGNATURE));
             return Mono.empty();
         };
 
@@ -109,6 +119,8 @@ class AuthFilterTest {
 
         assertThat(role.get()).isEqualTo("ADMIN");
         assertThat(traceId.get()).isNotBlank();
+        assertThat(internalService.get()).isEqualTo("xiangyun-gateway");
+        assertThat(internalSignature.get()).isNotBlank();
     }
 
     @Test
@@ -119,14 +131,20 @@ class AuthFilterTest {
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token.token())
                 .header(SecurityHeaders.USER_ID, "3")
                 .header(SecurityHeaders.USERNAME, "admin")
-                .header(SecurityHeaders.ROLE, "ADMIN"));
+                .header(SecurityHeaders.ROLE, "ADMIN")
+                .header(SecurityHeaders.INTERNAL_SERVICE, "evil-client")
+                .header(SecurityHeaders.INTERNAL_TIMESTAMP, "1")
+                .header(SecurityHeaders.INTERNAL_NONCE, "nonce")
+                .header(SecurityHeaders.INTERNAL_SIGNATURE, "bad-signature"));
         AtomicReference<String> userId = new AtomicReference<>();
         AtomicReference<String> username = new AtomicReference<>();
         AtomicReference<String> role = new AtomicReference<>();
+        AtomicReference<String> internalService = new AtomicReference<>();
         GatewayFilterChain chain = next -> {
             userId.set(next.getRequest().getHeaders().getFirst(SecurityHeaders.USER_ID));
             username.set(next.getRequest().getHeaders().getFirst(SecurityHeaders.USERNAME));
             role.set(next.getRequest().getHeaders().getFirst(SecurityHeaders.ROLE));
+            internalService.set(next.getRequest().getHeaders().getFirst(SecurityHeaders.INTERNAL_SERVICE));
             return Mono.empty();
         };
 
@@ -135,6 +153,7 @@ class AuthFilterTest {
         assertThat(userId.get()).isEqualTo("2");
         assertThat(username.get()).isEqualTo("staff_demo");
         assertThat(role.get()).isEqualTo("STAFF");
+        assertThat(internalService.get()).isEqualTo("xiangyun-gateway");
     }
 
     @Test

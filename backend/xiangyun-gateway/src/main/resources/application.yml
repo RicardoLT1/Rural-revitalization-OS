@@ -65,6 +65,12 @@ spring:
 xiangyun:
   jwt:
     secret: ${JWT_SECRET:xiangyun-demo-secret-2026}
+  internal-auth:
+    enabled: true
+    service-name: xiangyun-gateway
+    secret: ${XIANGYUN_INTERNAL_SECRET:dev-internal-secret}
+    ttl-seconds: ${XIANGYUN_INTERNAL_TTL_SECONDS:60}
+    clock-skew-seconds: ${XIANGYUN_INTERNAL_CLOCK_SKEW_SECONDS:5}
 
 management:
   endpoints:
