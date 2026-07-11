@@ -30,6 +30,22 @@ services:
       timeout: 5s
       retries: 10
 
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    container_name: xiangyun-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: xiangyun
+      RABBITMQ_DEFAULT_PASS: XiangyunMQ@2026
+      TZ: Asia/Shanghai
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+
   nacos:
     image: nacos/nacos-server:v2.3.2
     container_name: xiangyun-nacos

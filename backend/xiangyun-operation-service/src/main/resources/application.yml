@@ -30,6 +30,15 @@ spring:
       host: ${REDIS_HOST:127.0.0.1}
       port: ${REDIS_PORT:6379}
       password: ${REDIS_PASSWORD:}
+  rabbitmq:
+    host: ${RABBITMQ_HOST:127.0.0.1}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USERNAME:xiangyun}
+    password: ${RABBITMQ_PASSWORD:XiangyunMQ@2026}
+    publisher-confirm-type: correlated
+    publisher-returns: true
+    template:
+      mandatory: true
 
 feign:
   client:
@@ -56,6 +65,9 @@ xiangyun:
       - /swagger-ui.html
   cache:
     resource-detail-ttl-seconds: ${RESOURCE_DETAIL_CACHE_TTL_SECONDS:600}
+  outbox:
+    initial-delay-ms: ${OUTBOX_INITIAL_DELAY_MS:10000}
+    scan-delay-ms: ${OUTBOX_SCAN_DELAY_MS:5000}
 
 springdoc:
   swagger-ui:

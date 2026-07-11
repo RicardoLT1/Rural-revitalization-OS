@@ -62,5 +62,6 @@ Recommended reading order:
 8. [docs/phase-5-configuration-delivery.md](docs/phase-5-configuration-delivery.md) - environment examples, delivery boundaries, and handoff rules.
 9. [docs/v1.2-roadmap.md](docs/v1.2-roadmap.md) - V1.2 phased roadmap, acceptance gates, and delivery boundaries.
 10. [docs/internal-auth.md](docs/internal-auth.md) - internal service signing, Feign signing, nonce replay protection, and rollout rules.
-11. [docs/delivery-checklist.md](docs/delivery-checklist.md) - final checklist for configuration, startup, tests, demo flow, and troubleshooting.
-12. [backend/STARTUP.md](backend/STARTUP.md) - backend build and startup commands.
+11. [docs/outbox-rabbitmq.md](docs/outbox-rabbitmq.md) - workflow events, Outbox/Inbox reliability, RabbitMQ topology, and operating notes.
+12. [docs/delivery-checklist.md](docs/delivery-checklist.md) - final checklist for configuration, startup, tests, demo flow, and troubleshooting.
+13. [backend/STARTUP.md](backend/STARTUP.md) - backend build and startup commands.
