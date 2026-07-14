@@ -533,7 +533,10 @@ public class OperationService {
         int resourceCount = jdbcTemplate.queryForObject("select count(*) from resource where deleted=0", Integer.class);
         int ready = jdbcTemplate.queryForObject("select count(*) from resource where deleted=0 and investment_status='可招商'", Integer.class);
         int workflowCount = jdbcTemplate.queryForObject("select count(*) from workflow where deleted=0", Integer.class);
-        int todoCount = jdbcTemplate.queryForObject("select count(*) from todo_item where deleted=0 and status not in ('已完成','APPROVED','REJECTED')", Integer.class);
+        // The admin dashboard links this metric directly to the approval workbench.
+        // Count only records that the current workbench can actually approve; states
+        // such as MATERIAL_REQUIRED belong to the applicant and are not staff todos.
+        int todoCount = jdbcTemplate.queryForObject("select count(*) from todo_item where deleted=0 and status='PENDING'", Integer.class);
         int risk = jdbcTemplate.queryForObject("select count(*) from todo_item where deleted=0 and status='已逾期'", Integer.class);
         return new OperationStats(resourceCount, ready, workflowCount, todoCount, risk);
     }

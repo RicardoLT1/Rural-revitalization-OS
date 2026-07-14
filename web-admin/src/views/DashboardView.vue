@@ -2,7 +2,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { AlertTriangle, ArrowRight, CalendarDays, ClipboardCheck, Download, FileBarChart, Layers3, Lightbulb, MapPinned, RefreshCw, ShieldAlert, Sparkles, TrendingUp, Users } from '@lucide/vue'
-import { fetchDashboard } from '../api/business'
+import { fetchDashboard, fetchTodos } from '../api/business'
 import ComingSoonButton from '../components/ComingSoonButton.vue'
 import PageState from '../components/PageState.vue'
 import type { DashboardData } from '../types/business'
@@ -52,7 +52,11 @@ async function load() {
   loading.value = true
   error.value = ''
   try {
-    data.value = await fetchDashboard(days.value)
+    const [dashboard, todos] = await Promise.all([fetchDashboard(days.value), fetchTodos()])
+    const pendingApprovalCount = todos.filter((item) => item.status === 'PENDING').length
+    const todoMetric = dashboard?.stats.find((item) => item.key === 'todo')
+    if (todoMetric) todoMetric.value = pendingApprovalCount
+    data.value = dashboard
     chartAnimationKey.value += 1
     animateValues()
   } catch (reason) {

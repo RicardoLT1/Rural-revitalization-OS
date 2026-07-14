@@ -17,6 +17,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.startsWith;
 import static org.mockito.Mockito.mock;
@@ -109,6 +110,7 @@ class OperationServiceTest {
         OperationStats stats = service.stats();
         assertThat(stats.resourceCount()).isEqualTo(3);
         assertThat(stats.riskWorkflowCount()).isEqualTo(1);
+        verify(jdbcTemplate).queryForObject(contains("status='PENDING'"), eq(Integer.class));
     }
 
     @Test
