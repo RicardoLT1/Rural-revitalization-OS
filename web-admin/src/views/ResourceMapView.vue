@@ -3,7 +3,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import L, { type Map as LeafletMap, type Marker } from 'leaflet'
 import 'leaflet/dist/leaflet.css'
-import { ArrowRight, Layers3, MapPin, RefreshCw, Search } from '@lucide/vue'
+import { ArrowRight, Camera, LandPlot, Layers3, MapPin, RefreshCw, Search, TrendingUp } from '@lucide/vue'
 import { fetchResourceMapPoints } from '../api/business'
 import PageState from '../components/PageState.vue'
 import StatusBadge from '../components/StatusBadge.vue'
@@ -32,6 +32,28 @@ const filtered = computed(() => rows.value.filter((item) => {
     && (!term || `${item.name} ${item.address}`.toLowerCase().includes(term))
 }))
 const located = computed(() => filtered.value.filter((item) => Number.isFinite(Number(item.lat)) && Number.isFinite(Number(item.lng))))
+const mapSummary = computed(() => {
+  const source = filtered.value
+  const count = (status: string) => source.filter((item) => item.investmentStatus === status).length
+  return {
+    available: count('可招商'),
+    negotiating: count('洽谈中'),
+    signed: count('已签约'),
+    other: source.length - count('可招商') - count('洽谈中') - count('已签约'),
+    area: source.reduce((total, item) => total + (Number(item.area) || 0), 0),
+    annualEstimate: source.reduce((total, item) => total + (Number(item.annualEstimate) || 0), 0),
+    photoReady: source.filter((item) => item.fieldPhotos?.length).length,
+    profileReady: source.filter((item) => item.intro && item.owner && item.contact).length,
+  }
+})
+const categoryBreakdown = computed(() => [...new Set(filtered.value.map((item) => item.category).filter(Boolean))]
+  .map((name) => ({ name, count: filtered.value.filter((item) => item.category === name).length }))
+  .sort((a, b) => b.count - a.count))
+const statusTotal = computed(() => Math.max(filtered.value.length, 1))
+
+function formatMetric(value: number) {
+  return new Intl.NumberFormat('zh-CN', { maximumFractionDigits: 1 }).format(value)
+}
 
 function spreadOverlappingPoints(items: ResourceItem[]): DisplayPoint[] {
   const groups = new Map<string, ResourceItem[]>()
@@ -212,23 +234,61 @@ onBeforeUnmount(() => {
       <button class="icon-button" type="button" title="刷新地图" @click="load"><RefreshCw :size="18" /></button>
     </section>
     <PageState :loading="loading" :error="error" :empty="!filtered.length" empty-text="当前筛选下没有资源点位" @retry="load">
-      <div class="resource-map-layout">
-        <section class="real-resource-map-shell" aria-label="可缩放的真实资源地图">
-          <div ref="mapElement" class="real-resource-map" />
-          <div class="map-usage-hint"><MapPin :size="15" /><span>悬停查看资源信息，点击点位进入档案</span></div>
-          <div class="map-legend"><span><i />可招商</span><span><i />洽谈或其他状态</span><small>重叠坐标已在原位置附近展开</small></div>
-        </section>
-        <aside class="map-resource-list">
-          <header><div><span>当前结果</span><h3>资源点位</h3></div><Layers3 :size="22" /></header>
-          <div class="map-list-scroll">
-            <button v-for="item in filtered" :key="item.id" type="button" :class="{ active: selected?.id === item.id }" @mouseenter="focusResource(item)" @focus="focusResource(item)" @click="openResource(item)">
-              <i><MapPin :size="17" /></i>
-              <div><strong>{{ item.name }}</strong><span>{{ item.address || '地址待完善' }}</span></div>
-              <StatusBadge :status="item.investmentStatus" />
-              <ArrowRight :size="16" />
-            </button>
+      <div class="resource-map-workspace">
+        <div class="resource-map-layout">
+          <section class="real-resource-map-shell" aria-label="可缩放的真实资源地图">
+            <div ref="mapElement" class="real-resource-map" />
+            <div class="map-usage-hint"><MapPin :size="15" /><span>悬停查看资源信息，点击点位进入档案</span></div>
+            <div class="map-legend"><span><i />可招商</span><span><i />洽谈或其他状态</span><small>重叠坐标已在原位置附近展开</small></div>
+          </section>
+          <aside class="map-resource-list">
+            <header><div><span>当前结果</span><h3>资源点位</h3></div><Layers3 :size="22" /></header>
+            <div class="map-list-scroll">
+              <button v-for="item in filtered" :key="item.id" type="button" :class="{ active: selected?.id === item.id }" @mouseenter="focusResource(item)" @focus="focusResource(item)" @click="openResource(item)">
+                <i><MapPin :size="17" /></i>
+                <div><strong>{{ item.name }}</strong><span>{{ item.address || '地址待完善' }}</span></div>
+                <StatusBadge :status="item.investmentStatus" />
+                <ArrowRight :size="16" />
+              </button>
+            </div>
+          </aside>
+        </div>
+
+        <section class="map-operations-summary" aria-label="当前地图资源运营概览">
+          <header>
+            <div><span>当前筛选 · 实时盘点</span><h3>点位运营摘要</h3><p>把地图上的空间分布，转成可用于招商跟进和资料治理的判断依据。</p></div>
+            <RouterLink to="/resources">打开资源目录<ArrowRight :size="16" /></RouterLink>
+          </header>
+          <div class="map-summary-grid">
+            <article class="map-stage-card">
+              <div class="summary-card-heading"><TrendingUp :size="20" /><div><span>招商阶段</span><strong>{{ mapSummary.available }} 项可继续匹配</strong></div></div>
+              <div class="stage-bar" aria-hidden="true">
+                <i class="available" :style="{ width: `${mapSummary.available / statusTotal * 100}%` }" />
+                <i class="negotiating" :style="{ width: `${mapSummary.negotiating / statusTotal * 100}%` }" />
+                <i class="signed" :style="{ width: `${mapSummary.signed / statusTotal * 100}%` }" />
+                <i class="other" :style="{ width: `${mapSummary.other / statusTotal * 100}%` }" />
+              </div>
+              <dl><div><dt>可招商</dt><dd>{{ mapSummary.available }}</dd></div><div><dt>洽谈中</dt><dd>{{ mapSummary.negotiating }}</dd></div><div><dt>已签约</dt><dd>{{ mapSummary.signed }}</dd></div><div><dt>其他</dt><dd>{{ mapSummary.other }}</dd></div></dl>
+            </article>
+
+            <article class="map-scale-card">
+              <div class="summary-card-heading"><LandPlot :size="20" /><div><span>资源规模</span><strong>当前地图资产量级</strong></div></div>
+              <dl><div><dt>合计面积</dt><dd>{{ formatMetric(mapSummary.area) }} <small>㎡</small></dd></div><div><dt>年收益预估</dt><dd>{{ formatMetric(mapSummary.annualEstimate) }} <small>万元</small></dd></div></dl>
+              <p>所有数值随类型和关键词筛选实时重算。</p>
+            </article>
+
+            <article class="map-quality-card">
+              <div class="summary-card-heading"><Camera :size="20" /><div><span>档案质量</span><strong>现场资料完备度</strong></div></div>
+              <dl><div><dt>已录入坐标</dt><dd>{{ located.length }} / {{ filtered.length }}</dd></div><div><dt>已有现场照片</dt><dd>{{ mapSummary.photoReady }} / {{ filtered.length }}</dd></div><div><dt>基础档案完整</dt><dd>{{ mapSummary.profileReady }} / {{ filtered.length }}</dd></div></dl>
+            </article>
+
+            <article class="map-category-card">
+              <div class="summary-card-heading"><Layers3 :size="20" /><div><span>类型构成</span><strong>点击聚焦地图点位</strong></div></div>
+              <div class="category-breakdown"><button v-for="item in categoryBreakdown" :key="item.name" type="button" @click="category = item.name"><span>{{ item.name }}</span><b>{{ item.count }}</b></button></div>
+            </article>
           </div>
-        </aside>
+          <footer><MapPin :size="15" /><span>地图坐标来自资源档案；同坐标资源仅做视觉展开，不改变原始经纬度。</span><small>刷新地图即可同步最新资源数据</small></footer>
+        </section>
       </div>
     </PageState>
   </div>
