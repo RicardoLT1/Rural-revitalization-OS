@@ -38,7 +38,7 @@ cd backend
 mvn test
 ```
 
-Formal Web admin (Phase 3 in progress):
+Formal Web admin (Phase 3 accepted, V1.2 productization complete):
 
 ```bash
 cd web-admin
@@ -46,7 +46,9 @@ npm install
 npm run dev
 ```
 
-Open `http://127.0.0.1:5173`. The Vite development server proxies `/api` to the Gateway at port `8080`. The legacy static `web/` demo remains available until Phase 3 acceptance is complete.
+Open `http://127.0.0.1:5173`. The Vite development server proxies `/api` to the Gateway at port `8080`. The legacy static `web/` demo remains only as a rollback fallback until an explicit retirement decision is recorded.
+
+The current Web Admin supports approval detail decisions, resource archives and activity timelines, a real-coordinate resource map, dashboard drilldown, notifications, global search, CSV export, and role-aware read-only states. The verified productization checkpoint is `v1.2-web-admin-productized` (`74c8c85`). The map is intentionally a lightweight village distribution view; full GIS, persistent notifications, photo management, and server-side federated search remain follow-up capabilities.
 
 ## Demo Notes
 
