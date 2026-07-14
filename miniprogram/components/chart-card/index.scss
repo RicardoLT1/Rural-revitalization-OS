@@ -92,6 +92,8 @@
   background: #2f7d32;
   box-shadow: 0 4rpx 10rpx rgba(47, 125, 50, 0.18);
   transform-origin: left center;
+  transform: rotate(var(--segment-rotate)) scaleX(0);
+  animation: miniLineGrow 520ms cubic-bezier(.2,.75,.25,1) forwards;
   z-index: 2;
 }
 
@@ -106,6 +108,9 @@
   border: 4rpx solid #2f7d32;
   box-sizing: border-box;
   z-index: 3;
+  opacity: 0;
+  transform: scale(0.5);
+  animation: miniPointIn 300ms ease forwards;
 }
 
 .line-value {
@@ -122,6 +127,8 @@
   text-align: center;
   box-shadow: 0 4rpx 12rpx rgba(47, 125, 50, 0.12);
   z-index: 4;
+  opacity: 0;
+  animation: miniValueIn 300ms ease forwards;
 }
 .x-axis {
   margin-top: 8rpx;
@@ -176,6 +183,8 @@
   border-radius: 12rpx 12rpx 0 0;
   background: linear-gradient(180deg, #8dd57c 0%, #2f7d32 100%);
   box-shadow: 0 6rpx 14rpx rgba(47, 125, 50, 0.22);
+  transform-origin: center bottom;
+  animation: miniBarGrow 620ms cubic-bezier(.2,.75,.25,1) both;
 }
 
 .bar-value {
@@ -233,6 +242,7 @@
   inset: 0;
   border-radius: 50%;
   box-shadow: 0 10rpx 24rpx rgba(47, 125, 50, 0.15);
+  animation: miniRingGrow 760ms cubic-bezier(.2,.75,.25,1) both;
 }
 
 .ring::after {
@@ -328,4 +338,39 @@
 .legend-item.major .value {
   font-size: 28rpx;
   color: $color-brand;
+}
+
+@keyframes miniLineGrow {
+  from { transform: rotate(var(--segment-rotate)) scaleX(0); }
+  to { transform: rotate(var(--segment-rotate)) scaleX(1); }
+}
+@keyframes miniPointIn {
+  to { opacity:1; transform:scale(1); }
+}
+@keyframes miniValueIn {
+  from { opacity:0; transform:translateY(8rpx); }
+  to { opacity:1; transform:none; }
+}
+@keyframes miniBarGrow {
+  from { transform:scaleY(0); opacity:.2; }
+  to { transform:scaleY(1); opacity:1; }
+}
+@keyframes miniRingGrow {
+  from { opacity:0; transform:rotate(-90deg) scale(.75); }
+  to { opacity:1; transform:none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .line-segment,
+  .line-dot,
+  .line-value,
+  .bar,
+  .ring {
+    opacity: 1;
+    transform: none;
+    animation: none;
+  }
+  .line-segment {
+    transform: rotate(var(--segment-rotate));
+  }
 }

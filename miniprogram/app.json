@@ -27,13 +27,13 @@
     "list": [
       {
         "pagePath": "pages/dashboard/index",
-        "text": "\u8d44\u6e90\u6f2b\u6e38",
+        "text": "\u9996\u9875",
         "iconPath": "assets/tabbar/home.png",
         "selectedIconPath": "assets/tabbar/home-active.png"
       },
       {
         "pagePath": "pages/resource-map/index",
-        "text": "\u8d44\u6e90\u5730\u56fe",
+        "text": "\u8d44\u6e90",
         "iconPath": "assets/tabbar/map.png",
         "selectedIconPath": "assets/tabbar/map-active.png"
       },
@@ -45,7 +45,7 @@
       },
       {
         "pagePath": "pages/report/index",
-        "text": "\u667a\u80fd\u62a5\u8868",
+        "text": "\u6d1e\u5bdf",
         "iconPath": "assets/tabbar/report.png",
         "selectedIconPath": "assets/tabbar/report-active.png"
       }

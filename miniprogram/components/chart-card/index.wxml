@@ -24,19 +24,19 @@
         wx:for="{{lineSegments}}"
         wx:key="index"
         class="line-segment"
-        style="left: {{item.left}}%; top: {{item.top}}%; width: {{item.width}}%; transform: rotate({{item.rotate}}deg);"
+        style="left: {{item.left}}%; top: {{item.top}}%; width: {{item.width}}%; --segment-rotate: {{item.rotate}}deg; animation-delay: {{index * 90}}ms;"
       ></view>
       <view
         wx:for="{{linePoints}}"
         wx:key="index"
         class="line-dot"
-        style="left: {{item.left}}%; top: {{item.top}}%;"
+        style="left: {{item.left}}%; top: {{item.top}}%; animation-delay: {{index * 90 + 180}}ms;"
       ></view>
       <view
         wx:for="{{linePoints}}"
         wx:key="index"
         class="line-value"
-        style="left: {{item.left}}%; top: {{item.top}}%;"
+        style="left: {{item.left}}%; top: {{item.top}}%; animation-delay: {{index * 90 + 240}}ms;"
       >{{item.valueLabel}}</view>
     </view>
     <view class="x-axis">
@@ -47,7 +47,7 @@
   <view class="bar-chart" wx:if="{{kind === 'bar'}}">
     <view wx:for="{{barData}}" wx:key="index" class="bar-wrap">
       <view class="bar-shell">
-        <view class="bar" style="height: {{item.height}}%;"></view>
+        <view class="bar" style="height: {{item.height}}%; animation-delay: {{index * 70}}ms;"></view>
       </view>
       <view class="bar-value">{{item.value}}</view>
       <view class="bar-label">{{item.label}}</view>

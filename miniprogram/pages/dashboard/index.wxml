@@ -2,8 +2,8 @@
 <error-state wx:elif="{{pageState === 'error'}}" title="{{errorTitle}}" message="{{errorMessage}}" bind:retry="onRetry" />
 <empty-state wx:elif="{{pageState === 'empty'}}" title="{{emptyTitle}}" description="{{emptyDescription}}" />
 <block wx:else>
-  <view class="page-root dashboard-page">
-    <view class="top-greeting">
+  <view class="page-root dashboard-page {{contentReady ? 'content-ready' : ''}}">
+    <view class="top-greeting reveal-block reveal-1">
       <view>
         <view class="brand-row">
           <view class="brand-logo">乡</view>
@@ -17,7 +17,7 @@
       <view class="weather-pill">今日可逛</view>
     </view>
 
-    <view wx:if="{{showDataHealth}}" class="data-health {{cacheStatusClass}}">
+    <view wx:if="{{showDataHealth}}" class="data-health {{cacheStatusClass}} reveal-block reveal-2">
       <view class="health-main">
         <text class="health-dot"></text>
         <text>{{cacheStatusText}}</text>
@@ -25,7 +25,7 @@
       <view class="health-meta">{{dataStaleText}} · {{dataRangeLabel}} · {{dataGeneratedAt}}</view>
     </view>
 
-    <view class="hero-carousel">
+    <view class="hero-carousel reveal-block reveal-2">
       <swiper
         class="hero-swiper"
         autoplay="true"
@@ -37,17 +37,13 @@
       >
         <swiper-item wx:for="{{heroSlides}}" wx:key="title">
           <view class="hero-card {{item.tone}}">
-            <view class="hero-photo {{item.photoClass}}">
-              <view class="photo-sun"></view>
-              <view class="photo-ridge ridge-one"></view>
-              <view class="photo-ridge ridge-two"></view>
-              <view class="photo-window"></view>
-            </view>
+            <image class="hero-photo" src="{{item.image}}" mode="aspectFill" />
+            <view class="hero-shade"></view>
             <view class="hero-copy">
               <view class="hero-kicker">{{item.kicker}}</view>
               <view class="hero-title">{{item.title}}</view>
               <view class="hero-text">{{item.text}}</view>
-              <button class="hero-btn" data-action="{{item.action}}" bindtap="onEntryTap">{{item.button}}</button>
+              <button class="hero-btn" data-action="{{item.action}}" bindtap="onEntryTap">{{item.button}} <text>→</text></button>
             </view>
           </view>
         </swiper-item>
@@ -57,23 +53,25 @@
       </view>
     </view>
 
-    <view class="metric-grid">
+    <view class="metric-grid reveal-block reveal-3">
       <view class="metric-card" wx:for="{{homeMetrics}}" wx:key="title" data-action="{{item.action}}" bindtap="onEntryTap">
-        <view class="metric-icon {{item.tone}}">{{item.icon}}</view>
+        <view class="metric-icon {{item.tone}}"><image src="{{item.icon}}" mode="aspectFit" /></view>
         <view class="metric-title">{{item.title}}</view>
         <view class="metric-value"><text>{{item.value}}</text>{{item.unit}}</view>
         <view class="metric-note">{{item.note}}</view>
       </view>
     </view>
 
-    <view class="page-section">
+    <view class="page-section reveal-block reveal-4">
       <view class="section-head">
         <view class="section-title">推荐资源</view>
         <view class="section-action" data-action="map" bindtap="onEntryTap">更多推荐</view>
       </view>
+      <scroll-view class="recommend-scroll" scroll-x="true" enhanced="true" show-scrollbar="false">
       <view class="recommend-grid">
         <view class="recommend-card" data-action="map" bindtap="onEntryTap">
-          <view class="resource-photo photo-one"></view>
+          <image class="resource-photo" src="/assets/images/rice-terraces.jpg" mode="aspectFill" />
+          <view class="resource-location">青禾村 · 距离 1.2km</view>
           <view class="recommend-body">
             <view class="recommend-title">青禾民宿改造项目</view>
             <view class="tag">高匹配</view>
@@ -82,7 +80,8 @@
           </view>
         </view>
         <view class="recommend-card" data-action="map" bindtap="onEntryTap">
-          <view class="resource-photo photo-two"></view>
+          <image class="resource-photo" src="/assets/images/rural-village.jpg" mode="aspectFill" />
+          <view class="resource-location">文创村 · 距离 2.6km</view>
           <view class="recommend-body">
             <view class="recommend-title">乡村文创体验空间</view>
             <view class="tag good">优质</view>
@@ -91,9 +90,10 @@
           </view>
         </view>
       </view>
+      </scroll-view>
     </view>
 
-    <view class="page-section progress-card">
+    <view class="page-section progress-card reveal-block reveal-5">
       <view class="section-head">
         <view class="section-title">我的申请进度</view>
         <view class="section-action" data-action="collab" bindtap="onEntryTap">全部申请</view>
@@ -105,7 +105,7 @@
             <view class="progress-title">{{item.title}}</view>
             <view class="progress-time">提交时间：{{item.createdAt}}</view>
           </view>
-          <view class="state {{item.statusClass}}">{{item.statusText}}</view>
+          <view class="progress-ring" style="background: conic-gradient(#fff 0 {{item.progress}}%, rgba(255,255,255,.25) {{item.progress}}%);"><view>{{item.progress}}%</view></view><view class="state {{item.statusClass}}">{{item.statusText}}</view><view class="progress-arrow">›</view>
         </view>
       </view>
       <view class="progress-empty" wx:else>
@@ -114,24 +114,15 @@
       </view>
     </view>
 
-    <view class="page-section">
+    <view class="page-section quick-section reveal-block reveal-6">
       <view class="section-head">
-        <view class="section-title">智能建议</view>
-        <view class="section-action" data-action="report" bindtap="onEntryTap">查看更多</view>
+        <view class="section-title">快捷入口</view>
       </view>
-      <view class="tip-row">
-        <view class="tip-card" data-action="collab" bindtap="onEntryTap">
-          <view class="tip-icon">笔</view>
-          <view class="tip-title">优先完善合作说明</view>
-          <view class="tip-text">完整合作介绍可提升审核效率。</view>
-          <view class="tip-link">去完善</view>
-        </view>
-        <view class="tip-card" data-action="match" bindtap="onEntryTap">
-          <view class="tip-icon target">靶</view>
-          <view class="tip-title">推荐申请民宿资源</view>
-          <view class="tip-text">与您的合作意向高度匹配。</view>
-          <view class="tip-link">去申请</view>
-        </view>
+      <view class="quick-grid">
+        <view class="quick-item" data-action="map" bindtap="onEntryTap"><view><image src="/assets/tabbar/map-active.png" /></view><text>资源地图</text></view>
+        <view class="quick-item" data-action="collab" bindtap="onEntryTap"><view><image src="/assets/tabbar/apply-active.png" /></view><text>申请进度</text></view>
+        <view class="quick-item" data-action="report" bindtap="onEntryTap"><view><image src="/assets/tabbar/report-active.png" /></view><text>智能报表</text></view>
+        <view class="quick-item" data-action="match" bindtap="onEntryTap"><view><image src="/assets/tabbar/home-active.png" /></view><text>招商匹配</text></view>
       </view>
     </view>
   </view>

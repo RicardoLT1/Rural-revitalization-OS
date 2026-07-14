@@ -1,5 +1,6 @@
 {
-  "navigationBarTitleText": "\u9996\u9875\u9a7e\u9a76\u8231",
+  "navigationBarTitleText": "\u4e61\u8018 OS",
+  "navigationStyle": "custom",
   "usingComponents": {
     "section-header": "/components/section-header/index",
     "stat-card": "/components/stat-card/index",
