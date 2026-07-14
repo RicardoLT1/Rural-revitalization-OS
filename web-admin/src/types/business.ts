@@ -15,7 +15,7 @@ export interface DashboardData {
   stats: DashboardStat[]
   trends: { days7: TrendPoint[]; days30: TrendPoint[] }
   risks: Array<{ id: string; title: string; detail: string; level: string; assignee: string }>
-  suggestions: Array<{ id: string; title: string; content: string; priority: string; tag: string }>
+  suggestions: Array<{ id: string; title: string; content: string; priority: string; tag: string; actionLabel?: string; actionType?: string }>
   cacheStatus: string
   stale: boolean
   generatedAt: string
@@ -35,6 +35,44 @@ export interface WorkflowItem {
   time?: string
 }
 
+export interface WorkflowNode {
+  id: string
+  name: string
+  owner: string
+  status: string
+  remark?: string
+}
+
+export interface WorkflowRecord {
+  id: string
+  nodeId: string
+  operator: string
+  action: string
+  time: string
+  remark?: string
+}
+
+export interface WorkflowDetail {
+  id: string
+  title: string
+  status: string
+  currentNodeId: string
+  applicantName: string
+  nodes: WorkflowNode[]
+  records: WorkflowRecord[]
+}
+
+export interface WorkflowOperationLog {
+  id: string | number
+  workflowId: string | number
+  resourceId?: string | number
+  action: string
+  operatorId?: string
+  operatorName?: string
+  remark?: string
+  createdAt: string
+}
+
 export interface ResourceItem {
   id: string
   name: string
@@ -51,7 +89,39 @@ export interface ResourceItem {
   expectedROI: number | null
   ownershipStatus: string
   materialStatus: string
+  lat?: number | null
+  lng?: number | null
+  relatedProjects?: string[]
+  fieldPhotos?: string[]
   investmentNote: string
+}
+
+export interface ResourceActivityWorkflow {
+  processId: string | number
+  title: string
+  status: string
+  applicantName?: string
+  approverName?: string
+  createdAt?: string
+  updatedAt?: string
+}
+
+export interface ResourceActivityItem {
+  id: string
+  action: string
+  title?: string
+  status?: string
+  operatorName?: string
+  remark?: string
+  createdAt?: string
+}
+
+export interface ResourceActivity {
+  resourceId: string
+  currentStatus: string
+  workflows: ResourceActivityWorkflow[]
+  operationLogs: WorkflowOperationLog[]
+  timeline: ResourceActivityItem[]
 }
 
 export interface WeeklyReport {

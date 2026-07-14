@@ -1,6 +1,6 @@
 import { http } from './http'
 import type { ApiResponse } from '../types/auth'
-import type { DashboardData, ResourceItem, WeeklyReport, WorkflowItem } from '../types/business'
+import type { DashboardData, ResourceActivity, ResourceItem, WeeklyReport, WorkflowDetail, WorkflowItem, WorkflowOperationLog } from '../types/business'
 
 export async function fetchDashboard(days: number) {
   const response = await http.get<ApiResponse<DashboardData>>('/dashboard', { params: { days } })
@@ -17,8 +17,26 @@ export async function fetchApprovalHistory() {
   return response.data.data || []
 }
 
+export async function fetchWorkflow(id: string | number) {
+  const response = await http.get<ApiResponse<WorkflowDetail>>(`/workflows/${id}`)
+  return response.data.data
+}
+
+export async function fetchWorkflowOperationLogs(id: string | number) {
+  const response = await http.get<ApiResponse<WorkflowOperationLog[]>>(`/workflows/${id}/operation-logs`)
+  return response.data.data || []
+}
+
 export async function decideWorkflow(id: string | number, action: 'approve' | 'reject', remark: string) {
   const response = await http.post<ApiResponse<Record<string, unknown>>>(`/workflows/${id}/${action}`, { remark })
+  return response.data.data
+}
+
+export async function requestWorkflowMaterials(id: string | number, remark: string) {
+  const response = await http.post<ApiResponse<Record<string, unknown>>>(`/workflows/processes/${id}/actions`, {
+    action: 'material_required',
+    remark,
+  })
   return response.data.data
 }
 
@@ -38,6 +56,21 @@ export async function fetchResources(filters: ResourceFilters) {
 export async function fetchResource(id: string) {
   const response = await http.get<ApiResponse<ResourceItem>>(`/resources/${id}`)
   return response.data.data
+}
+
+export async function fetchResourceApplicationCount(id: string) {
+  const response = await http.get<ApiResponse<{ resourceId: string; applicationCount: number }>>(`/resources/${id}/applications/count`)
+  return response.data.data || { resourceId: id, applicationCount: 0 }
+}
+
+export async function fetchResourceActivity(id: string) {
+  const response = await http.get<ApiResponse<ResourceActivity>>(`/resources/${id}/activity`)
+  return response.data.data
+}
+
+export async function fetchResourceMapPoints(category?: string) {
+  const response = await http.get<ApiResponse<ResourceItem[]>>('/resources/map-points', { params: { category } })
+  return response.data.data || []
 }
 
 export async function publishResource(id: string) {

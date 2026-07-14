@@ -13,6 +13,8 @@ const router = createRouter({
         { path: 'dashboard', name: 'dashboard', component: () => import('../views/DashboardView.vue') },
         { path: 'approvals', name: 'approvals', component: () => import('../views/ApprovalsView.vue'), meta: { title: '审批工作台' } },
         { path: 'resources', name: 'resources', component: () => import('../views/ResourcesView.vue'), meta: { title: '资源档案' } },
+        { path: 'resources/:id', name: 'resource-detail', component: () => import('../views/ResourcesView.vue'), meta: { title: '资源详情' } },
+        { path: 'resource-map', name: 'resource-map', component: () => import('../views/ResourceMapView.vue'), meta: { title: '资源地图' } },
         { path: 'weekly-report', name: 'weekly-report', component: () => import('../views/WeeklyReportView.vue'), meta: { title: '周报管理' } },
         { path: 'users', name: 'users', component: () => import('../views/UsersView.vue'), meta: { title: '用户与权限', roles: ['ADMIN'] } },
       ],
