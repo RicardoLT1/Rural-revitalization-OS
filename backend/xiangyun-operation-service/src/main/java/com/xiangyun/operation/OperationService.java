@@ -19,7 +19,10 @@ import java.sql.SQLException;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -194,6 +197,57 @@ public class OperationService {
                 where deleted=0 and category='COOPERATION_APPLICATION' and resource_id=?
                 """, Integer.class, Long.parseLong(id));
         return Map.of("resourceId", id, "applicationCount", total == null ? 0 : total);
+    }
+
+    public Map<String, Object> resourceActivity(String id) {
+        ResourceView resource = detail(id);
+        long resourceId = Long.parseLong(id);
+        List<Map<String, Object>> workflows = jdbcTemplate.queryForList("""
+                select w.id as processId, w.title, w.status, w.applicant_name as applicantName,
+                       w.approver_name as approverName, w.created_at as createdAt, w.updated_at as updatedAt
+                from workflow w
+                where w.deleted=0 and w.resource_id=?
+                order by w.created_at desc, w.id desc
+                """, resourceId);
+        List<Map<String, Object>> operationLogs = jdbcTemplate.queryForList("""
+                select id, workflow_id as workflowId, resource_id as resourceId, action,
+                       operator_id as operatorId, operator_name as operatorName, remark, created_at as createdAt
+                from operation_log
+                where deleted=0 and resource_id=?
+                order by created_at desc, id desc
+                """, resourceId);
+
+        List<Map<String, Object>> timeline = new ArrayList<>();
+        for (Map<String, Object> workflow : workflows) {
+            Map<String, Object> item = new LinkedHashMap<>();
+            item.put("id", "workflow-" + workflow.get("processId"));
+            item.put("action", "APPLICATION_SUBMITTED");
+            item.put("title", workflow.get("title"));
+            item.put("status", workflow.get("status"));
+            item.put("operatorName", workflow.get("applicantName"));
+            item.put("remark", "收到合作申请");
+            item.put("createdAt", workflow.get("createdAt"));
+            timeline.add(item);
+        }
+        for (Map<String, Object> log : operationLogs) {
+            Map<String, Object> item = new LinkedHashMap<>();
+            item.put("id", "log-" + log.get("id"));
+            item.put("action", log.get("action"));
+            item.put("title", resource.name());
+            item.put("status", resource.investmentStatus());
+            item.put("operatorName", log.get("operatorName"));
+            item.put("remark", log.get("remark"));
+            item.put("createdAt", log.get("createdAt"));
+            timeline.add(item);
+        }
+        timeline.sort(Comparator.comparing(item -> String.valueOf(item.getOrDefault("createdAt", "")), Comparator.reverseOrder()));
+        return Map.of(
+                "resourceId", id,
+                "currentStatus", resource.investmentStatus(),
+                "workflows", workflows,
+                "operationLogs", operationLogs,
+                "timeline", timeline
+        );
     }
 
     public List<Map<String, Object>> weeklyReports() {

@@ -264,6 +264,18 @@ class OperationReliabilityTest {
         });
     }
 
+    @Test
+    void resourceActivityAggregatesRelatedWorkflowAndOperationLogs() {
+        seedPendingWorkflow(301L);
+        operationService.approve("301", "approve", "2", "业务工作人员", Map.of("remark", "材料核验通过"));
+
+        Map<String, Object> activity = operationService.resourceActivity("101");
+
+        assertThat((List<?>) activity.get("workflows")).hasSize(1);
+        assertThat((List<?>) activity.get("operationLogs")).hasSize(1);
+        assertThat((List<?>) activity.get("timeline")).hasSize(2);
+    }
+
     private void seedMaterialRequiredWorkflow(long workflowId) {
         transactionTemplate.executeWithoutResult(status -> {
             jdbcTemplate.update("""

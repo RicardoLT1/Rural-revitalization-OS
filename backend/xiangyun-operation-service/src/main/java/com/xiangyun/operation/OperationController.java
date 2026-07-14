@@ -79,6 +79,11 @@ public class OperationController {
         return ApiResponse.success(operationService.detail(id));
     }
 
+    @GetMapping("/resources/{id}/activity")
+    public ApiResponse<Map<String, Object>> resourceActivity(@PathVariable String id) {
+        return ApiResponse.success(operationService.resourceActivity(id));
+    }
+
     @PostMapping("/resources")
     public ApiResponse<Map<String, Object>> createResource(@RequestBody Map<String, Object> body) {
         return ApiResponse.success(operationService.createResource(body));
