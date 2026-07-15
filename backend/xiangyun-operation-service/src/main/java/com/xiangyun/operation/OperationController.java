@@ -2,6 +2,7 @@ package com.xiangyun.operation;
 
 import com.xiangyun.common.ApiResponse;
 import com.xiangyun.common.SecurityHeaders;
+import com.xiangyun.common.dto.AdminOperationOverview;
 import com.xiangyun.common.dto.OperationStats;
 import com.xiangyun.common.dto.ResourceSummary;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -305,6 +306,11 @@ public class OperationController {
     @GetMapping("/internal/operation/stats")
     public ApiResponse<OperationStats> stats() {
         return ApiResponse.success(operationService.stats());
+    }
+
+    @GetMapping("/internal/operation/admin-overview")
+    public ApiResponse<AdminOperationOverview> adminOverview(@RequestParam(defaultValue = "1") String villageId) {
+        return ApiResponse.success(operationService.adminOverview(villageId));
     }
 
     @GetMapping("/internal/resources/{id}/summary")

@@ -4,6 +4,9 @@ export interface DashboardStat {
   value: number | string
   unit?: string
   trend?: string
+  changeLabel?: string
+  changeValue?: number | string
+  changeHint?: string
 }
 
 export interface TrendPoint {
@@ -13,6 +16,7 @@ export interface TrendPoint {
 
 export interface DashboardData {
   stats: DashboardStat[]
+  resourceDistribution: Array<{ label: string; count: number; percentage: number }>
   trends: { days7: TrendPoint[]; days30: TrendPoint[] }
   risks: Array<{ id: string; title: string; detail: string; level: string; assignee: string }>
   suggestions: Array<{ id: string; title: string; content: string; priority: string; tag: string; actionLabel?: string; actionType?: string }>

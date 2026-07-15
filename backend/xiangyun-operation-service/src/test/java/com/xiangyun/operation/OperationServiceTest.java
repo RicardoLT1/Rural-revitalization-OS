@@ -110,7 +110,7 @@ class OperationServiceTest {
         OperationStats stats = service.stats();
         assertThat(stats.resourceCount()).isEqualTo(3);
         assertThat(stats.riskWorkflowCount()).isEqualTo(1);
-        verify(jdbcTemplate).queryForObject(contains("status='PENDING'"), eq(Integer.class));
+        verify(jdbcTemplate).queryForObject(contains("due_date < now()"), eq(Integer.class));
     }
 
     @Test

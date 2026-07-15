@@ -43,7 +43,7 @@ public class WorkflowEventConsumer {
                 values(?,1,?,now())
                 on duplicate key update event_count=event_count+1,last_event_id=values(last_event_id),last_event_at=now()
                 """, event.eventType(), event.eventId());
-        Set<String> keys = redisTemplate.keys("analysis:dashboard:v1:*");
+        Set<String> keys = redisTemplate.keys("analysis:dashboard:v2:*");
         if (keys != null && !keys.isEmpty()) {
             redisTemplate.delete(keys);
         }

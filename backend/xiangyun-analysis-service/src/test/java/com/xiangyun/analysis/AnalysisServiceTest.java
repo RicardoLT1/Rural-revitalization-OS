@@ -2,7 +2,7 @@ package com.xiangyun.analysis;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.xiangyun.common.ApiResponse;
-import com.xiangyun.common.dto.OperationStats;
+import com.xiangyun.common.dto.AdminOperationOverview;
 import com.xiangyun.common.dto.ResourceSummary;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -47,7 +47,7 @@ class AnalysisServiceTest {
 
     @Test
     void dashboardUsesRedisCacheWhenPresent() {
-        when(valueOperations.get("analysis:dashboard:v1:1:7")).thenReturn("{\"data\":{\"villageName\":\"demo\"},\"rangeDays\":7}");
+        when(valueOperations.get("analysis:dashboard:v2:1:7")).thenReturn("{\"data\":{\"villageName\":\"demo\"},\"rangeDays\":7}");
         DashboardResult result = service.dashboard("1", 7);
         assertThat(result.cacheStatus()).isEqualTo("HIT");
         assertThat(result.data()).containsKey("villageName");
@@ -56,20 +56,22 @@ class AnalysisServiceTest {
     @Test
     void dashboardCombinesFeignAndDatabaseData() {
         when(valueOperations.get(anyString())).thenReturn(null);
-        when(operationClient.stats()).thenReturn(ApiResponse.success(new OperationStats(3, 2, 4, 5, 1)));
+        when(operationClient.adminOverview("1")).thenReturn(ApiResponse.success(overview()));
         when(jdbcTemplate.queryForList(anyString(), eq(7))).thenReturn(snapshotRows());
         when(jdbcTemplate.queryForList(anyString(), eq(30))).thenReturn(snapshotRows());
         DashboardResult result = service.dashboard("1", 7);
         assertThat(result.cacheStatus()).isEqualTo("MISS");
         assertThat(result.data()).doesNotContainKey("cacheHit");
+        assertThat(result.data()).containsEntry("villageName", "青耘村");
+        assertThat((List<?>) result.data().get("resourceDistribution")).hasSize(2);
         verify(valueOperations, atLeastOnce()).set(anyString(), anyString(), any());
     }
 
     @Test
     void dashboardReturnsStaleCacheWhenOperationFails() {
-        when(valueOperations.get("analysis:dashboard:v1:1:7")).thenReturn(null);
-        when(valueOperations.get("analysis:dashboard:v1:1:7:last-success")).thenReturn("{\"data\":{\"villageName\":\"old\"},\"rangeDays\":7}");
-        when(operationClient.stats()).thenThrow(new RuntimeException("operation down"));
+        when(valueOperations.get("analysis:dashboard:v2:1:7")).thenReturn(null);
+        when(valueOperations.get("analysis:dashboard:v2:1:7:last-success")).thenReturn("{\"data\":{\"villageName\":\"old\"},\"rangeDays\":7}");
+        when(operationClient.adminOverview("1")).thenThrow(new RuntimeException("operation down"));
 
         DashboardResult result = service.dashboard("1", 7);
 
@@ -104,5 +106,22 @@ class AnalysisServiceTest {
                 Map.of("stat_date", Date.valueOf("2026-06-25"), "visitor_count", 100, "revenue", BigDecimal.TEN),
                 Map.of("stat_date", Date.valueOf("2026-06-26"), "visitor_count", 120, "revenue", BigDecimal.valueOf(12))
         );
+    }
+
+    private AdminOperationOverview overview() {
+        return new AdminOperationOverview(
+                "1",
+                "青耘村",
+                3,
+                2,
+                5,
+                1,
+                1,
+                1,
+                2,
+                1,
+                List.of(
+                        new AdminOperationOverview.ResourceCategoryCount("乡村民宿", 2),
+                        new AdminOperationOverview.ResourceCategoryCount("土地", 1)));
     }
 }

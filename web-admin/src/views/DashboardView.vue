@@ -2,7 +2,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { AlertTriangle, ArrowRight, CalendarDays, ClipboardCheck, Download, FileBarChart, Layers3, Lightbulb, MapPinned, RefreshCw, ShieldAlert, Sparkles, TrendingUp, Users } from '@lucide/vue'
-import { fetchDashboard, fetchTodos } from '../api/business'
+import { fetchDashboard } from '../api/business'
 import ComingSoonButton from '../components/ComingSoonButton.vue'
 import PageState from '../components/PageState.vue'
 import type { DashboardData } from '../types/business'
@@ -20,13 +20,21 @@ const trend = computed(() => days.value === 30 ? data.value?.trends?.days30 || [
 const maxValue = computed(() => Math.max(...trend.value.map((item) => Number(item.value)), 1))
 const generatedTime = computed(() => data.value?.generatedAt ? new Date(data.value.generatedAt).toLocaleString('zh-CN', { hour12: false }) : '--')
 const metricIcons = [Layers3, Users, ClipboardCheck, ShieldAlert]
-const resourceDistribution = [
-  { label: '土地', value: 41.2, color: '#15935f', offset: 0 },
-  { label: '闲置农房', value: 23.5, color: '#4b95e6', offset: 41.2 },
-  { label: '文旅空间', value: 17.6, color: '#f0ac35', offset: 64.7 },
-  { label: '研学基地', value: 11.8, color: '#9075cb', offset: 82.3 },
-  { label: '其他资源', value: 5.9, color: '#dce5e0', offset: 94.1 },
-]
+const distributionPalette = ['#15935f', '#4b95e6', '#f0ac35', '#9075cb', '#e06f51', '#5aafb5', '#9aa7a0']
+const resourceDistribution = computed(() => {
+  let offset = 0
+  return (data.value?.resourceDistribution || []).map((item, index) => {
+    const segment = {
+      label: item.label,
+      count: Number(item.count),
+      value: Number(item.percentage),
+      color: distributionPalette[index % distributionPalette.length],
+      offset,
+    }
+    offset += segment.value
+    return segment
+  })
+})
 const chartPoints = computed(() => trend.value.map((point, index) => ({
   ...point,
   x: trend.value.length <= 1 ? 50 : 5 + index * 90 / (trend.value.length - 1),
@@ -52,11 +60,7 @@ async function load() {
   loading.value = true
   error.value = ''
   try {
-    const [dashboard, todos] = await Promise.all([fetchDashboard(days.value), fetchTodos()])
-    const pendingApprovalCount = todos.filter((item) => item.status === 'PENDING').length
-    const todoMetric = dashboard?.stats.find((item) => item.key === 'todo')
-    if (todoMetric) todoMetric.value = pendingApprovalCount
-    data.value = dashboard
+    data.value = await fetchDashboard(days.value)
     chartAnimationKey.value += 1
     animateValues()
   } catch (reason) {
@@ -130,7 +134,7 @@ onMounted(load)
       <template v-if="data">
         <section class="metric-grid live-metrics">
           <button v-for="(stat, index) in data.stats" :key="stat.key" class="metric-card" type="button" :aria-label="`查看${stat.title}`" @click="drillMetric(stat.key)">
-            <div class="metric-card-head"><span class="metric-icon"><component :is="metricIcons[index]" :size="22" /></span><span>{{ stat.title }}</span></div><strong>{{ displayedValues[index] ?? 0 }}<em>{{ stat.unit }}</em></strong><div class="metric-delta"><small>较昨日 <b>{{ index === 2 ? '-1' : index === 3 ? '0' : `+${index + 1}` }}</b></small><svg viewBox="0 0 90 28" aria-hidden="true"><polyline :class="`spark-${index}`" points="1,22 12,18 23,21 34,10 45,14 56,6 67,11 78,8 89,2" /></svg></div>
+            <div class="metric-card-head"><span class="metric-icon"><component :is="metricIcons[index]" :size="22" /></span><span>{{ stat.title }}</span></div><strong>{{ displayedValues[index] ?? 0 }}<em>{{ stat.unit }}</em></strong><div class="metric-delta" :title="stat.changeHint"><small>{{ stat.changeLabel || '实时统计' }} <b>{{ stat.changeValue ?? '--' }}</b></small><span v-if="stat.changeHint">{{ stat.changeHint }}</span></div>
           </button>
         </section>
 
@@ -165,7 +169,7 @@ onMounted(load)
                 </svg>
                 <div><strong>{{ displayedValues[0] ?? 0 }}</strong><span>总数</span></div>
               </div>
-              <ul><li v-for="item in resourceDistribution" :key="item.label"><button type="button" @click="drillCategory(item.label)"><i :style="{ background: item.color }" />{{ item.label }} <b>{{ item.value }}%</b><ArrowRight :size="13" /></button></li></ul>
+              <ul><li v-for="item in resourceDistribution" :key="item.label"><button type="button" @click="drillCategory(item.label)"><i :style="{ background: item.color }" />{{ item.label }} <b>{{ item.count }} 项 · {{ item.value }}%</b><ArrowRight :size="13" /></button></li></ul>
             </div>
           </aside>
 

@@ -2,7 +2,7 @@ package com.xiangyun.analysis;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.xiangyun.common.dto.OperationStats;
+import com.xiangyun.common.dto.AdminOperationOverview;
 import com.xiangyun.common.dto.ResourceSummary;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,6 +16,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 @Service
@@ -119,24 +120,98 @@ public class AnalysisService {
     }
 
     private Map<String, Object> buildDashboard(String villageId, int range) {
-        OperationStats ops = operationClient.stats().data();
+        AdminOperationOverview ops = operationClient.adminOverview(villageId).data();
         List<Map<String, Object>> snapshots = snapshots(range);
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("villageName", ops.villageName());
+        result.put("roleName", "乡村运营管理平台");
+        result.put("generatedAt", Instant.now().toString());
+        result.put("rangeDays", range);
+        result.put("stats", List.of(
+                metric("resource", "资源总数", ops.resourceCount(), "个", "今日更新", ops.resourcesUpdatedToday(), ""),
+                metric("ready", "可合作资源", ops.investmentReadyCount(), "个", "今日更新", ops.readyResourcesUpdatedToday(), ""),
+                metric("todo", "待审批数", ops.pendingApprovalCount(), "项", "今日新增", ops.pendingCreatedToday(), "今日已处理 " + ops.workflowsResolvedToday() + " 项"),
+                metric("risk", "超时流程", ops.overdueApprovalCount(), "项", "实时超时", ops.overdueApprovalCount(), "按截止时间实时计算")
+        ));
+        result.put("resourceDistribution", resourceDistribution(ops));
+        result.put("trends", Map.of("days7", trend(7), "days30", trend(30)));
+        result.put("risks", dashboardRisks(ops));
+        result.put("suggestions", dashboardSuggestions(ops));
+        result.put("snapshotCount", snapshots.size());
+        return result;
+    }
+
+    private Map<String, Object> metric(String key,
+                                       String title,
+                                       int value,
+                                       String unit,
+                                       String changeLabel,
+                                       int changeValue,
+                                       String changeHint) {
         return Map.of(
-                "villageName", "青耘村",
-                "roleName", "乡村运营平台",
-                "generatedAt", Instant.now().toString(),
-                "rangeDays", range,
-                "stats", List.of(
-                        Map.of("key", "resource", "title", "资源总数", "value", ops.resourceCount(), "unit", "个", "trend", "up"),
-                        Map.of("key", "ready", "title", "可合作资源", "value", ops.investmentReadyCount(), "unit", "个", "trend", "up"),
-                        Map.of("key", "todo", "title", "待审批数", "value", ops.todoCount(), "unit", "项", "trend", "flat"),
-                        Map.of("key", "risk", "title", "风险流程", "value", ops.riskWorkflowCount(), "unit", "项", "trend", "up")
-                ),
-                "trends", Map.of("days7", trend(7), "days30", trend(30)),
-                "risks", List.of(Map.of("id", "risk-1", "title", "审批节点临近超时", "level", "medium", "detail", "请关注待补充材料流程。", "assignee", "审批员")),
-                "suggestions", List.of(Map.of("id", "ai-1", "title", "优先盘活高潜资源", "content", "建议优先推进可合作文旅空间。", "priority", "P1", "actionLabel", "查看招商推荐", "actionType", "match", "tag", "招商")),
-                "snapshotCount", snapshots.size()
+                "key", key,
+                "title", title,
+                "value", value,
+                "unit", unit,
+                "trend", changeValue > 0 ? "up" : "flat",
+                "changeLabel", changeLabel,
+                "changeValue", changeValue,
+                "changeHint", changeHint
         );
+    }
+
+    private List<Map<String, Object>> resourceDistribution(AdminOperationOverview overview) {
+        int total = Math.max(overview.resourceCount(), 1);
+        return overview.resourceDistribution().stream()
+                .map(item -> Map.<String, Object>of(
+                        "label", item.category(),
+                        "count", item.count(),
+                        "percentage", BigDecimal.valueOf(item.count() * 100.0 / total)
+                                .setScale(1, RoundingMode.HALF_UP)))
+                .toList();
+    }
+
+    private List<Map<String, Object>> dashboardRisks(AdminOperationOverview overview) {
+        if (overview.overdueApprovalCount() == 0) {
+            return List.of();
+        }
+        return List.of(Map.of(
+                "id", "overdue-approval",
+                "title", "审批流程已超时",
+                "level", "high",
+                "detail", "当前有 " + overview.overdueApprovalCount() + " 条待办超过截止时间，请尽快核查。",
+                "assignee", "审批工作台"));
+    }
+
+    private List<Map<String, Object>> dashboardSuggestions(AdminOperationOverview overview) {
+        if (overview.overdueApprovalCount() > 0) {
+            return List.of(Map.of(
+                    "id", "handle-overdue",
+                    "title", "优先处理超时审批",
+                    "content", "先处理 " + overview.overdueApprovalCount() + " 条超时流程，降低业务等待风险。",
+                    "priority", "P0",
+                    "actionLabel", "查看超时流程",
+                    "actionType", "VIEW_RISK",
+                    "tag", "审批"));
+        }
+        if (overview.investmentReadyCount() > 0) {
+            return List.of(Map.of(
+                    "id", "operate-ready-resource",
+                    "title", "推进可合作资源运营",
+                    "content", "当前有 " + overview.investmentReadyCount() + " 个可合作资源，可优先完善材料并开展招商跟进。",
+                    "priority", "P1",
+                    "actionLabel", "查看可合作资源",
+                    "actionType", "VIEW_RESOURCES",
+                    "tag", "资源"));
+        }
+        return List.of(Map.of(
+                "id", "complete-resource",
+                "title", "完善资源档案",
+                "content", "暂未发现可合作资源，建议先完善权属与招商材料。",
+                "priority", "P1",
+                "actionLabel", "进入资源目录",
+                "actionType", "VIEW_RESOURCES",
+                "tag", "资源"));
     }
 
     private void writeDashboardCache(String cacheKey, Map<String, Object> result, int range) {
@@ -176,7 +251,7 @@ public class AnalysisService {
     }
 
     private String dashboardCacheKey(String villageId, int range) {
-        return "analysis:dashboard:v1:" + villageId + ":" + range;
+        return "analysis:dashboard:v2:" + villageId + ":" + range;
     }
 
     private String lastSuccessKey(String cacheKey) {

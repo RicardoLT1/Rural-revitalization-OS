@@ -3,6 +3,7 @@ package com.xiangyun.operation;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.xiangyun.common.BusinessException;
 import com.xiangyun.common.dto.OperationStats;
+import com.xiangyun.common.dto.AdminOperationOverview;
 import com.xiangyun.common.dto.ResourceSummary;
 import com.xiangyun.common.dto.UserSummary;
 import com.xiangyun.common.event.WorkflowChangedEvent;
@@ -431,6 +432,9 @@ public class OperationService {
     public Map<String, Object> submitSupplementMaterials(String id, String operatorId, String operatorName, Map<String, Object> body) {
         long workflowId = Long.parseLong(id);
         Map<String, Object> workflow = jdbcTemplate.queryForMap("select * from workflow where id=? and deleted=0", workflowId);
+        if (!operatorId.equals(String.valueOf(workflow.get("applicant_user_id")))) {
+            throw new BusinessException(40300, "无权为该流程补充材料");
+        }
         WorkflowStatus currentStatus = WorkflowStatus.from(workflow.get("status"));
         if (!currentStatus.canTransitionTo(WorkflowStatus.PENDING)) {
             throw new BusinessException(40904, "当前流程不需要补充材料");
@@ -537,8 +541,70 @@ public class OperationService {
         // Count only records that the current workbench can actually approve; states
         // such as MATERIAL_REQUIRED belong to the applicant and are not staff todos.
         int todoCount = jdbcTemplate.queryForObject("select count(*) from todo_item where deleted=0 and status='PENDING'", Integer.class);
-        int risk = jdbcTemplate.queryForObject("select count(*) from todo_item where deleted=0 and status='已逾期'", Integer.class);
+        int risk = jdbcTemplate.queryForObject("select count(*) from todo_item where deleted=0 and status='PENDING' and due_date < now()", Integer.class);
         return new OperationStats(resourceCount, ready, workflowCount, todoCount, risk);
+    }
+
+    public AdminOperationOverview adminOverview(String villageId) {
+        long scopeVillageId = Long.parseLong(villageId);
+        String villageName = jdbcTemplate.queryForObject(
+                "select name from village where id=? and deleted=0",
+                String.class,
+                scopeVillageId);
+        int resourceCount = count("select count(*) from resource where deleted=0 and village_id=?", scopeVillageId);
+        int ready = count("select count(*) from resource where deleted=0 and village_id=? and investment_status='可招商'", scopeVillageId);
+        int pending = count("""
+                select count(*) from todo_item t
+                join workflow w on w.id=t.workflow_id and w.deleted=0
+                where t.deleted=0 and t.status='PENDING' and w.village_id=?
+                """, scopeVillageId);
+        int overdue = count("""
+                select count(*) from todo_item t
+                join workflow w on w.id=t.workflow_id and w.deleted=0
+                where t.deleted=0 and t.status='PENDING' and t.due_date < now() and w.village_id=?
+                """, scopeVillageId);
+        int resourcesUpdatedToday = count("""
+                select count(*) from resource
+                where deleted=0 and village_id=? and date(updated_at)=current_date
+                """, scopeVillageId);
+        int readyUpdatedToday = count("""
+                select count(*) from resource
+                where deleted=0 and village_id=? and investment_status='可招商' and date(updated_at)=current_date
+                """, scopeVillageId);
+        int pendingCreatedToday = count("""
+                select count(*) from workflow
+                where deleted=0 and village_id=? and status='PENDING' and date(created_at)=current_date
+                """, scopeVillageId);
+        int resolvedToday = count("""
+                select count(*) from workflow
+                where deleted=0 and village_id=? and status in ('APPROVED','REJECTED') and date(updated_at)=current_date
+                """, scopeVillageId);
+        List<AdminOperationOverview.ResourceCategoryCount> distribution = jdbcTemplate.query("""
+                select category, count(*) as resource_count
+                from resource
+                where deleted=0 and village_id=?
+                group by category
+                order by resource_count desc, category
+                """, (resultSet, rowNum) -> new AdminOperationOverview.ResourceCategoryCount(
+                resultSet.getString("category"),
+                resultSet.getInt("resource_count")), scopeVillageId);
+        return new AdminOperationOverview(
+                villageId,
+                villageName,
+                resourceCount,
+                ready,
+                pending,
+                overdue,
+                resourcesUpdatedToday,
+                readyUpdatedToday,
+                pendingCreatedToday,
+                resolvedToday,
+                distribution);
+    }
+
+    private int count(String sql, Object... args) {
+        Integer value = jdbcTemplate.queryForObject(sql, Integer.class, args);
+        return value == null ? 0 : value;
     }
 
     public ResourceSummary resourceSummary(String id) {

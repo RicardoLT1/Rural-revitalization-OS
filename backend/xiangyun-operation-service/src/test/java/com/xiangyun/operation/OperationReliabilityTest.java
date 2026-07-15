@@ -251,6 +251,23 @@ class OperationReliabilityTest {
         assertThat(jdbcTemplate.queryForObject("select action from operation_log where workflow_id=203", String.class)).isEqualTo("SUPPLEMENT_MATERIAL");
     }
 
+    @Test
+    void applicantCannotSupplementAnotherUsersWorkflow() {
+        seedMaterialRequiredWorkflow(204L);
+
+        assertThatThrownBy(() -> operationService.submitSupplementMaterials(
+                "204",
+                "999",
+                "other_user",
+                Map.of("remark", "越权补充材料")))
+                .isInstanceOf(com.xiangyun.common.BusinessException.class)
+                .hasMessage("无权为该流程补充材料");
+
+        assertThat(jdbcTemplate.queryForObject("select status from workflow where id=204", String.class))
+                .isEqualTo("MATERIAL_REQUIRED");
+        assertThat(count("operation_log")).isZero();
+    }
+
     private void seedPendingWorkflow(long workflowId) {
         transactionTemplate.executeWithoutResult(status -> {
             jdbcTemplate.update("""

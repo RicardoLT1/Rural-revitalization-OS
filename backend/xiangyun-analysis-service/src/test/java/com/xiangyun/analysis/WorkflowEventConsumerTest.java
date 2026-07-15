@@ -26,12 +26,12 @@ class WorkflowEventConsumerTest {
         JdbcTemplate jdbcTemplate = mock(JdbcTemplate.class);
         StringRedisTemplate redisTemplate = mock(StringRedisTemplate.class);
         when(jdbcTemplate.update(anyString(), any(Object[].class))).thenReturn(1);
-        when(redisTemplate.keys("analysis:dashboard:v1:*")).thenReturn(Set.of("analysis:dashboard:v1:1:7"));
+        when(redisTemplate.keys("analysis:dashboard:v2:*")).thenReturn(Set.of("analysis:dashboard:v2:1:7"));
         WorkflowEventConsumer consumer = new WorkflowEventConsumer(jdbcTemplate, redisTemplate, new ObjectMapper());
 
         consumer.consume(event);
 
-        verify(redisTemplate).delete(Set.of("analysis:dashboard:v1:1:7"));
+        verify(redisTemplate).delete(Set.of("analysis:dashboard:v2:1:7"));
     }
 
     @Test

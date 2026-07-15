@@ -27,7 +27,7 @@ public class AnalysisController {
         this.analysisService = analysisService;
     }
 
-    @GetMapping("/dashboard")
+    @GetMapping({"/dashboard", "/dashboard/admin-overview"})
     public ResponseEntity<ApiResponse<Map<String, Object>>> dashboard(@RequestParam(defaultValue = "1") String villageId,
                                                                       @RequestParam(required = false) Integer days,
                                                                       HttpServletResponse response) {

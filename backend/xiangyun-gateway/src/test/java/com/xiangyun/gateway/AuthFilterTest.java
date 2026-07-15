@@ -282,4 +282,107 @@ class AuthFilterTest {
 
         assertThat(called).isTrue();
     }
+
+    @Test
+    void userCannotCreateResource() {
+        MockServerWebExchange exchange = authorizedExchange("POST", "/api/resources", "USER");
+
+        filter.filter(exchange, next -> Mono.empty()).block();
+
+        assertThat(exchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+    }
+
+    @Test
+    void staffCanCreateResource() {
+        MockServerWebExchange exchange = authorizedExchange("POST", "/api/resources", "STAFF");
+        AtomicBoolean called = new AtomicBoolean(false);
+
+        filter.filter(exchange, next -> {
+            called.set(true);
+            return Mono.empty();
+        }).block();
+
+        assertThat(called).isTrue();
+    }
+
+    @Test
+    void staffCannotPublishOrDeleteResource() {
+        MockServerWebExchange publishExchange = authorizedExchange("POST", "/api/resources/101/publish", "STAFF");
+        MockServerWebExchange deleteExchange = authorizedExchange("DELETE", "/api/resources/101", "STAFF");
+
+        filter.filter(publishExchange, next -> Mono.empty()).block();
+        filter.filter(deleteExchange, next -> Mono.empty()).block();
+
+        assertThat(publishExchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+        assertThat(deleteExchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+    }
+
+    @Test
+    void adminCanPublishResource() {
+        MockServerWebExchange exchange = authorizedExchange("POST", "/api/resources/101/publish", "ADMIN");
+        AtomicBoolean called = new AtomicBoolean(false);
+
+        filter.filter(exchange, next -> {
+            called.set(true);
+            return Mono.empty();
+        }).block();
+
+        assertThat(called).isTrue();
+    }
+
+    @Test
+    void userCannotCreateWeeklyReport() {
+        MockServerWebExchange exchange = authorizedExchange("POST", "/api/operation/reports/weekly", "USER");
+
+        filter.filter(exchange, next -> Mono.empty()).block();
+
+        assertThat(exchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+    }
+
+    @Test
+    void staffCanCreateWeeklyReport() {
+        MockServerWebExchange exchange = authorizedExchange("POST", "/api/operation/reports/weekly", "STAFF");
+        AtomicBoolean called = new AtomicBoolean(false);
+
+        filter.filter(exchange, next -> {
+            called.set(true);
+            return Mono.empty();
+        }).block();
+
+        assertThat(called).isTrue();
+    }
+
+    @Test
+    void userCannotCallDirectApprovalEndpoint() {
+        MockServerWebExchange exchange = authorizedExchange("POST", "/api/workflows/2201/approve", "USER");
+
+        filter.filter(exchange, next -> Mono.empty()).block();
+
+        assertThat(exchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+    }
+
+    @Test
+    void staffCanCallDirectApprovalEndpoint() {
+        MockServerWebExchange exchange = authorizedExchange("POST", "/api/workflows/2201/reject", "STAFF");
+        AtomicBoolean called = new AtomicBoolean(false);
+
+        filter.filter(exchange, next -> {
+            called.set(true);
+            return Mono.empty();
+        }).block();
+
+        assertThat(called).isTrue();
+    }
+
+    private MockServerWebExchange authorizedExchange(String method, String path, String role) {
+        TokenPayload token = JwtUtils.create("99", role.toLowerCase() + "_demo", role, "1", 3600, "gateway-secret");
+        when(valueOperations.get(anyString())).thenReturn(Mono.just("99"));
+        MockServerHttpRequest.BaseBuilder<?> request = switch (method) {
+            case "POST" -> MockServerHttpRequest.post(path);
+            case "PUT" -> MockServerHttpRequest.put(path);
+            case "DELETE" -> MockServerHttpRequest.delete(path);
+            default -> MockServerHttpRequest.get(path);
+        };
+        return MockServerWebExchange.from(request.header(HttpHeaders.AUTHORIZATION, "Bearer " + token.token()));
+    }
 }

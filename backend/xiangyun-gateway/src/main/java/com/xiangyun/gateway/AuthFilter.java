@@ -33,7 +33,18 @@ public class AuthFilter implements GlobalFilter, Ordered {
     private static final Set<String> PUBLIC_PATHS = Set.of("/api/auth/login", "/api/auth/register");
     private static final Set<String> ADMIN_PREFIXES = Set.of("/api/users", "/api/roles");
     private static final Set<String> ADMIN_PATHS = Set.of("/api/dashboard/refresh");
-    private static final Set<String> STAFF_OR_ADMIN_WRITE_PREFIXES = Set.of("/api/workflows/approvals");
+    private static final Set<String> ADMIN_WRITE_PREFIXES = Set.of(
+            "/api/villages",
+            "/api/resource-tags",
+            "/api/forecasts",
+            "/api/investment-matches"
+    );
+    private static final Set<String> STAFF_OR_ADMIN_WRITE_PREFIXES = Set.of(
+            "/api/resources",
+            "/api/operation/reports/weekly",
+            "/api/todos",
+            "/api/workflows/approvals"
+    );
 
     private final ReactiveStringRedisTemplate redisTemplate;
     private final InternalSignatureSigner internalSignatureSigner;
@@ -85,7 +96,7 @@ public class AuthFilter implements GlobalFilter, Ordered {
     }
 
     private boolean isAuthorized(String path, String method, String role) {
-        if (requiresAdmin(path)) {
+        if (requiresAdmin(path, method)) {
             return "ADMIN".equals(role);
         }
         if (requiresStaffOrAdmin(path, method)) {
@@ -94,21 +105,43 @@ public class AuthFilter implements GlobalFilter, Ordered {
         return true;
     }
 
-    private boolean requiresAdmin(String path) {
+    private boolean requiresAdmin(String path, String method) {
         if (ADMIN_PATHS.contains(path)) {
             return true;
         }
-        return ADMIN_PREFIXES.stream().anyMatch(prefix -> path.equals(prefix) || path.startsWith(prefix + "/"));
+        if (ADMIN_PREFIXES.stream().anyMatch(prefix -> path.equals(prefix) || path.startsWith(prefix + "/"))) {
+            return true;
+        }
+        if (!isWriteMethod(method)) {
+            return false;
+        }
+        if (ADMIN_WRITE_PREFIXES.stream().anyMatch(prefix -> path.equals(prefix) || path.startsWith(prefix + "/"))) {
+            return true;
+        }
+        if (path.startsWith("/api/workflows/processes")
+                && !(path.startsWith("/api/workflows/processes/") && path.endsWith("/actions"))) {
+            return true;
+        }
+        return ("DELETE".equals(method) && path.matches("/api/resources/[^/]+"))
+                || path.matches("/api/resources/[^/]+/(publish|offline)");
     }
 
     private boolean requiresStaffOrAdmin(String path, String method) {
-        if (!"POST".equals(method) && !"PUT".equals(method) && !"DELETE".equals(method)) {
+        if (!isWriteMethod(method)) {
             return false;
         }
         if (STAFF_OR_ADMIN_WRITE_PREFIXES.stream().anyMatch(prefix -> path.equals(prefix) || path.startsWith(prefix + "/"))) {
             return true;
         }
-        return path.startsWith("/api/workflows/processes/") && path.endsWith("/actions");
+        if (path.startsWith("/api/workflows/processes/") && path.endsWith("/actions")) {
+            return true;
+        }
+        return path.startsWith("/api/workflows/")
+                && (path.endsWith("/approve") || path.endsWith("/reject"));
+    }
+
+    private boolean isWriteMethod(String method) {
+        return "POST".equals(method) || "PUT".equals(method) || "PATCH".equals(method) || "DELETE".equals(method);
     }
 
     private ServerWebExchange withTrace(ServerWebExchange exchange, String traceId) {
