@@ -124,6 +124,10 @@ public class AuthService {
         return PageResponse.of(filtered.subList(from, to), actualPage, actualPageSize, filtered.size());
     }
 
+    public Map<String, Object> user(String id) {
+        return userRow(findUser(id));
+    }
+
     public synchronized Map<String, Object> createUser(Map<String, Object> body) {
         String username = bodyText(body, "username", "");
         if (!StringUtils.hasText(username) || username.length() < 3) {

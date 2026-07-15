@@ -49,14 +49,17 @@ public class AuthFilter implements GlobalFilter, Ordered {
 
     private final ReactiveStringRedisTemplate redisTemplate;
     private final InternalSignatureSigner internalSignatureSigner;
+    private final GatewayAuditPublisher auditPublisher;
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final String secret;
 
     public AuthFilter(ReactiveStringRedisTemplate redisTemplate,
                       InternalSignatureSigner internalSignatureSigner,
+                      GatewayAuditPublisher auditPublisher,
                       @Value("${xiangyun.jwt.secret}") String secret) {
         this.redisTemplate = redisTemplate;
         this.internalSignatureSigner = internalSignatureSigner;
+        this.auditPublisher = auditPublisher;
         this.secret = secret;
     }
 
@@ -68,7 +71,8 @@ public class AuthFilter implements GlobalFilter, Ordered {
             return chain.filter(withTrace(exchange, traceId));
         }
         if (path.startsWith("/api/internal/")) {
-            return forbidden(exchange, "内部接口禁止外部访问");
+            return auditPublisher.accessDenied(exchange, null, traceId, "外部请求尝试访问内部接口")
+                    .then(forbidden(exchange, "内部接口禁止外部访问"));
         }
         if (PUBLIC_PATHS.contains(path)) {
             return chain.filter(withTrustedHeaders(exchange, traceId, null));
@@ -89,7 +93,8 @@ public class AuthFilter implements GlobalFilter, Ordered {
         return redisTemplate.opsForValue().get("login:token:" + payload.jti())
                 .flatMap(value -> {
                     if (!isAuthorized(path, exchange.getRequest().getMethod().name(), payload.role())) {
-                        return forbidden(exchange, "无权访问该功能");
+                        return auditPublisher.accessDenied(exchange, payload, traceId, "角色无权访问该功能")
+                                .then(forbidden(exchange, "无权访问该功能"));
                     }
                     return chain.filter(withTrustedHeaders(exchange, traceId, payload));
                 })

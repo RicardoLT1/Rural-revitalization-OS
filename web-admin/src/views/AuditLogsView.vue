@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { CheckCircle2, Copy, Eye, FileClock, Search, ShieldAlert, X, XCircle } from '@lucide/vue'
 import { fetchAuditLogs } from '../api/admin'
 import PagePager from '../components/PagePager.vue'
@@ -33,6 +33,16 @@ const actionLabels: Record<string, string> = {
   CREATE_WEEKLY_REPORT: '生成周报',
   CREATE_TODO: '创建待办',
   COMPLETE_TODO: '完成待办',
+  CREATE_USER: '新增用户',
+  UPDATE_USER: '更新用户',
+  DELETE_USER: '停用并删除用户',
+  ENABLE_USER: '启用用户',
+  DISABLE_USER: '停用用户',
+  RESET_USER_PASSWORD: '重置用户密码',
+  ASSIGN_USER_ROLE: '调整用户角色',
+  CREATE_ROLE: '新增角色',
+  UPDATE_ROLE: '更新角色',
+  ACCESS_DENIED: '拒绝越权访问',
 }
 
 const moduleLabels: Record<string, string> = {
@@ -40,7 +50,58 @@ const moduleLabels: Record<string, string> = {
   WORKFLOW: '审批流程',
   REPORT: '周报管理',
   TODO: '待办管理',
+  USER: '用户与权限',
+  SECURITY: '安全边界',
 }
+
+const fieldLabels: Record<string, string> = {
+  id: '编号', name: '名称', category: '资源类型', address: '地址', area: '面积',
+  annualEstimate: '年收益预估', investmentStatus: '招商状态', intro: '资源简介',
+  owner: '权属单位', contact: '联系方式', ownershipStatus: '确权状态',
+  materialStatus: '材料状态', status: '业务状态', username: '登录账号',
+  displayName: '姓名', role: '角色', villageId: '村域', enabled: '账号状态',
+  permissions: '权限集合', passwordChanged: '密码已变更', sessionsInvalidated: '原会话已失效',
+  deleted: '已删除', updated: '已更新', created: '已创建',
+}
+
+function parseSnapshot(value?: string): Record<string, unknown> {
+  if (!value) return {}
+  try {
+    const parsed = JSON.parse(value)
+    return parsed && typeof parsed === 'object' && !Array.isArray(parsed)
+      ? parsed as Record<string, unknown>
+      : { value: parsed }
+  } catch {
+    return { value }
+  }
+}
+
+function comparable(value: unknown) {
+  return JSON.stringify(value ?? null)
+}
+
+function displayValue(value: unknown) {
+  if (value === undefined || value === null || value === '') return '--'
+  if (typeof value === 'boolean') return value ? '是' : '否'
+  if (Array.isArray(value)) return value.length ? value.join('、') : '空集合'
+  if (typeof value === 'object') return JSON.stringify(value)
+  return String(value)
+}
+
+const diffRows = computed(() => {
+  if (!selected.value) return []
+  const before = parseSnapshot(selected.value.beforeData)
+  const after = parseSnapshot(selected.value.afterData)
+  return [...new Set([...Object.keys(before), ...Object.keys(after)])]
+    .map((key) => ({
+      key,
+      label: fieldLabels[key] || key,
+      before: displayValue(before[key]),
+      after: displayValue(after[key]),
+      changed: comparable(before[key]) !== comparable(after[key]),
+    }))
+    .filter((item) => item.changed)
+})
 
 async function load() {
   loading.value = true
@@ -105,14 +166,14 @@ onMounted(load)
 
     <section class="audit-assurance">
       <FileClock :size="22" />
-      <div><strong>关键管理操作自动记录</strong><span>当前覆盖资源、审批、待办与周报写操作；越权请求由网关直接拦截。</span></div>
+      <div><strong>关键管理操作自动记录</strong><span>资源、审批、用户与权限操作统一留痕；越权请求由网关拦截并写入安全审计。</span></div>
       <small>ADMIN ONLY</small>
     </section>
 
     <section class="business-toolbar audit-toolbar">
       <div class="filter-group">
         <label><Search :size="16" /><input v-model="keyword" placeholder="搜索操作人、对象或 Trace ID" @keyup.enter="applyFilters" /></label>
-        <select v-model="module" @change="applyFilters"><option value="ALL">全部模块</option><option value="RESOURCE">资源管理</option><option value="WORKFLOW">审批流程</option><option value="REPORT">周报管理</option><option value="TODO">待办管理</option></select>
+        <select v-model="module" @change="applyFilters"><option value="ALL">全部模块</option><option value="RESOURCE">资源管理</option><option value="WORKFLOW">审批流程</option><option value="USER">用户与权限</option><option value="SECURITY">安全边界</option><option value="REPORT">周报管理</option><option value="TODO">待办管理</option></select>
         <select v-model="result" @change="applyFilters"><option value="ALL">全部结果</option><option value="SUCCESS">操作成功</option><option value="FAILURE">操作失败</option></select>
         <button class="secondary-button query-button" type="button" @click="applyFilters">查询</button>
         <button class="text-button" type="button" @click="resetFilters">重置</button>
@@ -130,6 +191,7 @@ onMounted(load)
       <header><div><span>审计证据 #{{ selected.id }}</span><h3>{{ actionLabels[selected.action] || selected.action }}</h3></div><div class="drawer-actions"><span class="audit-result" :class="selected.result.toLowerCase()">{{ selected.result === 'SUCCESS' ? '成功' : '失败' }}</span><button class="icon-button" type="button" title="关闭" @click="selected = null"><X :size="18" /></button></div></header>
       <div class="drawer-body audit-drawer-body">
         <section class="audit-trace-card"><ShieldAlert :size="22" /><div><span>TRACE ID</span><code>{{ selected.traceId || '--' }}</code></div><button type="button" :disabled="!selected.traceId" @click="copyTrace"><Copy :size="15" />{{ copied ? '已复制' : '复制' }}</button></section>
+        <section class="detail-section audit-diff-section"><div class="section-title"><div><span>变更对照</span><h4>本次实际改变了什么</h4></div><small>{{ diffRows.length }} 个字段</small></div><div v-if="diffRows.length" class="audit-diff-ledger"><header><span>字段</span><span>操作前</span><span>操作后</span></header><div v-for="item in diffRows" :key="item.key"><strong>{{ item.label }}</strong><p>{{ item.before }}</p><p>{{ item.after }}</p></div></div><div v-else class="compact-empty">该事件没有结构化变更快照，可通过下方请求证据继续追踪</div></section>
         <section class="detail-section"><div class="section-title"><div><span>责任主体</span><h4>谁在何时执行</h4></div></div><dl><div><dt>操作人</dt><dd>{{ selected.actorName || '系统' }}</dd></div><div><dt>角色</dt><dd>{{ selected.actorRole || '--' }}</dd></div><div><dt>村域</dt><dd>{{ selected.villageId || '--' }}</dd></div><div><dt>发生时间</dt><dd>{{ formatDate(selected.createdAt) }}</dd></div></dl></section>
         <section class="detail-section"><div class="section-title"><div><span>请求证据</span><h4>访问来源与执行结果</h4></div></div><dl><div><dt>请求方法</dt><dd>{{ selected.requestMethod }}</dd></div><div><dt>HTTP 状态</dt><dd>{{ selected.httpStatus }}</dd></div><div class="wide"><dt>请求路径</dt><dd><code>{{ selected.requestPath }}</code></dd></div><div><dt>客户端 IP</dt><dd>{{ selected.clientIp || '--' }}</dd></div><div><dt>处理信息</dt><dd>{{ selected.detail || '--' }}</dd></div><div class="wide"><dt>设备标识</dt><dd class="user-agent">{{ selected.userAgent || '--' }}</dd></div></dl></section>
       </div>

@@ -57,6 +57,7 @@ xiangyun:
     allowed-services:
       - xiangyun-gateway
       - xiangyun-analysis-service
+      - xiangyun-auth-service
     exclude-paths:
       - /actuator/health
       - /actuator/info

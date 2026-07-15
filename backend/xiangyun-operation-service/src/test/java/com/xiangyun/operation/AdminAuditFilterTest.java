@@ -1,5 +1,6 @@
 package com.xiangyun.operation;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.xiangyun.common.SecurityHeaders;
 import jakarta.servlet.FilterChain;
 import org.junit.jupiter.api.Test;
@@ -17,13 +18,15 @@ class AdminAuditFilterTest {
     @Test
     void recordsAuthenticatedResourceWrite() throws Exception {
         AdminAuditService auditService = mock(AdminAuditService.class);
-        AdminAuditFilter filter = new AdminAuditFilter(auditService);
+        AdminAuditFilter filter = new AdminAuditFilter(auditService, new ObjectMapper());
         MockHttpServletRequest request = new MockHttpServletRequest("POST", "/api/resources/101/publish");
         request.addHeader(SecurityHeaders.TRACE_ID, "trace-1");
         request.addHeader(SecurityHeaders.USER_ID, "3");
         request.addHeader(SecurityHeaders.USERNAME, "admin");
         request.addHeader(SecurityHeaders.ROLE, "ADMIN");
         request.addHeader(SecurityHeaders.VILLAGE_ID, "1");
+        AdminAuditContext.before(request, java.util.Map.of("investmentStatus", "洽谈中"));
+        AdminAuditContext.after(request, java.util.Map.of("investmentStatus", "可招商"));
         MockHttpServletResponse response = new MockHttpServletResponse();
         FilterChain chain = (nextRequest, nextResponse) -> ((MockHttpServletResponse) nextResponse).setStatus(200);
 
@@ -35,16 +38,18 @@ class AdminAuditFilterTest {
         assertThat(captor.getValue().targetId()).isEqualTo("101");
         assertThat(captor.getValue().result()).isEqualTo("SUCCESS");
         assertThat(captor.getValue().traceId()).isEqualTo("trace-1");
+        assertThat(captor.getValue().beforeData()).contains("洽谈中");
+        assertThat(captor.getValue().afterData()).contains("可招商");
     }
 
     @Test
     void ignoresReadOnlyRequests() throws Exception {
         AdminAuditService auditService = mock(AdminAuditService.class);
-        AdminAuditFilter filter = new AdminAuditFilter(auditService);
+        AdminAuditFilter filter = new AdminAuditFilter(auditService, new ObjectMapper());
         MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/resources");
 
         filter.doFilter(request, new MockHttpServletResponse(), (nextRequest, nextResponse) -> { });
 
-        verify(auditService, never()).record(org.mockito.ArgumentMatchers.any());
+        verify(auditService, never()).record(org.mockito.ArgumentMatchers.any(AdminAuditEvent.class));
     }
 }

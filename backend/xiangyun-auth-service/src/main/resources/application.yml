@@ -24,6 +24,21 @@ xiangyun:
   jwt:
     secret: ${JWT_SECRET:xiangyun-demo-secret-2026}
     ttl-seconds: ${JWT_TTL_SECONDS:7200}
+  internal-auth:
+    enabled: ${XIANGYUN_INTERNAL_AUTH_ENABLED:true}
+    service-name: xiangyun-auth-service
+    secret: ${XIANGYUN_INTERNAL_SECRET:dev-internal-secret}
+    ttl-seconds: ${XIANGYUN_INTERNAL_TTL_SECONDS:60}
+    clock-skew-seconds: ${XIANGYUN_INTERNAL_CLOCK_SKEW_SECONDS:5}
+    allowed-services:
+      - xiangyun-gateway
+      - xiangyun-operation-service
+    exclude-paths:
+      - /actuator/health
+      - /actuator/info
+      - /v3/api-docs/**
+      - /swagger-ui/**
+      - /swagger-ui.html
 
 springdoc:
   swagger-ui:

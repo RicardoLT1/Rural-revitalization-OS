@@ -6,6 +6,7 @@ import com.xiangyun.common.dto.AdminOperationOverview;
 import com.xiangyun.common.dto.PageResponse;
 import com.xiangyun.common.dto.OperationStats;
 import com.xiangyun.common.dto.ResourceSummary;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -89,18 +90,31 @@ public class OperationController {
     }
 
     @PostMapping("/resources")
-    public ApiResponse<Map<String, Object>> createResource(@RequestBody Map<String, Object> body) {
-        return ApiResponse.success(operationService.createResource(body));
+    public ApiResponse<Map<String, Object>> createResource(@RequestBody Map<String, Object> body,
+                                                           HttpServletRequest request) {
+        Map<String, Object> result = operationService.createResource(body);
+        String id = String.valueOf(result.get("id"));
+        AdminAuditContext.targetId(request, id);
+        AdminAuditContext.after(request, safeResourceSnapshot(id, result));
+        return ApiResponse.success(result);
     }
 
     @PutMapping("/resources/{id}")
-    public ApiResponse<Map<String, Object>> updateResource(@PathVariable String id, @RequestBody Map<String, Object> body) {
-        return ApiResponse.success(operationService.updateResource(id, body));
+    public ApiResponse<Map<String, Object>> updateResource(@PathVariable String id,
+                                                           @RequestBody Map<String, Object> body,
+                                                           HttpServletRequest request) {
+        AdminAuditContext.before(request, operationService.detail(id));
+        Map<String, Object> result = operationService.updateResource(id, body);
+        AdminAuditContext.after(request, safeResourceSnapshot(id, result));
+        return ApiResponse.success(result);
     }
 
     @DeleteMapping("/resources/{id}")
-    public ApiResponse<Map<String, Object>> deleteResource(@PathVariable String id) {
-        return ApiResponse.success(operationService.deleteResource(id));
+    public ApiResponse<Map<String, Object>> deleteResource(@PathVariable String id, HttpServletRequest request) {
+        AdminAuditContext.before(request, operationService.detail(id));
+        Map<String, Object> result = operationService.deleteResource(id);
+        AdminAuditContext.after(request, result);
+        return ApiResponse.success(result);
     }
 
     @GetMapping("/resource-tags")
@@ -134,18 +148,39 @@ public class OperationController {
     }
 
     @PostMapping("/resources/{id}/publish")
-    public ApiResponse<Map<String, Object>> publish(@PathVariable String id) {
-        return ApiResponse.success(operationService.publishResource(id));
+    public ApiResponse<Map<String, Object>> publish(@PathVariable String id, HttpServletRequest request) {
+        AdminAuditContext.before(request, operationService.detail(id));
+        Map<String, Object> result = operationService.publishResource(id);
+        AdminAuditContext.after(request, safeResourceSnapshot(id, result));
+        return ApiResponse.success(result);
     }
 
     @PostMapping("/resources/{id}/offline")
-    public ApiResponse<Map<String, Object>> offline(@PathVariable String id) {
-        return ApiResponse.success(operationService.offlineResource(id));
+    public ApiResponse<Map<String, Object>> offline(@PathVariable String id, HttpServletRequest request) {
+        AdminAuditContext.before(request, operationService.detail(id));
+        Map<String, Object> result = operationService.offlineResource(id);
+        AdminAuditContext.after(request, safeResourceSnapshot(id, result));
+        return ApiResponse.success(result);
     }
 
     @PostMapping("/resources/{id}/investment-status")
-    public ApiResponse<Map<String, Object>> updateInvestmentStatus(@PathVariable String id, @RequestBody Map<String, Object> body) {
-        return ApiResponse.success(operationService.updateInvestmentStatus(id, String.valueOf(body.getOrDefault("investmentStatus", "洽谈中"))));
+    public ApiResponse<Map<String, Object>> updateInvestmentStatus(@PathVariable String id,
+                                                                   @RequestBody Map<String, Object> body,
+                                                                   HttpServletRequest request) {
+        AdminAuditContext.before(request, operationService.detail(id));
+        Map<String, Object> result = operationService.updateInvestmentStatus(
+                id, String.valueOf(body.getOrDefault("investmentStatus", "洽谈中")));
+        AdminAuditContext.after(request, safeResourceSnapshot(id, result));
+        return ApiResponse.success(result);
+    }
+
+    private Object safeResourceSnapshot(String id, Object fallback) {
+        try {
+            return operationService.detail(id);
+        } catch (RuntimeException ignored) {
+            // 审计增强信息不可反向破坏已经成功的业务写操作。
+            return fallback;
+        }
     }
 
     @GetMapping("/operation/reports/weekly")

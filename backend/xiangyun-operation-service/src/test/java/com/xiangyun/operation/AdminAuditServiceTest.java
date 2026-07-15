@@ -24,7 +24,7 @@ class AdminAuditServiceTest {
         AdminAuditEvent event = new AdminAuditEvent(
                 "trace-1", "3", "admin", "ADMIN", "1", "RESOURCE", "PUBLISH_RESOURCE",
                 "RESOURCE", "101", "POST", "/api/resources/101/publish", "127.0.0.1", "test",
-                "SUCCESS", 200, "耗时 2ms");
+                "SUCCESS", 200, "耗时 2ms", "{\"status\":\"draft\"}", "{\"status\":\"active\"}");
         when(jdbcTemplate.queryForObject(anyString(), eq(Integer.class), any(Object[].class))).thenReturn(1);
         when(jdbcTemplate.queryForList(anyString(), any(Object[].class)))
                 .thenReturn(List.of(Map.of("id", 1L, "action", "PUBLISH_RESOURCE")));

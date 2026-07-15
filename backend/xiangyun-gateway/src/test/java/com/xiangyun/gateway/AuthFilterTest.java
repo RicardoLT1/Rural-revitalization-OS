@@ -22,7 +22,10 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class AuthFilterTest {
@@ -31,6 +34,7 @@ class AuthFilterTest {
     private ReactiveValueOperations<String, String> valueOperations;
     private ReactiveSetOperations<String, String> setOperations;
     private AuthFilter filter;
+    private GatewayAuditPublisher auditPublisher;
     private InternalAuthProperties internalAuthProperties;
 
     @BeforeEach
@@ -45,7 +49,9 @@ class AuthFilterTest {
         internalAuthProperties = new InternalAuthProperties();
         internalAuthProperties.setServiceName("xiangyun-gateway");
         internalAuthProperties.setSecret("internal-secret");
-        filter = new AuthFilter(redisTemplate, new InternalSignatureSigner(internalAuthProperties), "gateway-secret");
+        auditPublisher = mock(GatewayAuditPublisher.class);
+        when(auditPublisher.accessDenied(any(), nullable(TokenPayload.class), anyString(), anyString())).thenReturn(Mono.empty());
+        filter = new AuthFilter(redisTemplate, new InternalSignatureSigner(internalAuthProperties), auditPublisher, "gateway-secret");
     }
 
     @Test
@@ -290,6 +296,7 @@ class AuthFilterTest {
         filter.filter(exchange, next -> Mono.empty()).block();
 
         assertThat(exchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+        verify(auditPublisher).accessDenied(any(), any(TokenPayload.class), anyString(), anyString());
     }
 
     @Test

@@ -170,5 +170,7 @@ export interface AdminAuditLog {
   result: 'SUCCESS' | 'FAILURE'
   httpStatus: number
   detail?: string
+  beforeData?: string
+  afterData?: string
   createdAt: string
 }

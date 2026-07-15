@@ -1,6 +1,6 @@
-package com.xiangyun.operation;
+package com.xiangyun.common.dto;
 
-public record AdminAuditEvent(
+public record AdminAuditRequest(
         String traceId,
         String actorId,
         String actorName,
@@ -15,7 +15,7 @@ public record AdminAuditEvent(
         String clientIp,
         String userAgent,
         String result,
-        int httpStatus,
+        Integer httpStatus,
         String detail,
         String beforeData,
         String afterData

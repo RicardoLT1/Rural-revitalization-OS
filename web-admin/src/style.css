@@ -569,7 +569,7 @@ button:disabled { cursor:not-allowed; }
 .audit-result.failure { color:#b34646!important; }
 .audit-table-panel td > code { display:inline-flex; padding:3px 6px; color:#355247; background:#edf3f0; font:700 11px Consolas,"SFMono-Regular",monospace; }
 .trace-code { max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:#416157!important; background:transparent!important; }
-.audit-drawer { width:min(100%,680px); }
+.audit-drawer { width:min(100%,760px); }
 .audit-drawer-body { display:grid; align-content:start; gap:14px; padding:20px; background:#f5f7f5; }
 .audit-trace-card { min-height:78px; display:grid; grid-template-columns:auto minmax(0,1fr) auto; align-items:center; gap:13px; padding:15px; color:#fff; background:linear-gradient(115deg,#103f31,#17684d); box-shadow:0 12px 28px rgba(16,63,49,.16); }
 .audit-trace-card > div { min-width:0; display:grid; gap:5px; }
@@ -580,6 +580,17 @@ button:disabled { cursor:not-allowed; }
 .audit-drawer dl .wide { grid-column:1 / -1; }
 .audit-drawer dd code { overflow-wrap:anywhere; font:12px Consolas,"SFMono-Regular",monospace; }
 .audit-drawer .user-agent { overflow-wrap:anywhere; color:#5f6d66; font-size:12px; line-height:1.55; }
+.audit-diff-section { overflow:hidden; }
+.audit-diff-ledger { border:1px solid #dfe6e1; background:#fff; }
+.audit-diff-ledger > header,.audit-diff-ledger > div { display:grid; grid-template-columns:126px minmax(0,1fr) minmax(0,1fr); }
+.audit-diff-ledger > header { min-height:36px; align-items:center; color:#748179; background:#f3f6f4; font-size:11px; font-weight:700; }
+.audit-diff-ledger > header span,.audit-diff-ledger > div > * { min-width:0; padding:9px 12px; border-right:1px solid #e3e9e5; }
+.audit-diff-ledger > header span:last-child,.audit-diff-ledger > div > *:last-child { border-right:0; }
+.audit-diff-ledger > div { min-height:48px; border-top:1px solid #e5ebe7; }
+.audit-diff-ledger > div strong { display:flex; align-items:center; color:#263a31; background:#fbfcfb; font-size:12px; }
+.audit-diff-ledger > div p { margin:0; overflow-wrap:anywhere; color:#65736c; font:12px/1.55 Consolas,"SFMono-Regular",monospace; }
+.audit-diff-ledger > div p:last-child { position:relative; color:#0c6e4b; background:#f0f8f4; }
+.audit-diff-ledger > div p:last-child::before { content:""; position:absolute; inset:0 auto 0 0; width:2px; background:#2f8d69; }
 
 @media (max-width:720px) {
   .table-pager { align-items:flex-start; flex-direction:column; }
@@ -589,4 +600,6 @@ button:disabled { cursor:not-allowed; }
   .audit-toolbar .filter-group label { min-width:0; }
   .audit-trace-card { grid-template-columns:auto minmax(0,1fr); }
   .audit-trace-card button { grid-column:1 / -1; justify-content:center; }
+  .audit-diff-ledger { overflow:auto; }
+  .audit-diff-ledger > header,.audit-diff-ledger > div { min-width:620px; }
 }

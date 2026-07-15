@@ -1,5 +1,6 @@
 package com.xiangyun.operation;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.xiangyun.common.SecurityHeaders;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -18,9 +19,11 @@ public class AdminAuditFilter extends OncePerRequestFilter {
 
     private static final Logger log = LoggerFactory.getLogger(AdminAuditFilter.class);
     private final AdminAuditService auditService;
+    private final ObjectMapper objectMapper;
 
-    public AdminAuditFilter(AdminAuditService auditService) {
+    public AdminAuditFilter(AdminAuditService auditService, ObjectMapper objectMapper) {
         this.auditService = auditService;
+        this.objectMapper = objectMapper;
     }
 
     @Override
@@ -52,14 +55,16 @@ public class AdminAuditFilter extends OncePerRequestFilter {
                     module(path),
                     action(request.getMethod(), path),
                     targetType(path),
-                    targetId(path),
+                    targetId(request, path),
                     request.getMethod(),
                     path,
                     clientIp(request),
                     truncate(request.getHeader("User-Agent"), 512),
                     status >= 400 ? "FAILURE" : "SUCCESS",
                     status,
-                    "耗时 " + (System.currentTimeMillis() - startedAt) + "ms");
+                    "耗时 " + (System.currentTimeMillis() - startedAt) + "ms",
+                    serialize(request.getAttribute(AdminAuditContext.BEFORE_DATA)),
+                    serialize(request.getAttribute(AdminAuditContext.AFTER_DATA)));
             try {
                 auditService.record(event);
             } catch (Exception ex) {
@@ -110,7 +115,9 @@ public class AdminAuditFilter extends OncePerRequestFilter {
         return "WORKFLOW";
     }
 
-    private String targetId(String path) {
+    private String targetId(HttpServletRequest request, String path) {
+        Object explicit = request.getAttribute(AdminAuditContext.TARGET_ID);
+        if (explicit != null) return truncate(String.valueOf(explicit), 128);
         String[] parts = path.split("/");
         if (path.startsWith("/api/resources/") && parts.length > 3) return truncate(parts[3], 128);
         if (path.startsWith("/api/workflows/processes/") && parts.length > 4) return truncate(parts[4], 128);
@@ -118,6 +125,16 @@ public class AdminAuditFilter extends OncePerRequestFilter {
         if (path.startsWith("/api/workflows/") && parts.length > 3) return truncate(parts[3], 128);
         if (path.startsWith("/api/todos/") && parts.length > 3) return truncate(parts[3], 128);
         return null;
+    }
+
+    private String serialize(Object value) {
+        if (value == null) return null;
+        if (value instanceof String text) return truncate(text, 64_000);
+        try {
+            return truncate(objectMapper.writeValueAsString(value), 64_000);
+        } catch (Exception ex) {
+            return truncate(String.valueOf(value), 64_000);
+        }
     }
 
     private String clientIp(HttpServletRequest request) {

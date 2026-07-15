@@ -1,10 +1,12 @@
 package com.xiangyun.auth;
 
 import com.xiangyun.common.ApiResponse;
+import com.xiangyun.common.BusinessException;
 import com.xiangyun.common.dto.LoginRequest;
 import com.xiangyun.common.dto.LoginResponse;
 import com.xiangyun.common.dto.PageResponse;
 import jakarta.validation.Valid;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -18,15 +20,19 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 @RestController
 @RequestMapping("/api")
 public class AuthController {
 
     private final AuthService authService;
+    private final AuthAuditPublisher auditPublisher;
 
-    public AuthController(AuthService authService) {
+    public AuthController(AuthService authService, AuthAuditPublisher auditPublisher) {
         this.authService = authService;
+        this.auditPublisher = auditPublisher;
     }
 
     @PostMapping("/auth/login")
@@ -64,35 +70,48 @@ public class AuthController {
     }
 
     @PostMapping("/users")
-    public ApiResponse<Map<String, Object>> createUser(@RequestBody Map<String, Object> body) {
-        return ApiResponse.success(authService.createUser(body));
+    public ApiResponse<Map<String, Object>> createUser(@RequestBody Map<String, Object> body,
+                                                       HttpServletRequest request) {
+        return ApiResponse.success(audited(request, "CREATE_USER", "USER", null, () -> null,
+                () -> authService.createUser(body),
+                result -> authService.user(String.valueOf(result.get("id")))));
     }
 
     @PutMapping("/users/{id}")
-    public ApiResponse<Map<String, Object>> updateUser(@PathVariable String id, @RequestBody Map<String, Object> body) {
-        return ApiResponse.success(authService.updateUser(id, body));
+    public ApiResponse<Map<String, Object>> updateUser(@PathVariable String id,
+                                                       @RequestBody Map<String, Object> body,
+                                                       HttpServletRequest request) {
+        return ApiResponse.success(audited(request, "UPDATE_USER", "USER", id, () -> authService.user(id),
+                () -> authService.updateUser(id, body), result -> result));
     }
 
     @DeleteMapping("/users/{id}")
-    public ApiResponse<Map<String, Object>> deleteUser(@PathVariable String id) {
-        Map<String, Object> result = authService.enableUser(id, false);
+    public ApiResponse<Map<String, Object>> deleteUser(@PathVariable String id, HttpServletRequest request) {
+        Map<String, Object> result = audited(request, "DELETE_USER", "USER", id, () -> authService.user(id),
+                () -> authService.enableUser(id, false), value -> value);
         return ApiResponse.success(Map.of("id", id, "deleted", true, "enabled", result.get("enabled")));
     }
 
     @PostMapping("/users/{id}/enable")
-    public ApiResponse<Map<String, Object>> enableUser(@PathVariable String id) {
-        return ApiResponse.success(authService.enableUser(id, true));
+    public ApiResponse<Map<String, Object>> enableUser(@PathVariable String id, HttpServletRequest request) {
+        return ApiResponse.success(audited(request, "ENABLE_USER", "USER", id, () -> authService.user(id),
+                () -> authService.enableUser(id, true), result -> result));
     }
 
     @PostMapping("/users/{id}/disable")
-    public ApiResponse<Map<String, Object>> disableUser(@PathVariable String id) {
-        return ApiResponse.success(authService.enableUser(id, false));
+    public ApiResponse<Map<String, Object>> disableUser(@PathVariable String id, HttpServletRequest request) {
+        return ApiResponse.success(audited(request, "DISABLE_USER", "USER", id, () -> authService.user(id),
+                () -> authService.enableUser(id, false), result -> result));
     }
 
     @PostMapping("/users/{id}/password")
-    public ApiResponse<Map<String, Object>> changePassword(@PathVariable String id, @RequestBody Map<String, Object> body) {
+    public ApiResponse<Map<String, Object>> changePassword(@PathVariable String id,
+                                                           @RequestBody Map<String, Object> body,
+                                                           HttpServletRequest request) {
         String password = String.valueOf(body.getOrDefault("password", "123456"));
-        return ApiResponse.success(authService.resetPassword(id, password));
+        return ApiResponse.success(audited(request, "RESET_USER_PASSWORD", "USER", id,
+                () -> Map.of("passwordChanged", false),
+                () -> authService.resetPassword(id, password), result -> result));
     }
 
     @GetMapping("/roles")
@@ -101,22 +120,56 @@ public class AuthController {
     }
 
     @PostMapping("/roles")
-    public ApiResponse<Map<String, Object>> createRole(@RequestBody Map<String, Object> body) {
-        return ApiResponse.success(Map.of("created", true, "payload", body));
+    public ApiResponse<Map<String, Object>> createRole(@RequestBody Map<String, Object> body,
+                                                       HttpServletRequest request) {
+        return ApiResponse.success(audited(request, "CREATE_ROLE", "ROLE", String.valueOf(body.getOrDefault("code", "new")),
+                () -> null, () -> Map.of("created", true, "payload", body), result -> result));
     }
 
     @PutMapping("/roles/{code}")
-    public ApiResponse<Map<String, Object>> updateRole(@PathVariable String code, @RequestBody Map<String, Object> body) {
-        return ApiResponse.success(Map.of("code", code, "updated", true, "payload", body));
+    public ApiResponse<Map<String, Object>> updateRole(@PathVariable String code,
+                                                       @RequestBody Map<String, Object> body,
+                                                       HttpServletRequest request) {
+        return ApiResponse.success(audited(request, "UPDATE_ROLE", "ROLE", code,
+                () -> Map.of("code", code),
+                () -> Map.of("code", code, "updated", true, "payload", body), result -> result));
     }
 
     @PostMapping("/users/{id}/roles/{role}")
-    public ApiResponse<Map<String, Object>> assignRole(@PathVariable String id, @PathVariable String role) {
-        return ApiResponse.success(authService.assignRole(id, role));
+    public ApiResponse<Map<String, Object>> assignRole(@PathVariable String id,
+                                                       @PathVariable String role,
+                                                       HttpServletRequest request) {
+        return ApiResponse.success(audited(request, "ASSIGN_USER_ROLE", "USER", id, () -> authService.user(id),
+                () -> authService.assignRole(id, role), result -> result));
     }
 
     @GetMapping("/internal/users/{id}/summary")
     public ApiResponse<com.xiangyun.common.dto.UserSummary> userSummary(@PathVariable String id) {
         return ApiResponse.success(authService.summary(id));
+    }
+
+    private Map<String, Object> audited(HttpServletRequest request,
+                                        String action,
+                                        String targetType,
+                                        String targetId,
+                                        Supplier<Object> beforeSupplier,
+                                        Supplier<Map<String, Object>> operation,
+                                        Function<Map<String, Object>, Object> afterResolver) {
+        Object before = null;
+        try {
+            before = beforeSupplier.get();
+            Map<String, Object> result = operation.get();
+            String actualTargetId = targetId == null ? String.valueOf(result.getOrDefault("id", targetType)) : targetId;
+            auditPublisher.record(request, action, targetType, actualTargetId, "SUCCESS", 200,
+                    "管理员操作完成", before, afterResolver.apply(result));
+            return result;
+        } catch (RuntimeException ex) {
+            int status = ex instanceof BusinessException business && business.getCode() != null
+                    ? business.getCode() / 100
+                    : 500;
+            auditPublisher.record(request, action, targetType, targetId, "FAILURE", status,
+                    ex.getMessage(), before, null);
+            throw ex;
+        }
     }
 }
