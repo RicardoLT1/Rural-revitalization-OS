@@ -2,6 +2,7 @@ package com.xiangyun.auth;
 
 import com.xiangyun.common.BusinessException;
 import com.xiangyun.common.dto.LoginResponse;
+import com.xiangyun.common.dto.PageResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -10,6 +11,7 @@ import org.springframework.data.redis.core.ValueOperations;
 
 import java.time.Duration;
 import java.util.Set;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -44,6 +46,16 @@ class AuthServiceTest {
         assertThat(response.user().role()).isEqualTo("ADMIN");
         verify(valueOperations, times(2)).set(anyString(), anyString(), any(Duration.class));
         verify(setOperations).add(anyString(), anyString());
+    }
+
+    @Test
+    void userPageFiltersRoleAndReturnsMetadata() {
+        PageResponse<Map<String, Object>> page = authService.userPage("demo", "STAFF", true, 1, 2);
+
+        assertThat(page.page()).isEqualTo(1);
+        assertThat(page.pageSize()).isEqualTo(2);
+        assertThat(page.total()).isEqualTo(1);
+        assertThat(page.items()).extracting(item -> item.get("role")).containsExactly("STAFF");
     }
 
     @Test

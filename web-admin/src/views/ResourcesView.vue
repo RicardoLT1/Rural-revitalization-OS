@@ -2,9 +2,10 @@
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Activity, ArrowRight, ClipboardList, Eye, FolderKanban, History, LandPlot, MapPinned, MapPin, Pencil, Plus, RefreshCw, Search, Users, X } from '@lucide/vue'
-import { createResource, fetchResource, fetchResourceActivity, fetchResourceApplicationCount, fetchResources, offlineResource, publishResource, updateResource } from '../api/business'
+import { createResource, fetchResource, fetchResourceActivity, fetchResourceApplicationCount, fetchResourcePage, offlineResource, publishResource, updateResource } from '../api/business'
 import AsyncPanel from '../components/AsyncPanel.vue'
 import ImagePreview from '../components/ImagePreview.vue'
+import PagePager from '../components/PagePager.vue'
 import PageState from '../components/PageState.vue'
 import StatusBadge from '../components/StatusBadge.vue'
 import { useSessionStore } from '../stores/session'
@@ -14,6 +15,10 @@ const session = useSessionStore()
 const route = useRoute()
 const router = useRouter()
 const rows = ref<ResourceItem[]>([])
+const page = ref(1)
+const pageSize = 10
+const total = ref(0)
+const totalPages = ref(0)
 const detail = ref<ResourceItem | null>(null)
 const detailId = ref('')
 const activity = ref<ResourceActivity | null>(null)
@@ -37,11 +42,16 @@ async function load() {
   loading.value = true
   error.value = ''
   try {
-    rows.value = await fetchResources({
+    const result = await fetchResourcePage({
       keyword: keyword.value.trim() || undefined,
       category: category.value === 'ALL' ? undefined : category.value,
       investmentStatus: investmentStatus.value === 'ALL' ? undefined : investmentStatus.value,
+      page: page.value,
+      pageSize,
     })
+    rows.value = result.items
+    total.value = result.total
+    totalPages.value = result.totalPages
   } catch (reason) {
     error.value = reason instanceof Error ? reason.message : '无法读取资源数据'
   } finally {
@@ -64,6 +74,16 @@ async function openDetail(id: string, syncRoute = true) {
   if (countResult.status === 'fulfilled') applicationCount.value = countResult.value.applicationCount
   if (activityResult.status === 'fulfilled') activity.value = activityResult.value
   detailLoading.value = false
+}
+
+function applyFilters() {
+  page.value = 1
+  load()
+}
+
+function changePage(nextPage: number) {
+  page.value = nextPage
+  load()
 }
 
 async function closeDetail() {
@@ -120,6 +140,16 @@ watch(() => route.params.id, async (id) => {
   if (typeof id === 'string' && id !== detailId.value) await openDetail(id, false)
   else if (!id) { detail.value = null; detailId.value = '' }
 })
+watch(() => [route.query.keyword, route.query.category, route.query.investmentStatus], ([nextKeyword, nextCategory, nextStatus]) => {
+  const normalizedKeyword = typeof nextKeyword === 'string' ? nextKeyword : ''
+  const normalizedCategory = typeof nextCategory === 'string' ? nextCategory : 'ALL'
+  const normalizedStatus = typeof nextStatus === 'string' ? nextStatus : 'ALL'
+  if (keyword.value === normalizedKeyword && category.value === normalizedCategory && investmentStatus.value === normalizedStatus) return
+  keyword.value = normalizedKeyword
+  category.value = normalizedCategory
+  investmentStatus.value = normalizedStatus
+  applyFilters()
+})
 onMounted(async () => {
   await load()
   if (typeof route.params.id === 'string') await openDetail(route.params.id, false)
@@ -128,11 +158,11 @@ onMounted(async () => {
 
 <template>
   <div class="business-page">
-    <section class="page-intro"><div><p>统一资源底账</p><h2>资源档案</h2></div><div class="resource-heading-actions"><div class="count-summary"><strong>{{ rows.length }}</strong><span>项当前结果</span></div><button v-if="canMaintain" class="primary-button compact-primary" type="button" @click="openEditor()"><Plus :size="17" />新增资源</button></div></section>
+    <section class="page-intro"><div><p>统一资源底账</p><h2>资源档案</h2></div><div class="resource-heading-actions"><div class="count-summary"><strong>{{ total }}</strong><span>项匹配资源</span></div><button v-if="canMaintain" class="primary-button compact-primary" type="button" @click="openEditor()"><Plus :size="17" />新增资源</button></div></section>
     <div v-if="notice" class="toast-notice"><LandPlot :size="16" />{{ notice }}</div>
-    <section class="business-toolbar resource-toolbar"><div class="filter-group"><label><Search :size="16" /><input v-model="keyword" placeholder="搜索资源名称" @keyup.enter="load" /></label><select v-model="category"><option value="ALL">全部类型</option><option value="闲置农房">闲置农房</option><option value="土地">土地</option><option value="文旅空间">文旅空间</option></select><select v-model="investmentStatus"><option value="ALL">全部招商状态</option><option value="可招商">可招商</option><option value="洽谈中">洽谈中</option><option value="已签约">已签约</option><option value="已下架">已下架</option></select><button class="secondary-button query-button" type="button" @click="load"><RefreshCw :size="15" />查询</button></div></section>
+    <section class="business-toolbar resource-toolbar"><div class="filter-group"><label><Search :size="16" /><input v-model="keyword" placeholder="搜索资源名称" @keyup.enter="applyFilters" /></label><select v-model="category" @change="applyFilters"><option value="ALL">全部类型</option><option value="闲置农房">闲置农房</option><option value="土地">土地</option><option value="文旅空间">文旅空间</option></select><select v-model="investmentStatus" @change="applyFilters"><option value="ALL">全部招商状态</option><option value="可招商">可招商</option><option value="洽谈中">洽谈中</option><option value="已签约">已签约</option><option value="已下架">已下架</option></select><button class="secondary-button query-button" type="button" @click="applyFilters"><RefreshCw :size="15" />查询</button></div></section>
     <PageState :loading="loading" :error="error" :empty="!rows.length" empty-text="没有符合条件的资源" @retry="load">
-      <section class="table-panel"><div class="table-scroll"><table><thead><tr><th>资源</th><th>类型</th><th>面积</th><th>年收益预估</th><th>招商状态</th><th>操作</th></tr></thead><tbody><tr v-for="item in rows" :key="item.id" class="clickable-row" tabindex="0" @click="openDetail(item.id)" @keydown.enter="openDetail(item.id)"><td><strong>{{ item.name }}</strong><small><MapPin :size="12" />{{ item.address || item.owner || '地址待完善' }}</small></td><td>{{ item.category || '--' }}</td><td>{{ item.area == null ? '--' : `${item.area} ㎡` }}</td><td>{{ money(item.annualEstimate) }}</td><td><StatusBadge :status="item.investmentStatus" /></td><td><div class="row-buttons"><button class="table-action" type="button" @click.stop="openDetail(item.id)"><Eye :size="15" />详情</button><button v-if="canMaintain" class="table-action" type="button" @click.stop="openEditor(item)"><Pencil :size="14" />编辑</button><template v-if="canControlLifecycle"><button class="table-action approve" type="button" @click.stop="changeState(item, 'publish')">发布</button><button class="table-action reject" type="button" @click.stop="changeState(item, 'offline')">下架</button></template></div></td></tr></tbody></table></div></section>
+      <section class="table-panel"><div class="table-scroll"><table><thead><tr><th>资源</th><th>类型</th><th>面积</th><th>年收益预估</th><th>招商状态</th><th>操作</th></tr></thead><tbody><tr v-for="item in rows" :key="item.id" class="clickable-row" tabindex="0" @click="openDetail(item.id)" @keydown.enter="openDetail(item.id)"><td><strong>{{ item.name }}</strong><small><MapPin :size="12" />{{ item.address || item.owner || '地址待完善' }}</small></td><td>{{ item.category || '--' }}</td><td>{{ item.area == null ? '--' : `${item.area} ㎡` }}</td><td>{{ money(item.annualEstimate) }}</td><td><StatusBadge :status="item.investmentStatus" /></td><td><div class="row-buttons"><button class="table-action" type="button" @click.stop="openDetail(item.id)"><Eye :size="15" />详情</button><button v-if="canMaintain" class="table-action" type="button" @click.stop="openEditor(item)"><Pencil :size="14" />编辑</button><template v-if="canControlLifecycle"><button class="table-action approve" type="button" @click.stop="changeState(item, 'publish')">发布</button><button class="table-action reject" type="button" @click.stop="changeState(item, 'offline')">下架</button></template></div></td></tr></tbody></table></div><PagePager :page="page" :page-size="pageSize" :total="total" :total-pages="totalPages" @change="changePage" /></section>
     </PageState>
     <div v-if="detailId" class="drawer-layer" @click.self="closeDetail"><aside class="detail-drawer resource-detail-drawer"><header><div><span>资源编号 {{ detail?.id || detailId }}</span><h3>{{ detail?.name || '资源详情' }}</h3></div><div class="drawer-actions"><StatusBadge v-if="detail" :status="detail.investmentStatus" /><button v-if="canMaintain && detail" class="secondary-button" type="button" @click="openEditor(detail)"><Pencil :size="15" />编辑</button><button class="icon-button" type="button" title="关闭" @click="closeDetail"><X :size="18" /></button></div></header><div class="drawer-body">
       <AsyncPanel :loading="detailLoading" :error="detailError" :empty="!detail" empty-text="资源档案不存在" :skeleton-rows="7" @retry="openDetail(detailId, false)">

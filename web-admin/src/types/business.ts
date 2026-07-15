@@ -151,3 +151,24 @@ export interface UserRow {
   villageId: string
   enabled: boolean
 }
+
+export interface AdminAuditLog {
+  id: string | number
+  traceId?: string
+  actorId?: string
+  actorName?: string
+  actorRole?: string
+  villageId?: string
+  module: string
+  action: string
+  targetType?: string
+  targetId?: string
+  requestMethod: string
+  requestPath: string
+  clientIp?: string
+  userAgent?: string
+  result: 'SUCCESS' | 'FAILURE'
+  httpStatus: number
+  detail?: string
+  createdAt: string
+}

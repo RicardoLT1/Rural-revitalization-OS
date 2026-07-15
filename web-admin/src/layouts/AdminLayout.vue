@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { BarChart3, Bell, Check, ChevronDown, ChevronLeft, ChevronRight, ClipboardCheck, FileText, FolderKanban, LandPlot, LogOut, MapPinned, Menu, Search, Settings, UserRound, Users, X } from '@lucide/vue'
+import { BarChart3, Bell, Check, ChevronDown, ChevronLeft, ChevronRight, ClipboardCheck, FileClock, FileText, FolderKanban, LandPlot, LogOut, MapPinned, Menu, Search, Settings, UserRound, Users, X } from '@lucide/vue'
 import { fetchDashboard, fetchResources, fetchTodos, fetchWeeklyReports } from '../api/business'
 import { fetchUsers } from '../api/admin'
 import ComingSoonButton from '../components/ComingSoonButton.vue'
@@ -41,7 +41,10 @@ const items = computed(() => [
   { to: '/resources', label: '资源目录', icon: LandPlot },
   { to: '/resource-map', label: '资源地图', icon: MapPinned },
   { to: '/weekly-report', label: '周报管理', icon: FileText },
-  ...(session.user?.role === 'ADMIN' ? [{ to: '/users', label: '用户与权限', icon: Users }] : []),
+  ...(session.user?.role === 'ADMIN' ? [
+    { to: '/users', label: '用户与权限', icon: Users },
+    { to: '/audit-logs', label: '审计日志', icon: FileClock },
+  ] : []),
 ])
 const pageTitle = computed(() => String(route.meta.title || items.value.find((item) => item.to === route.path)?.label || '乡耘工作台'))
 const unreadCount = computed(() => notificationRows.value.filter((item) => !readNotifications.value.has(item.id)).length)

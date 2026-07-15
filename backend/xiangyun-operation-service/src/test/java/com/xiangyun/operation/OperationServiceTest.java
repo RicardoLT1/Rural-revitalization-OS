@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.xiangyun.common.ApiResponse;
 import com.xiangyun.common.BusinessException;
 import com.xiangyun.common.dto.OperationStats;
+import com.xiangyun.common.dto.PageResponse;
 import com.xiangyun.common.dto.UserSummary;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -111,6 +112,20 @@ class OperationServiceTest {
         assertThat(stats.resourceCount()).isEqualTo(3);
         assertThat(stats.riskWorkflowCount()).isEqualTo(1);
         verify(jdbcTemplate).queryForObject(contains("due_date < now()"), eq(Integer.class));
+    }
+
+    @Test
+    void resourcePageReturnsServerPaginationMetadata() {
+        when(jdbcTemplate.queryForObject(anyString(), eq(Integer.class), any(Object[].class))).thenReturn(17);
+        when(jdbcTemplate.query(anyString(), any(org.springframework.jdbc.core.RowMapper.class), any(Object[].class)))
+                .thenReturn(List.of());
+
+        PageResponse<ResourceView> page = service.resourcePage("土地", "可招商", "青耘", 2, 5);
+
+        assertThat(page.page()).isEqualTo(2);
+        assertThat(page.pageSize()).isEqualTo(5);
+        assertThat(page.total()).isEqualTo(17);
+        assertThat(page.totalPages()).isEqualTo(4);
     }
 
     @Test

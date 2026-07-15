@@ -4,6 +4,7 @@ import com.xiangyun.common.BusinessException;
 import com.xiangyun.common.JwtUtils;
 import com.xiangyun.common.TokenPayload;
 import com.xiangyun.common.dto.LoginResponse;
+import com.xiangyun.common.dto.PageResponse;
 import com.xiangyun.common.dto.UserSummary;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -16,6 +17,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Comparator;
 
 @Service
 public class AuthService {
@@ -98,6 +100,28 @@ public class AuthService {
 
     public List<Map<String, Object>> listUserRows() {
         return users.values().stream().map(this::userRow).toList();
+    }
+
+    public PageResponse<Map<String, Object>> userPage(String keyword,
+                                                      String role,
+                                                      Boolean enabled,
+                                                      Integer page,
+                                                      Integer pageSize) {
+        String term = keyword == null ? "" : keyword.trim().toLowerCase();
+        List<Map<String, Object>> filtered = users.values().stream()
+                .filter(user -> term.isEmpty()
+                        || user.username().toLowerCase().contains(term)
+                        || user.displayName().toLowerCase().contains(term))
+                .filter(user -> !StringUtils.hasText(role) || "ALL".equalsIgnoreCase(role) || user.role().equals(role))
+                .filter(user -> enabled == null || user.enabled() == enabled)
+                .sorted(Comparator.comparingInt(user -> Integer.parseInt(user.id())))
+                .map(this::userRow)
+                .toList();
+        int actualPage = PageResponse.normalizePage(page);
+        int actualPageSize = PageResponse.normalizePageSize(pageSize);
+        int from = Math.min((actualPage - 1) * actualPageSize, filtered.size());
+        int to = Math.min(from + actualPageSize, filtered.size());
+        return PageResponse.of(filtered.subList(from, to), actualPage, actualPageSize, filtered.size());
     }
 
     public synchronized Map<String, Object> createUser(Map<String, Object> body) {

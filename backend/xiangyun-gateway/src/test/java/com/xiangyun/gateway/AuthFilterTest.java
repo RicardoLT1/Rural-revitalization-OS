@@ -293,6 +293,38 @@ class AuthFilterTest {
     }
 
     @Test
+    void onlyAdminCanReadAuditLogs() {
+        MockServerWebExchange staffExchange = authorizedExchange("GET", "/api/audit-logs", "STAFF");
+        MockServerWebExchange adminExchange = authorizedExchange("GET", "/api/audit-logs", "ADMIN");
+        AtomicBoolean adminCalled = new AtomicBoolean(false);
+
+        filter.filter(staffExchange, next -> Mono.empty()).block();
+        filter.filter(adminExchange, next -> {
+            adminCalled.set(true);
+            return Mono.empty();
+        }).block();
+
+        assertThat(staffExchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+        assertThat(adminCalled).isTrue();
+    }
+
+    @Test
+    void adminOverviewRequiresStaffRole() {
+        MockServerWebExchange userExchange = authorizedExchange("GET", "/api/dashboard/admin-overview", "USER");
+        MockServerWebExchange staffExchange = authorizedExchange("GET", "/api/dashboard/admin-overview", "STAFF");
+        AtomicBoolean staffCalled = new AtomicBoolean(false);
+
+        filter.filter(userExchange, next -> Mono.empty()).block();
+        filter.filter(staffExchange, next -> {
+            staffCalled.set(true);
+            return Mono.empty();
+        }).block();
+
+        assertThat(userExchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+        assertThat(staffCalled).isTrue();
+    }
+
+    @Test
     void staffCanCreateResource() {
         MockServerWebExchange exchange = authorizedExchange("POST", "/api/resources", "STAFF");
         AtomicBoolean called = new AtomicBoolean(false);

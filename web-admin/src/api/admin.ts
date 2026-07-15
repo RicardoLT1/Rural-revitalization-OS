@@ -1,10 +1,19 @@
 import { http } from './http'
-import type { ApiResponse } from '../types/auth'
-import type { UserRow } from '../types/business'
+import type { ApiResponse, PagedResult } from '../types/auth'
+import type { AdminAuditLog, UserRow } from '../types/business'
 
 export async function fetchUsers() {
-  const response = await http.get<ApiResponse<UserRow[]>>('/users')
-  return response.data.data || []
+  return (await fetchUserPage({ page: 1, pageSize: 100 })).items || []
+}
+
+export async function fetchUserPage(params: { page?: number; pageSize?: number; keyword?: string; role?: string; enabled?: boolean } = {}) {
+  const response = await http.get<ApiResponse<PagedResult<UserRow>>>('/users', { params })
+  return response.data.data
+}
+
+export async function fetchAuditLogs(params: { page?: number; pageSize?: number; keyword?: string; module?: string; result?: string } = {}) {
+  const response = await http.get<ApiResponse<PagedResult<AdminAuditLog>>>('/audit-logs', { params })
+  return response.data.data
 }
 
 export async function createUser(payload: { username: string; displayName: string; password: string; role: string; villageId: string }) {

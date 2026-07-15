@@ -2,8 +2,9 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Check, ClipboardCheck, Clock3, FileText, History, MapPin, MessageSquareText, PackageOpen, Search, UserRound, X } from '@lucide/vue'
-import { decideWorkflow, fetchApprovalHistory, fetchResource, fetchTodos, fetchWorkflow, fetchWorkflowOperationLogs, requestWorkflowMaterials } from '../api/business'
+import { decideWorkflow, fetchApprovalPage, fetchResource, fetchTodoPage, fetchWorkflow, fetchWorkflowOperationLogs, requestWorkflowMaterials } from '../api/business'
 import AsyncPanel from '../components/AsyncPanel.vue'
+import PagePager from '../components/PagePager.vue'
 import PageState from '../components/PageState.vue'
 import StatusBadge from '../components/StatusBadge.vue'
 import type { ResourceItem, WorkflowDetail, WorkflowItem, WorkflowOperationLog } from '../types/business'
@@ -11,8 +12,12 @@ import type { ResourceItem, WorkflowDetail, WorkflowItem, WorkflowOperationLog }
 const route = useRoute()
 const router = useRouter()
 const tab = ref<'todos' | 'history'>('todos')
-const todos = ref<WorkflowItem[]>([])
-const history = ref<WorkflowItem[]>([])
+const rows = ref<WorkflowItem[]>([])
+const page = ref(1)
+const pageSize = 10
+const total = ref(0)
+const totalPages = ref(0)
+const pendingTotal = ref(0)
 const keyword = ref(typeof route.query.keyword === 'string' ? route.query.keyword : '')
 const status = ref(typeof route.query.status === 'string' ? route.query.status : 'ALL')
 const loading = ref(true)
@@ -29,14 +34,6 @@ const remark = ref('')
 const saving = ref(false)
 const notice = ref('')
 
-const rows = computed(() => {
-  const source = tab.value === 'todos' ? todos.value : history.value
-  const term = keyword.value.trim().toLowerCase()
-  return source.filter((item) => {
-    const matchesKeyword = !term || `${item.title || ''} ${item.processId || ''} ${item.applicant || ''}`.toLowerCase().includes(term)
-    return matchesKeyword && (status.value === 'ALL' || item.status === status.value)
-  })
-})
 const activeStatus = computed(() => workflow.value?.status || selected.value?.status || '')
 const canDecide = computed(() => ['PENDING', '待审批'].includes(activeStatus.value))
 
@@ -44,14 +41,42 @@ async function load() {
   loading.value = true
   error.value = ''
   try {
-    const [todoRows, historyRows] = await Promise.all([fetchTodos(), fetchApprovalHistory()])
-    todos.value = todoRows
-    history.value = historyRows
+    const params = {
+      page: page.value,
+      pageSize,
+      keyword: keyword.value.trim() || undefined,
+      status: status.value === 'ALL' ? undefined : status.value,
+    }
+    const [result, pending] = await Promise.all([
+      tab.value === 'todos' ? fetchTodoPage(params) : fetchApprovalPage(params),
+      fetchTodoPage({ page: 1, pageSize: 1, status: 'PENDING' }),
+    ])
+    rows.value = result.items
+    total.value = result.total
+    totalPages.value = result.totalPages
+    pendingTotal.value = pending.total
   } catch (reason) {
     error.value = reason instanceof Error ? reason.message : '无法读取审批数据'
   } finally {
     loading.value = false
   }
+}
+
+function applyFilters() {
+  page.value = 1
+  load()
+}
+
+function switchTab(nextTab: 'todos' | 'history') {
+  if (tab.value === nextTab) return
+  tab.value = nextTab
+  page.value = 1
+  load()
+}
+
+function changePage(nextPage: number) {
+  page.value = nextPage
+  load()
 }
 
 async function openDetail(item: WorkflowItem, syncRoute = true) {
@@ -135,15 +160,24 @@ function retryDetail() {
 
 watch(() => route.query.workflow, async (id) => {
   if (!id || selected.value || loading.value) return
-  const item = [...todos.value, ...history.value].find((row) => String(row.processId || row.id) === String(id))
+  const item = rows.value.find((row) => String(row.processId || row.id) === String(id))
   await openDetail(item || { id: String(id), processId: String(id), title: '审批详情', status: '' }, false)
+})
+
+watch(() => [route.query.keyword, route.query.status], ([nextKeyword, nextStatus]) => {
+  const normalizedKeyword = typeof nextKeyword === 'string' ? nextKeyword : ''
+  const normalizedStatus = typeof nextStatus === 'string' ? nextStatus : 'ALL'
+  if (keyword.value === normalizedKeyword && status.value === normalizedStatus) return
+  keyword.value = normalizedKeyword
+  status.value = normalizedStatus
+  applyFilters()
 })
 
 onMounted(async () => {
   await load()
   const id = route.query.workflow
   if (id && !selected.value) {
-    const item = [...todos.value, ...history.value].find((row) => String(row.processId || row.id) === String(id))
+    const item = rows.value.find((row) => String(row.processId || row.id) === String(id))
     await openDetail(item || { id: String(id), processId: String(id), title: '审批详情', status: '' }, false)
   }
 })
@@ -151,15 +185,16 @@ onMounted(async () => {
 
 <template>
   <div class="business-page">
-    <section class="page-intro"><div><p>流程与责任</p><h2>审批工作台</h2></div><div class="count-summary"><strong>{{ todos.filter(item => item.status === 'PENDING').length }}</strong><span>项待处理</span></div></section>
+    <section class="page-intro"><div><p>流程与责任</p><h2>审批工作台</h2></div><div class="count-summary"><strong>{{ pendingTotal }}</strong><span>项待处理</span></div></section>
     <div v-if="notice" class="toast-notice"><Check :size="16" />{{ notice }}</div>
     <section class="business-toolbar">
-      <div class="view-tabs"><button type="button" :class="{ active: tab === 'todos' }" @click="tab = 'todos'"><ClipboardCheck :size="16" />待办</button><button type="button" :class="{ active: tab === 'history' }" @click="tab = 'history'"><History :size="16" />审批记录</button></div>
-      <div class="filter-group"><label><Search :size="16" /><input v-model="keyword" placeholder="搜索标题或流程编号" /></label><select v-model="status"><option value="ALL">全部状态</option><option value="PENDING">待审批</option><option value="MATERIAL_REQUIRED">待补材料</option><option value="APPROVED">已通过</option><option value="REJECTED">已驳回</option></select></div>
+      <div class="view-tabs"><button type="button" :class="{ active: tab === 'todos' }" @click="switchTab('todos')"><ClipboardCheck :size="16" />待办</button><button type="button" :class="{ active: tab === 'history' }" @click="switchTab('history')"><History :size="16" />审批记录</button></div>
+      <div class="filter-group"><label><Search :size="16" /><input v-model="keyword" placeholder="搜索标题或流程编号" @keyup.enter="applyFilters" /></label><select v-model="status" @change="applyFilters"><option value="ALL">全部状态</option><option value="PENDING">待审批</option><option value="MATERIAL_REQUIRED">待补材料</option><option value="APPROVED">已通过</option><option value="REJECTED">已驳回</option></select></div>
     </section>
     <PageState :loading="loading" :error="error" :empty="!rows.length" empty-text="没有符合条件的审批事项" @retry="load">
       <section class="table-panel">
         <div class="table-scroll"><table><thead><tr><th>事项</th><th>类型 / 申请人</th><th>状态</th><th>时间</th><th>操作</th></tr></thead><tbody><tr v-for="item in rows" :key="`${tab}-${item.id}`" class="clickable-row" tabindex="0" @click="openDetail(item)" @keydown.enter="openDetail(item)"><td><strong>{{ item.title || '合作申请' }}</strong><small>流程 {{ item.processId || item.id }}</small></td><td>{{ item.category || item.applicant || '--' }}</td><td><StatusBadge :status="item.status" /></td><td>{{ formatDate(item.dueDate || item.time) }}</td><td><div v-if="tab === 'todos' && item.status === 'PENDING'" class="row-buttons"><button class="table-action approve" type="button" @click.stop="openAction(item, 'approve')"><Check :size="15" />通过</button><button class="table-action reject" type="button" @click.stop="openAction(item, 'reject')"><X :size="15" />驳回</button></div><button v-else class="table-action" type="button" @click.stop="openDetail(item)">查看详情</button></td></tr></tbody></table></div>
+        <PagePager :page="page" :page-size="pageSize" :total="total" :total-pages="totalPages" @change="changePage" />
       </section>
     </PageState>
 

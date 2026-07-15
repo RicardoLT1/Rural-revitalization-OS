@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.xiangyun.common.BusinessException;
 import com.xiangyun.common.dto.OperationStats;
 import com.xiangyun.common.dto.AdminOperationOverview;
+import com.xiangyun.common.dto.PageResponse;
 import com.xiangyun.common.dto.ResourceSummary;
 import com.xiangyun.common.dto.UserSummary;
 import com.xiangyun.common.event.WorkflowChangedEvent;
@@ -60,28 +61,55 @@ public class OperationService {
     }
 
     public List<ResourceView> resources(String category, String investmentStatus, String keyword) {
-        return resources(category, investmentStatus, keyword, null, null);
+        StringBuilder where = new StringBuilder(" where deleted=0");
+        List<Object> args = resourceFilter(where, category, investmentStatus, keyword);
+        return jdbcTemplate.query(
+                "select * from resource" + where + " order by annual_estimate desc, id asc",
+                (rs, rowNum) -> toResource(rs),
+                args.toArray());
     }
 
-    public List<ResourceView> resources(String category, String investmentStatus, String keyword, Integer page, Integer size) {
-        String sql = "select * from resource where deleted=0";
-        if (StringUtils.hasText(category)) {
-            sql += " and category='" + category.replace("'", "") + "'";
+    public PageResponse<ResourceView> resourcePage(String category,
+                                                   String investmentStatus,
+                                                   String keyword,
+                                                   Integer page,
+                                                   Integer pageSize) {
+        int actualPage = PageResponse.normalizePage(page);
+        int actualPageSize = PageResponse.normalizePageSize(pageSize);
+        StringBuilder where = new StringBuilder(" where deleted=0");
+        List<Object> args = resourceFilter(where, category, investmentStatus, keyword);
+        int total = count("select count(*) from resource" + where, args.toArray());
+        List<Object> dataArgs = new ArrayList<>(args);
+        dataArgs.add(actualPageSize);
+        dataArgs.add((actualPage - 1) * actualPageSize);
+        List<ResourceView> items = jdbcTemplate.query(
+                "select * from resource" + where + " order by annual_estimate desc, id asc limit ? offset ?",
+                (rs, rowNum) -> toResource(rs),
+                dataArgs.toArray());
+        return PageResponse.of(items, actualPage, actualPageSize, total);
+    }
+
+    private List<Object> resourceFilter(StringBuilder where,
+                                        String category,
+                                        String investmentStatus,
+                                        String keyword) {
+        List<Object> args = new ArrayList<>();
+        if (StringUtils.hasText(category) && !"ALL".equalsIgnoreCase(category)) {
+            where.append(" and category=?");
+            args.add(category.trim());
         }
-        if (StringUtils.hasText(investmentStatus)) {
-            sql += " and investment_status='" + investmentStatus.replace("'", "") + "'";
+        if (StringUtils.hasText(investmentStatus) && !"ALL".equalsIgnoreCase(investmentStatus)) {
+            where.append(" and investment_status=?");
+            args.add(investmentStatus.trim());
         }
         if (StringUtils.hasText(keyword)) {
-            sql += " and name like '%" + keyword.replace("'", "") + "%'";
+            where.append(" and (name like ? or address like ? or owner like ?)");
+            String term = "%" + keyword.trim() + "%";
+            args.add(term);
+            args.add(term);
+            args.add(term);
         }
-        sql += " order by annual_estimate desc, id asc";
-        if (page != null && size != null) {
-            int actualSize = Math.max(1, Math.min(size, 50));
-            int actualPage = Math.max(1, page);
-            int offset = (actualPage - 1) * actualSize;
-            sql += " limit " + actualSize + " offset " + offset;
-        }
-        return jdbcTemplate.query(sql, (rs, rowNum) -> toResource(rs));
+        return args;
     }
 
     public ResourceView detail(String id) {
@@ -260,6 +288,34 @@ public class OperationService {
                 where deleted=0
                 order by week_start desc, id desc
                 """);
+    }
+
+    public PageResponse<Map<String, Object>> weeklyReportPage(String villageId,
+                                                              String keyword,
+                                                              Integer page,
+                                                              Integer pageSize) {
+        int actualPage = PageResponse.normalizePage(page);
+        int actualPageSize = PageResponse.normalizePageSize(pageSize);
+        StringBuilder where = new StringBuilder(" where deleted=0 and village_id=?");
+        List<Object> args = new ArrayList<>();
+        args.add(Long.parseLong(villageId));
+        if (StringUtils.hasText(keyword)) {
+            where.append(" and (title like ? or summary like ?)");
+            String term = "%" + keyword.trim() + "%";
+            args.add(term);
+            args.add(term);
+        }
+        int total = count("select count(*) from weekly_report" + where, args.toArray());
+        List<Object> dataArgs = new ArrayList<>(args);
+        dataArgs.add(actualPageSize);
+        dataArgs.add((actualPage - 1) * actualPageSize);
+        List<Map<String, Object>> items = jdbcTemplate.queryForList("""
+                select id, week_start as weekStart, week_end as weekEnd, title, summary,
+                       highlights, risks, next_week_plan as nextWeekPlan,
+                       author_id as authorId, author_name as authorName, status, created_at as createdAt
+                from weekly_report
+                """ + where + " order by week_start desc, id desc limit ? offset ?", dataArgs.toArray());
+        return PageResponse.of(items, actualPage, actualPageSize, total);
     }
 
     @Transactional
@@ -485,6 +541,76 @@ public class OperationService {
                 where a.deleted=0 and a.applicant=?
                 order by a.handled_at desc, a.id desc
                 """, approverId);
+    }
+
+    public PageResponse<Map<String, Object>> todoPage(String villageId,
+                                                      String keyword,
+                                                      String status,
+                                                      Integer page,
+                                                      Integer pageSize) {
+        int actualPage = PageResponse.normalizePage(page);
+        int actualPageSize = PageResponse.normalizePageSize(pageSize);
+        StringBuilder where = new StringBuilder(" where t.deleted=0 and w.deleted=0 and w.village_id=?");
+        List<Object> args = new ArrayList<>();
+        args.add(Long.parseLong(villageId));
+        if (StringUtils.hasText(status) && !"ALL".equalsIgnoreCase(status)) {
+            where.append(" and t.status=?");
+            args.add(status);
+        }
+        if (StringUtils.hasText(keyword)) {
+            where.append(" and (t.title like ? or cast(t.workflow_id as char) like ?)");
+            String term = "%" + keyword.trim() + "%";
+            args.add(term);
+            args.add(term);
+        }
+        String joined = " from todo_item t join workflow w on w.id=t.workflow_id";
+        int total = count("select count(*)" + joined + where, args.toArray());
+        List<Object> dataArgs = new ArrayList<>(args);
+        dataArgs.add(actualPageSize);
+        dataArgs.add((actualPage - 1) * actualPageSize);
+        List<Map<String, Object>> items = jdbcTemplate.queryForList("""
+                select t.id,t.title,t.category,t.status,t.due_date as dueDate,t.workflow_id as processId
+                """ + joined + where + " order by t.due_date, t.id limit ? offset ?", dataArgs.toArray());
+        return PageResponse.of(items, actualPage, actualPageSize, total);
+    }
+
+    public PageResponse<Map<String, Object>> approvalPage(String userId,
+                                                          boolean includeAll,
+                                                          String villageId,
+                                                          String keyword,
+                                                          String status,
+                                                          Integer page,
+                                                          Integer pageSize) {
+        int actualPage = PageResponse.normalizePage(page);
+        int actualPageSize = PageResponse.normalizePageSize(pageSize);
+        StringBuilder where = new StringBuilder(" where a.deleted=0 and w.deleted=0 and w.village_id=?");
+        List<Object> args = new ArrayList<>();
+        args.add(Long.parseLong(villageId));
+        if (!includeAll) {
+            where.append(" and w.approver_id=?");
+            args.add(userId);
+        }
+        if (StringUtils.hasText(status) && !"ALL".equalsIgnoreCase(status)) {
+            where.append(" and a.status=?");
+            args.add(status);
+        }
+        if (StringUtils.hasText(keyword)) {
+            where.append(" and (a.title like ? or cast(a.workflow_id as char) like ? or a.applicant like ?)");
+            String term = "%" + keyword.trim() + "%";
+            args.add(term);
+            args.add(term);
+            args.add(term);
+        }
+        String joined = " from approval_record a join workflow w on w.id=a.workflow_id";
+        int total = count("select count(*)" + joined + where, args.toArray());
+        List<Object> dataArgs = new ArrayList<>(args);
+        dataArgs.add(actualPageSize);
+        dataArgs.add((actualPage - 1) * actualPageSize);
+        List<Map<String, Object>> items = jdbcTemplate.queryForList("""
+                select a.id,a.title,a.applicant,a.action,a.status,a.remark,
+                       a.workflow_id as processId,a.handled_at as time,w.category
+                """ + joined + where + " order by a.handled_at desc, a.id desc limit ? offset ?", dataArgs.toArray());
+        return PageResponse.of(items, actualPage, actualPageSize, total);
     }
 
     @Transactional

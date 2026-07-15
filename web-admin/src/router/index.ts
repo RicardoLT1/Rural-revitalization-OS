@@ -17,6 +17,7 @@ const router = createRouter({
         { path: 'resource-map', name: 'resource-map', component: () => import('../views/ResourceMapView.vue'), meta: { title: '资源地图' } },
         { path: 'weekly-report', name: 'weekly-report', component: () => import('../views/WeeklyReportView.vue'), meta: { title: '周报管理' } },
         { path: 'users', name: 'users', component: () => import('../views/UsersView.vue'), meta: { title: '用户与权限', roles: ['ADMIN'] } },
+        { path: 'audit-logs', name: 'audit-logs', component: () => import('../views/AuditLogsView.vue'), meta: { title: '审计日志', roles: ['ADMIN'] } },
       ],
     },
     { path: '/:pathMatch(.*)*', redirect: '/dashboard' },

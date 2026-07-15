@@ -3,6 +3,7 @@ package com.xiangyun.auth;
 import com.xiangyun.common.ApiResponse;
 import com.xiangyun.common.dto.LoginRequest;
 import com.xiangyun.common.dto.LoginResponse;
+import com.xiangyun.common.dto.PageResponse;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -52,8 +54,13 @@ public class AuthController {
     }
 
     @GetMapping("/users")
-    public ApiResponse<List<Map<String, Object>>> users() {
-        return ApiResponse.success(authService.listUserRows());
+    public ApiResponse<PageResponse<Map<String, Object>>> users(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String role,
+            @RequestParam(required = false) Boolean enabled,
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "20") Integer pageSize) {
+        return ApiResponse.success(authService.userPage(keyword, role, enabled, page, pageSize));
     }
 
     @PostMapping("/users")

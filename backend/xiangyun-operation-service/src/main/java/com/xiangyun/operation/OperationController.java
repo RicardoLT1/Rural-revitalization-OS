@@ -3,6 +3,7 @@ package com.xiangyun.operation;
 import com.xiangyun.common.ApiResponse;
 import com.xiangyun.common.SecurityHeaders;
 import com.xiangyun.common.dto.AdminOperationOverview;
+import com.xiangyun.common.dto.PageResponse;
 import com.xiangyun.common.dto.OperationStats;
 import com.xiangyun.common.dto.ResourceSummary;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -60,14 +61,16 @@ public class OperationController {
     }
 
     @GetMapping("/resources")
-    public ApiResponse<List<ResourceView>> resources(@RequestParam(required = false) String category,
-                                                     @RequestParam(required = false) String investmentStatus,
-                                                     @RequestParam(required = false) String status,
-                                                     @RequestParam(required = false) String keyword,
-                                                     @RequestParam(required = false, defaultValue = "1") Integer page,
-                                                     @RequestParam(required = false, defaultValue = "10") Integer size) {
+    public ApiResponse<PageResponse<ResourceView>> resources(@RequestParam(required = false) String category,
+                                                             @RequestParam(required = false) String investmentStatus,
+                                                             @RequestParam(required = false) String status,
+                                                             @RequestParam(required = false) String keyword,
+                                                             @RequestParam(defaultValue = "1") Integer page,
+                                                             @RequestParam(required = false) Integer size,
+                                                             @RequestParam(defaultValue = "20") Integer pageSize) {
         String actualStatus = investmentStatus != null ? investmentStatus : status;
-        return ApiResponse.success(operationService.resources(category, actualStatus, keyword, page, size));
+        return ApiResponse.success(operationService.resourcePage(
+                category, actualStatus, keyword, page, size == null ? pageSize : size));
     }
 
     @GetMapping("/resources/map-points")
@@ -146,8 +149,12 @@ public class OperationController {
     }
 
     @GetMapping("/operation/reports/weekly")
-    public ApiResponse<List<Map<String, Object>>> weeklyReports() {
-        return ApiResponse.success(operationService.weeklyReports());
+    public ApiResponse<PageResponse<Map<String, Object>>> weeklyReports(
+            @RequestHeader(value = SecurityHeaders.VILLAGE_ID, defaultValue = "1") String villageId,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "20") Integer pageSize) {
+        return ApiResponse.success(operationService.weeklyReportPage(villageId, keyword, page, pageSize));
     }
 
     @PostMapping("/operation/reports/weekly")
@@ -261,8 +268,13 @@ public class OperationController {
     }
 
     @GetMapping("/workflows/todos")
-    public ApiResponse<Object> todos() {
-        return ApiResponse.success(operationService.workbench(null).get("filteredTodos"));
+    public ApiResponse<PageResponse<Map<String, Object>>> todos(
+            @RequestHeader(value = SecurityHeaders.VILLAGE_ID, defaultValue = "1") String villageId,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String status,
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "20") Integer pageSize) {
+        return ApiResponse.success(operationService.todoPage(villageId, keyword, status, page, pageSize));
     }
 
     @PostMapping("/todos")
@@ -276,10 +288,16 @@ public class OperationController {
     }
 
     @GetMapping("/workflows/approvals")
-    public ApiResponse<Object> approvals(
+    public ApiResponse<PageResponse<Map<String, Object>>> approvals(
             @RequestHeader(value = SecurityHeaders.USER_ID, defaultValue = "2") String userId,
-            @RequestHeader(value = SecurityHeaders.ROLE, defaultValue = "STAFF") String role) {
-        return ApiResponse.success(operationService.approvalHistory(userId, "ADMIN".equals(role)));
+            @RequestHeader(value = SecurityHeaders.ROLE, defaultValue = "STAFF") String role,
+            @RequestHeader(value = SecurityHeaders.VILLAGE_ID, defaultValue = "1") String villageId,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String status,
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "20") Integer pageSize) {
+        return ApiResponse.success(operationService.approvalPage(
+                userId, "ADMIN".equals(role), villageId, keyword, status, page, pageSize));
     }
 
     @PostMapping("/workflows/approvals/{id}/pass")

@@ -1,20 +1,28 @@
 import { http } from './http'
-import type { ApiResponse } from '../types/auth'
+import type { ApiResponse, PagedResult } from '../types/auth'
 import type { DashboardData, ResourceActivity, ResourceItem, WeeklyReport, WorkflowDetail, WorkflowItem, WorkflowOperationLog } from '../types/business'
 
 export async function fetchDashboard(days: number) {
-  const response = await http.get<ApiResponse<DashboardData>>('/dashboard', { params: { days } })
+  const response = await http.get<ApiResponse<DashboardData>>('/dashboard/admin-overview', { params: { days } })
+  return response.data.data
+}
+
+export async function fetchTodoPage(params: { page?: number; pageSize?: number; keyword?: string; status?: string } = {}) {
+  const response = await http.get<ApiResponse<PagedResult<WorkflowItem>>>('/workflows/todos', { params })
   return response.data.data
 }
 
 export async function fetchTodos() {
-  const response = await http.get<ApiResponse<WorkflowItem[]>>('/workflows/todos')
-  return response.data.data || []
+  return (await fetchTodoPage({ page: 1, pageSize: 100 })).items || []
+}
+
+export async function fetchApprovalPage(params: { page?: number; pageSize?: number; keyword?: string; status?: string } = {}) {
+  const response = await http.get<ApiResponse<PagedResult<WorkflowItem>>>('/workflows/approvals', { params })
+  return response.data.data
 }
 
 export async function fetchApprovalHistory() {
-  const response = await http.get<ApiResponse<WorkflowItem[]>>('/workflows/approvals')
-  return response.data.data || []
+  return (await fetchApprovalPage({ page: 1, pageSize: 100 })).items || []
 }
 
 export async function fetchWorkflow(id: string | number) {
@@ -46,11 +54,20 @@ export interface ResourceFilters {
   investmentStatus?: string
 }
 
-export async function fetchResources(filters: ResourceFilters) {
-  const response = await http.get<ApiResponse<ResourceItem[]>>('/resources', {
-    params: { page: 1, size: 50, ...filters },
+export interface ResourcePageFilters extends ResourceFilters {
+  page?: number
+  pageSize?: number
+}
+
+export async function fetchResourcePage(filters: ResourcePageFilters = {}) {
+  const response = await http.get<ApiResponse<PagedResult<ResourceItem>>>('/resources', {
+    params: filters,
   })
-  return response.data.data || []
+  return response.data.data
+}
+
+export async function fetchResources(filters: ResourceFilters) {
+  return (await fetchResourcePage({ ...filters, page: 1, pageSize: 100 })).items || []
 }
 
 export async function fetchResource(id: string) {
@@ -93,8 +110,10 @@ export async function updateResource(id: string, payload: ResourcePayload) {
 }
 
 export async function fetchWeeklyReports() {
-  const response = await http.get<ApiResponse<WeeklyReport[]>>('/operation/reports/weekly')
-  return response.data.data || []
+  const response = await http.get<ApiResponse<PagedResult<WeeklyReport>>>('/operation/reports/weekly', {
+    params: { page: 1, pageSize: 100 },
+  })
+  return response.data.data?.items || []
 }
 
 export type WeeklyReportPayload = Pick<WeeklyReport, 'weekStart' | 'weekEnd' | 'title' | 'summary' | 'highlights' | 'risks' | 'nextWeekPlan'>
