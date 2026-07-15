@@ -48,7 +48,7 @@ npm run dev
 
 Open `http://127.0.0.1:5173`. The Vite development server proxies `/api` to the Gateway at port `8080`. The legacy static `web/` demo remains only as a rollback fallback until an explicit retirement decision is recorded.
 
-The current Web Admin supports approval detail decisions, resource archives and activity timelines, a real-coordinate resource map, dashboard drilldown, notifications, global search, CSV export, and role-aware read-only states. The verified productization checkpoint is `v1.2-web-admin-productized` (`74c8c85`). The map is intentionally a lightweight village distribution view; full GIS, persistent notifications, photo management, and server-side federated search remain follow-up capabilities.
+The current Web Admin supports approval detail decisions, resource archives and activity timelines, a real-coordinate resource map, dashboard drilldown, notifications, global search, CSV export, and role-aware read-only states. The verified productization checkpoint is `v1.2-web-admin-productized` (`74c8c85`). V1.3 Admin Pro work has started on `feature/v1.3-admin-pro`, beginning with hard permissions, real village-scoped metrics, and standard HTTP error states. The map is intentionally a lightweight village distribution view; full GIS, persistent notifications, photo management, and server-side federated search remain follow-up capabilities.
 
 ## Demo Notes
 
@@ -63,7 +63,8 @@ Recommended reading order:
 7. [docs/phase-4-production-readiness.md](docs/phase-4-production-readiness.md) - health checks, trace id propagation, and production-readiness operating notes.
 8. [docs/phase-5-configuration-delivery.md](docs/phase-5-configuration-delivery.md) - environment examples, delivery boundaries, and handoff rules.
 9. [docs/v1.2-roadmap.md](docs/v1.2-roadmap.md) - V1.2 phased roadmap, acceptance gates, and delivery boundaries.
-10. [docs/internal-auth.md](docs/internal-auth.md) - internal service signing, Feign signing, nonce replay protection, and rollout rules.
-11. [docs/outbox-rabbitmq.md](docs/outbox-rabbitmq.md) - workflow events, Outbox/Inbox reliability, RabbitMQ topology, and operating notes.
-12. [docs/delivery-checklist.md](docs/delivery-checklist.md) - final checklist for configuration, startup, tests, demo flow, and troubleshooting.
-13. [backend/STARTUP.md](backend/STARTUP.md) - backend build and startup commands.
+10. [docs/v1.3-admin-pro.md](docs/v1.3-admin-pro.md) - Admin Pro release split, permission matrix, RC1 status, and next implementation order.
+11. [docs/internal-auth.md](docs/internal-auth.md) - internal service signing, Feign signing, nonce replay protection, and rollout rules.
+12. [docs/outbox-rabbitmq.md](docs/outbox-rabbitmq.md) - workflow events, Outbox/Inbox reliability, RabbitMQ topology, and operating notes.
+13. [docs/delivery-checklist.md](docs/delivery-checklist.md) - final checklist for configuration, startup, tests, demo flow, and troubleshooting.
+14. [backend/STARTUP.md](backend/STARTUP.md) - backend build and startup commands.
