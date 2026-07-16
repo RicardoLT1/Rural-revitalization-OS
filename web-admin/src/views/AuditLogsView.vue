@@ -50,6 +50,11 @@ const actionLabels: Record<string, string> = {
   LOGIN_SUCCESS: '登录成功',
   LOGIN_FAILURE: '登录失败',
   LOGOUT: '退出登录',
+  UPLOAD_RESOURCE_MATERIAL: '上传资源材料',
+  UPDATE_RESOURCE_MATERIAL: '更新材料说明',
+  REPLACE_RESOURCE_MATERIAL: '替换资源材料',
+  SET_RESOURCE_COVER: '设置资源封面',
+  DELETE_RESOURCE_MATERIAL: '删除资源材料',
 }
 
 const moduleLabels: Record<string, string> = {

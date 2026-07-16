@@ -4,6 +4,10 @@ server:
 spring:
   application:
     name: xiangyun-operation-service
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 12MB
   config:
     import: optional:nacos:${spring.application.name}.yml
   cloud:
@@ -48,6 +52,9 @@ feign:
         readTimeout: 3000
 
 xiangyun:
+  storage:
+    root: ${XIANGYUN_UPLOAD_ROOT:/data/xiangyun/uploads}
+    max-file-size-bytes: ${XIANGYUN_MAX_FILE_SIZE_BYTES:10485760}
   internal-auth:
     enabled: ${XIANGYUN_INTERNAL_AUTH_ENABLED:true}
     service-name: xiangyun-operation-service

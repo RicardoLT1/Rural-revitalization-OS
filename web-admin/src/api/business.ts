@@ -1,6 +1,6 @@
 import { http } from './http'
 import type { ApiResponse, PagedResult } from '../types/auth'
-import type { DashboardData, ResourceActivity, ResourceItem, WeeklyReport, WorkflowDetail, WorkflowItem, WorkflowOperationLog } from '../types/business'
+import type { DashboardData, ResourceActivity, ResourceItem, ResourceMaterial, ResourceMaterialCategory, WeeklyReport, WorkflowDetail, WorkflowItem, WorkflowOperationLog } from '../types/business'
 
 export async function fetchDashboard(days: number) {
   const response = await http.get<ApiResponse<DashboardData>>('/dashboard/admin-overview', { params: { days } })
@@ -83,6 +83,65 @@ export async function fetchResourceApplicationCount(id: string) {
 export async function fetchResourceActivity(id: string) {
   const response = await http.get<ApiResponse<ResourceActivity>>(`/resources/${id}/activity`)
   return response.data.data
+}
+
+export async function fetchResourceMaterials(resourceId: string) {
+  const response = await http.get<ApiResponse<ResourceMaterial[]>>(`/resources/${resourceId}/materials`)
+  return response.data.data || []
+}
+
+export interface ResourceMaterialUpload {
+  file: File
+  category: ResourceMaterialCategory
+  title?: string
+  description?: string
+}
+
+function materialForm(payload: ResourceMaterialUpload) {
+  const form = new FormData()
+  form.append('file', payload.file)
+  form.append('category', payload.category)
+  if (payload.title?.trim()) form.append('title', payload.title.trim())
+  if (payload.description?.trim()) form.append('description', payload.description.trim())
+  return form
+}
+
+export async function uploadResourceMaterial(resourceId: string, payload: ResourceMaterialUpload) {
+  const response = await http.post<ApiResponse<ResourceMaterial>>(`/resources/${resourceId}/materials`, materialForm(payload), {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  })
+  return response.data.data
+}
+
+export async function updateResourceMaterial(resourceId: string, materialId: string, payload: { title: string; description?: string }) {
+  const response = await http.put<ApiResponse<ResourceMaterial>>(`/resources/${resourceId}/materials/${materialId}`, payload)
+  return response.data.data
+}
+
+export async function replaceResourceMaterial(resourceId: string, materialId: string, file: File) {
+  const form = new FormData()
+  form.append('file', file)
+  const response = await http.post<ApiResponse<ResourceMaterial>>(`/resources/${resourceId}/materials/${materialId}/replace`, form, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  })
+  return response.data.data
+}
+
+export async function setResourceMaterialCover(resourceId: string, materialId: string) {
+  const response = await http.post<ApiResponse<ResourceMaterial>>(`/resources/${resourceId}/materials/${materialId}/cover`)
+  return response.data.data
+}
+
+export async function deleteResourceMaterial(resourceId: string, materialId: string) {
+  await http.delete(`/resources/${resourceId}/materials/${materialId}`)
+}
+
+export async function fetchResourceMaterialContent(resourceId: string, materialId: string, download = false) {
+  const response = await http.get<Blob>(`/resources/${resourceId}/materials/${materialId}/content`, {
+    params: { download },
+    responseType: 'blob',
+  })
+  return response.data
 }
 
 export async function fetchResourceMapPoints(category?: string) {

@@ -93,6 +93,11 @@ public class AdminAuditFilter extends OncePerRequestFilter {
     }
 
     private String action(String method, String path) {
+        if (path.matches("/api/resources/[^/]+/materials") && "POST".equals(method)) return "UPLOAD_RESOURCE_MATERIAL";
+        if (path.matches("/api/resources/[^/]+/materials/[^/]+/replace")) return "REPLACE_RESOURCE_MATERIAL";
+        if (path.matches("/api/resources/[^/]+/materials/[^/]+/cover")) return "SET_RESOURCE_COVER";
+        if (path.matches("/api/resources/[^/]+/materials/[^/]+") && "PUT".equals(method)) return "UPDATE_RESOURCE_MATERIAL";
+        if (path.matches("/api/resources/[^/]+/materials/[^/]+") && "DELETE".equals(method)) return "DELETE_RESOURCE_MATERIAL";
         if (path.endsWith("/publish")) return "PUBLISH_RESOURCE";
         if (path.endsWith("/offline")) return "OFFLINE_RESOURCE";
         if (path.endsWith("/investment-status")) return "CHANGE_INVESTMENT_STATUS";
@@ -109,6 +114,7 @@ public class AdminAuditFilter extends OncePerRequestFilter {
     }
 
     private String targetType(String path) {
+        if (path.matches("/api/resources/[^/]+/materials.*")) return "RESOURCE_MATERIAL";
         if (path.startsWith("/api/resources")) return "RESOURCE";
         if (path.startsWith("/api/operation/reports")) return "WEEKLY_REPORT";
         if (path.startsWith("/api/todos")) return "TODO";

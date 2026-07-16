@@ -100,6 +100,26 @@ export interface ResourceItem {
   investmentNote: string
 }
 
+export type ResourceMaterialCategory = 'FIELD_PHOTO' | 'OWNERSHIP' | 'INVESTMENT' | 'APPROVAL' | 'OTHER'
+
+export interface ResourceMaterial {
+  id: string
+  resourceId: string
+  category: ResourceMaterialCategory
+  title: string
+  description?: string
+  cover: boolean
+  originalName: string
+  contentType: string
+  fileSize: number
+  sha256: string
+  uploadedBy?: string
+  uploadedByName?: string
+  createdAt: string
+  updatedAt?: string
+  image?: boolean
+}
+
 export interface ResourceActivityWorkflow {
   processId: string | number
   title: string

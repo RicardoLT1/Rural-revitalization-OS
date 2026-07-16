@@ -52,4 +52,23 @@ class AdminAuditFilterTest {
 
         verify(auditService, never()).record(org.mockito.ArgumentMatchers.any(AdminAuditEvent.class));
     }
+
+    @Test
+    void identifiesResourceMaterialUploadAsDedicatedAuditAction() throws Exception {
+        AdminAuditService auditService = mock(AdminAuditService.class);
+        AdminAuditFilter filter = new AdminAuditFilter(auditService, new ObjectMapper());
+        MockHttpServletRequest request = new MockHttpServletRequest("POST", "/api/resources/101/materials");
+        MockHttpServletResponse response = new MockHttpServletResponse();
+
+        filter.doFilter(request, response, (nextRequest, nextResponse) -> {
+            AdminAuditContext.targetId((MockHttpServletRequest) nextRequest, "901");
+            ((MockHttpServletResponse) nextResponse).setStatus(200);
+        });
+
+        ArgumentCaptor<AdminAuditEvent> captor = ArgumentCaptor.forClass(AdminAuditEvent.class);
+        verify(auditService).record(captor.capture());
+        assertThat(captor.getValue().action()).isEqualTo("UPLOAD_RESOURCE_MATERIAL");
+        assertThat(captor.getValue().targetType()).isEqualTo("RESOURCE_MATERIAL");
+        assertThat(captor.getValue().targetId()).isEqualTo("901");
+    }
 }

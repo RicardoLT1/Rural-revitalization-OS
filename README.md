@@ -48,7 +48,7 @@ npm run dev
 
 Open `http://127.0.0.1:5173`. The Vite development server proxies `/api` to the Gateway at port `8080`. The legacy static `web/` demo remains only as a rollback fallback until an explicit retirement decision is recorded.
 
-The current Web Admin supports approval detail decisions, resource archives and activity timelines, a real-coordinate resource map, dashboard drilldown, notifications, global search, CSV export, and role-aware read-only states. The verified productization checkpoint is `v1.2-web-admin-productized` (`74c8c85`). V1.3 Admin Pro work has started on `feature/v1.3-admin-pro`, beginning with hard permissions, real village-scoped metrics, and standard HTTP error states. The map is intentionally a lightweight village distribution view; full GIS, persistent notifications, photo management, and server-side federated search remain follow-up capabilities.
+The current Web Admin supports approval detail decisions, resource archives and activity timelines, a real-coordinate resource map, dashboard drilldown, notifications, global search, CSV export, and role-aware read-only states. The verified productization checkpoint is `v1.2-web-admin-productized` (`74c8c85`). V1.3 Admin Pro on `feature/v1.3-admin-pro` now includes hard permissions, real village-scoped metrics, unified pagination, security and change auditing, plus authenticated resource-material upload, preview, download, cover, replacement, and soft deletion. The map remains an intentionally lightweight village distribution view; full GIS, persistent notifications, object storage, and server-side federated search remain follow-up capabilities.
 
 ## Demo Notes
 
