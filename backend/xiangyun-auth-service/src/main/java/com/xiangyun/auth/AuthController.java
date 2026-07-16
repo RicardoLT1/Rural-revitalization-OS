@@ -36,8 +36,20 @@ public class AuthController {
     }
 
     @PostMapping("/auth/login")
-    public ApiResponse<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
-        return ApiResponse.success(authService.login(request.username(), request.password()));
+    public ApiResponse<LoginResponse> login(@Valid @RequestBody LoginRequest request,
+                                            HttpServletRequest servletRequest) {
+        try {
+            LoginResponse response = authService.login(request.username(), request.password());
+            LoginResponse.UserProfile user = response.user();
+            auditPublisher.recordSecurity(servletRequest, "LOGIN_SUCCESS", user.id(), user.username(),
+                    user.role(), user.villageId(), user.id(), "SUCCESS", 200, "登录成功");
+            return ApiResponse.success(response);
+        } catch (RuntimeException ex) {
+            int status = statusOf(ex);
+            auditPublisher.recordSecurity(servletRequest, "LOGIN_FAILURE", null, request.username(),
+                    "ANONYMOUS", null, request.username(), "FAILURE", status, ex.getMessage());
+            throw ex;
+        }
     }
 
     @PostMapping("/auth/register")
@@ -164,12 +176,16 @@ public class AuthController {
                     "管理员操作完成", before, afterResolver.apply(result));
             return result;
         } catch (RuntimeException ex) {
-            int status = ex instanceof BusinessException business && business.getCode() != null
-                    ? business.getCode() / 100
-                    : 500;
+            int status = statusOf(ex);
             auditPublisher.record(request, action, targetType, targetId, "FAILURE", status,
                     ex.getMessage(), before, null);
             throw ex;
         }
+    }
+
+    private int statusOf(RuntimeException ex) {
+        return ex instanceof BusinessException business && business.getCode() != null
+                ? business.getCode() / 100
+                : 500;
     }
 }

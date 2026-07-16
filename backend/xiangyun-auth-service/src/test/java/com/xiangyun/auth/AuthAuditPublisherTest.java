@@ -36,4 +36,22 @@ class AuthAuditPublisherTest {
         assertThat(captor.getValue().beforeData()).contains("USER");
         assertThat(captor.getValue().afterData()).contains("STAFF");
     }
+
+    @Test
+    void publishesLoginFailureWithoutSensitiveCredentials() {
+        AuditClient client = mock(AuditClient.class);
+        AuthAuditPublisher publisher = new AuthAuditPublisher(client, new ObjectMapper());
+        MockHttpServletRequest request = new MockHttpServletRequest("POST", "/api/auth/login");
+        request.addHeader(SecurityHeaders.TRACE_ID, "trace-login-1");
+
+        publisher.recordSecurity(request, "LOGIN_FAILURE", null, "unknown_user", "ANONYMOUS",
+                null, "unknown_user", "FAILURE", 401, "账号或密码错误");
+
+        ArgumentCaptor<AdminAuditRequest> captor = ArgumentCaptor.forClass(AdminAuditRequest.class);
+        verify(client).record(eq("trace-login-1"), captor.capture());
+        assertThat(captor.getValue().action()).isEqualTo("LOGIN_FAILURE");
+        assertThat(captor.getValue().actorName()).isEqualTo("unknown_user");
+        assertThat(captor.getValue().beforeData()).isNull();
+        assertThat(captor.getValue().afterData()).isNull();
+    }
 }

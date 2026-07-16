@@ -51,6 +51,34 @@ public class GatewayAuditPublisher {
                 detail,
                 null,
                 null);
+        return persist(event, traceId, requestPath);
+    }
+
+    public Mono<Void> logout(ServerWebExchange exchange, TokenPayload payload, String traceId) {
+        String requestPath = pathWithQuery(exchange);
+        AdminAuditRequest event = new AdminAuditRequest(
+                traceId,
+                payload.userId(),
+                payload.username(),
+                payload.role(),
+                payload.villageId(),
+                "SECURITY",
+                "LOGOUT",
+                "SESSION",
+                payload.jti(),
+                exchange.getRequest().getMethod().name(),
+                requestPath,
+                clientIp(exchange),
+                exchange.getRequest().getHeaders().getFirst("User-Agent"),
+                "SUCCESS",
+                200,
+                "退出登录，会话已失效",
+                null,
+                null);
+        return persist(event, traceId, requestPath);
+    }
+
+    private Mono<Void> persist(AdminAuditRequest event, String traceId, String requestPath) {
         InternalSignature signature = signer.sign("POST", AUDIT_PATH, traceId, "");
         return webClient.post()
                 .uri("http://xiangyun-operation-service" + AUDIT_PATH)
@@ -65,7 +93,8 @@ public class GatewayAuditPublisher {
                 .timeout(Duration.ofSeconds(1))
                 .then()
                 .onErrorResume(ex -> {
-                    log.warn("Failed to persist access-denied audit: traceId={}, path={}", traceId, requestPath);
+                    log.warn("Failed to persist gateway audit: traceId={}, action={}, path={}",
+                            traceId, event.action(), requestPath);
                     return Mono.empty();
                 });
     }

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
-import { CheckCircle2, Copy, Eye, FileClock, Search, ShieldAlert, X, XCircle } from '@lucide/vue'
-import { fetchAuditLogs } from '../api/admin'
+import { CheckCircle2, Copy, Download, Eye, FileClock, Search, ShieldAlert, X, XCircle } from '@lucide/vue'
+import { exportAuditLogs, fetchAuditLogs } from '../api/admin'
 import PagePager from '../components/PagePager.vue'
 import PageState from '../components/PageState.vue'
 import type { AdminAuditLog } from '../types/business'
@@ -14,7 +14,11 @@ const totalPages = ref(0)
 const keyword = ref('')
 const module = ref('ALL')
 const result = ref('ALL')
+const startDate = ref('')
+const endDate = ref('')
 const loading = ref(true)
+const exporting = ref(false)
+const exportMessage = ref('')
 const error = ref('')
 const selected = ref<AdminAuditLog | null>(null)
 const copied = ref(false)
@@ -43,6 +47,9 @@ const actionLabels: Record<string, string> = {
   CREATE_ROLE: '新增角色',
   UPDATE_ROLE: '更新角色',
   ACCESS_DENIED: '拒绝越权访问',
+  LOGIN_SUCCESS: '登录成功',
+  LOGIN_FAILURE: '登录失败',
+  LOGOUT: '退出登录',
 }
 
 const moduleLabels: Record<string, string> = {
@@ -113,6 +120,8 @@ async function load() {
       keyword: keyword.value.trim() || undefined,
       module: module.value === 'ALL' ? undefined : module.value,
       result: result.value === 'ALL' ? undefined : result.value,
+      startTime: startDate.value ? `${startDate.value}T00:00:00` : undefined,
+      endTime: endDate.value ? `${endDate.value}T23:59:59` : undefined,
     })
     rows.value = data.items
     total.value = data.total
@@ -133,7 +142,34 @@ function resetFilters() {
   keyword.value = ''
   module.value = 'ALL'
   result.value = 'ALL'
+  startDate.value = ''
+  endDate.value = ''
   applyFilters()
+}
+
+async function downloadCsv() {
+  exporting.value = true
+  exportMessage.value = ''
+  try {
+    const blob = await exportAuditLogs({
+      keyword: keyword.value.trim() || undefined,
+      module: module.value === 'ALL' ? undefined : module.value,
+      result: result.value === 'ALL' ? undefined : result.value,
+      startTime: startDate.value ? `${startDate.value}T00:00:00` : undefined,
+      endTime: endDate.value ? `${endDate.value}T23:59:59` : undefined,
+    })
+    const url = URL.createObjectURL(blob)
+    const anchor = document.createElement('a')
+    anchor.href = url
+    anchor.download = `乡耘OS_管理员审计_${new Date().toISOString().slice(0, 10)}.csv`
+    anchor.click()
+    URL.revokeObjectURL(url)
+    exportMessage.value = '已导出当前筛选结果'
+  } catch (reason) {
+    exportMessage.value = reason instanceof Error ? reason.message : '导出失败，请重试'
+  } finally {
+    exporting.value = false
+  }
 }
 
 function changePage(nextPage: number) {
@@ -175,8 +211,12 @@ onMounted(load)
         <label><Search :size="16" /><input v-model="keyword" placeholder="搜索操作人、对象或 Trace ID" @keyup.enter="applyFilters" /></label>
         <select v-model="module" @change="applyFilters"><option value="ALL">全部模块</option><option value="RESOURCE">资源管理</option><option value="WORKFLOW">审批流程</option><option value="USER">用户与权限</option><option value="SECURITY">安全边界</option><option value="REPORT">周报管理</option><option value="TODO">待办管理</option></select>
         <select v-model="result" @change="applyFilters"><option value="ALL">全部结果</option><option value="SUCCESS">操作成功</option><option value="FAILURE">操作失败</option></select>
+        <label class="audit-date-field"><span>起</span><input v-model="startDate" type="date" aria-label="开始日期" @change="applyFilters" /></label>
+        <label class="audit-date-field"><span>止</span><input v-model="endDate" type="date" aria-label="结束日期" @change="applyFilters" /></label>
         <button class="secondary-button query-button" type="button" @click="applyFilters">查询</button>
         <button class="text-button" type="button" @click="resetFilters">重置</button>
+        <button class="secondary-button audit-export-button" type="button" :disabled="exporting" @click="downloadCsv"><Download :size="15" />{{ exporting ? '正在导出' : '导出 CSV' }}</button>
+        <small v-if="exportMessage" class="audit-export-message">{{ exportMessage }}</small>
       </div>
     </section>
 

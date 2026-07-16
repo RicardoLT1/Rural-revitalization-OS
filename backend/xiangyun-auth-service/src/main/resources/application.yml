@@ -7,6 +7,12 @@ spring:
   config:
     import: optional:nacos:${spring.application.name}.yml
   cloud:
+    openfeign:
+      client:
+        config:
+          xiangyun-operation-service:
+            connect-timeout: 1000
+            read-timeout: 1000
     nacos:
       server-addr: ${NACOS_ADDR:127.0.0.1:8848}
       discovery:

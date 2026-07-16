@@ -8,12 +8,23 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 @Service
 public class AdminAuditService {
+
+    private static final String AUDIT_SELECT = """
+            select id,trace_id as traceId,actor_id as actorId,actor_name as actorName,
+                   actor_role as actorRole,village_id as villageId,module,action,
+                   target_type as targetType,target_id as targetId,request_method as requestMethod,
+                   request_path as requestPath,client_ip as clientIp,user_agent as userAgent,
+                   result,http_status as httpStatus,detail,before_data as beforeData,
+                   after_data as afterData,created_at as createdAt
+            from admin_audit_log
+            """;
 
     private final JdbcTemplate jdbcTemplate;
 
@@ -48,10 +59,45 @@ public class AdminAuditService {
     public PageResponse<Map<String, Object>> page(String keyword,
                                                   String module,
                                                   String result,
+                                                  LocalDateTime startTime,
+                                                  LocalDateTime endTime,
                                                   Integer page,
                                                   Integer pageSize) {
         int actualPage = PageResponse.normalizePage(page);
         int actualPageSize = PageResponse.normalizePageSize(pageSize);
+        AuditQuery query = auditQuery(keyword, module, result, startTime, endTime);
+        String where = query.where();
+        List<Object> args = query.args();
+        Integer totalValue = jdbcTemplate.queryForObject(
+                "select count(*) from admin_audit_log" + where,
+                Integer.class,
+                args.toArray());
+        int total = totalValue == null ? 0 : totalValue;
+        List<Object> dataArgs = new ArrayList<>(args);
+        dataArgs.add(actualPageSize);
+        dataArgs.add((actualPage - 1) * actualPageSize);
+        List<Map<String, Object>> items = jdbcTemplate.queryForList(
+                AUDIT_SELECT + where + " order by created_at desc,id desc limit ? offset ?", dataArgs.toArray());
+        return PageResponse.of(items, actualPage, actualPageSize, total);
+    }
+
+    public List<Map<String, Object>> export(String keyword,
+                                            String module,
+                                            String result,
+                                            LocalDateTime startTime,
+                                            LocalDateTime endTime) {
+        AuditQuery query = auditQuery(keyword, module, result, startTime, endTime);
+        List<Object> args = new ArrayList<>(query.args());
+        args.add(5000);
+        return jdbcTemplate.queryForList(
+                AUDIT_SELECT + query.where() + " order by created_at desc,id desc limit ?", args.toArray());
+    }
+
+    private AuditQuery auditQuery(String keyword,
+                                  String module,
+                                  String result,
+                                  LocalDateTime startTime,
+                                  LocalDateTime endTime) {
         StringBuilder where = new StringBuilder(" where 1=1");
         List<Object> args = new ArrayList<>();
         if (StringUtils.hasText(module) && !"ALL".equalsIgnoreCase(module)) {
@@ -70,24 +116,15 @@ public class AdminAuditService {
             args.add(term);
             args.add(term);
         }
-        Integer totalValue = jdbcTemplate.queryForObject(
-                "select count(*) from admin_audit_log" + where,
-                Integer.class,
-                args.toArray());
-        int total = totalValue == null ? 0 : totalValue;
-        List<Object> dataArgs = new ArrayList<>(args);
-        dataArgs.add(actualPageSize);
-        dataArgs.add((actualPage - 1) * actualPageSize);
-        List<Map<String, Object>> items = jdbcTemplate.queryForList("""
-                select id,trace_id as traceId,actor_id as actorId,actor_name as actorName,
-                       actor_role as actorRole,village_id as villageId,module,action,
-                       target_type as targetType,target_id as targetId,request_method as requestMethod,
-                       request_path as requestPath,client_ip as clientIp,user_agent as userAgent,
-                       result,http_status as httpStatus,detail,before_data as beforeData,
-                       after_data as afterData,created_at as createdAt
-                from admin_audit_log
-                """ + where + " order by created_at desc,id desc limit ? offset ?", dataArgs.toArray());
-        return PageResponse.of(items, actualPage, actualPageSize, total);
+        if (startTime != null) {
+            where.append(" and created_at>=?");
+            args.add(startTime);
+        }
+        if (endTime != null) {
+            where.append(" and created_at<=?");
+            args.add(endTime);
+        }
+        return new AuditQuery(where.toString(), args);
     }
 
     private String limit(String value, int maxLength) {
@@ -95,5 +132,8 @@ public class AdminAuditService {
             return value;
         }
         return value.substring(0, maxLength);
+    }
+
+    private record AuditQuery(String where, List<Object> args) {
     }
 }

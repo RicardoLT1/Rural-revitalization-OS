@@ -51,6 +51,7 @@ class AuthFilterTest {
         internalAuthProperties.setSecret("internal-secret");
         auditPublisher = mock(GatewayAuditPublisher.class);
         when(auditPublisher.accessDenied(any(), nullable(TokenPayload.class), anyString(), anyString())).thenReturn(Mono.empty());
+        when(auditPublisher.logout(any(), any(TokenPayload.class), anyString())).thenReturn(Mono.empty());
         filter = new AuthFilter(redisTemplate, new InternalSignatureSigner(internalAuthProperties), auditPublisher, "gateway-secret");
     }
 
@@ -184,6 +185,7 @@ class AuthFilterTest {
 
         assertThat(exchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(exchange.getResponse().getBodyAsString().block()).contains("\"logout\":true");
+        verify(auditPublisher).logout(any(), any(TokenPayload.class), anyString());
     }
 
     @Test

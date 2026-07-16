@@ -88,7 +88,7 @@ public class AuthFilter implements GlobalFilter, Ordered {
             return unauthorized(exchange, ex.getMessage());
         }
         if ("/api/auth/logout".equals(path)) {
-            return logout(exchange, payload);
+            return logout(exchange, payload, traceId);
         }
         return redisTemplate.opsForValue().get("login:token:" + payload.jti())
                 .flatMap(value -> {
@@ -209,12 +209,13 @@ public class AuthFilter implements GlobalFilter, Ordered {
         return writeError(exchange, HttpStatus.UNAUTHORIZED, 40100, message);
     }
 
-    private Mono<Void> logout(ServerWebExchange exchange, TokenPayload payload) {
+    private Mono<Void> logout(ServerWebExchange exchange, TokenPayload payload, String traceId) {
         return Mono.when(
                         redisTemplate.delete("login:token:" + payload.jti()),
                         redisTemplate.delete("auth:session:" + payload.jti()),
                         redisTemplate.opsForSet().remove("auth:user:sessions:" + payload.userId(), payload.jti())
                 )
+                .then(auditPublisher.logout(exchange, payload, traceId))
                 .then(writeJson(exchange, HttpStatus.OK, ApiResponse.success(Map.of("logout", true))));
     }
 

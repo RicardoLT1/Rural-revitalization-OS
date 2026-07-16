@@ -11,9 +11,24 @@ export async function fetchUserPage(params: { page?: number; pageSize?: number; 
   return response.data.data
 }
 
-export async function fetchAuditLogs(params: { page?: number; pageSize?: number; keyword?: string; module?: string; result?: string } = {}) {
+export type AuditQueryParams = {
+  page?: number
+  pageSize?: number
+  keyword?: string
+  module?: string
+  result?: string
+  startTime?: string
+  endTime?: string
+}
+
+export async function fetchAuditLogs(params: AuditQueryParams = {}) {
   const response = await http.get<ApiResponse<PagedResult<AdminAuditLog>>>('/audit-logs', { params })
   return response.data.data
+}
+
+export async function exportAuditLogs(params: AuditQueryParams = {}) {
+  const response = await http.get<Blob>('/audit-logs/export', { params, responseType: 'blob' })
+  return response.data
 }
 
 export async function createUser(payload: { username: string; displayName: string; password: string; role: string; villageId: string }) {

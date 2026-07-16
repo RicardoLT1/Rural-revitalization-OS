@@ -54,10 +54,51 @@ public class AuthAuditPublisher {
                 detail,
                 json(beforeData),
                 json(afterData));
+        publish(traceId, event);
+    }
+
+    public void recordSecurity(HttpServletRequest request,
+                               String action,
+                               String actorId,
+                               String actorName,
+                               String actorRole,
+                               String villageId,
+                               String targetId,
+                               String result,
+                               int httpStatus,
+                               String detail) {
+        String traceId = header(request, SecurityHeaders.TRACE_ID);
+        if (traceId == null || traceId.isBlank()) {
+            traceId = UUID.randomUUID().toString().replace("-", "");
+        }
+        AdminAuditRequest event = new AdminAuditRequest(
+                traceId,
+                actorId,
+                value(actorName, "anonymous"),
+                value(actorRole, "ANONYMOUS"),
+                villageId,
+                "SECURITY",
+                action,
+                "SESSION",
+                targetId,
+                request.getMethod(),
+                pathWithQuery(request),
+                clientIp(request),
+                request.getHeader("User-Agent"),
+                result,
+                httpStatus,
+                detail,
+                null,
+                null);
+        publish(traceId, event);
+    }
+
+    private void publish(String traceId, AdminAuditRequest event) {
         try {
             auditClient.record(traceId, event);
         } catch (Exception ex) {
-            log.warn("Failed to persist auth audit: traceId={}, action={}, targetId={}", traceId, action, targetId);
+            log.warn("Failed to persist auth audit: traceId={}, action={}, targetId={}",
+                    traceId, event.action(), event.targetId());
         }
     }
 

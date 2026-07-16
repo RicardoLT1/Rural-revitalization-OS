@@ -48,6 +48,7 @@ spring:
             - Path=/api/villages,/api/villages/**,/api/resources,/api/resources/**,/api/resource-tags,/api/resource-tags/**,/api/workflows/**,/api/todos,/api/todos/**,/api/operation/**,/api/audit-logs,/api/audit-logs/**
           filters:
             - RemoveResponseHeader=Content-Length
+            - DedupeResponseHeader=Content-Type, RETAIN_LAST
         - id: analysis-service
           uri: lb://xiangyun-analysis-service
           predicates:

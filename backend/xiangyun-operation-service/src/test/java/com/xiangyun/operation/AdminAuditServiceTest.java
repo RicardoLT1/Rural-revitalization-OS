@@ -30,7 +30,8 @@ class AdminAuditServiceTest {
                 .thenReturn(List.of(Map.of("id", 1L, "action", "PUBLISH_RESOURCE")));
 
         service.record(event);
-        PageResponse<Map<String, Object>> page = service.page("trace-1", "RESOURCE", "SUCCESS", 1, 20);
+        PageResponse<Map<String, Object>> page = service.page(
+                "trace-1", "RESOURCE", "SUCCESS", null, null, 1, 20);
 
         verify(jdbcTemplate).update(anyString(), any(Object[].class));
         assertThat(page.total()).isEqualTo(1);
