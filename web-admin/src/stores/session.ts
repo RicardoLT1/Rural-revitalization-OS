@@ -51,12 +51,10 @@ export const useSessionStore = defineStore('session', () => {
     localStorage.removeItem(USER_KEY)
   }
 
-  async function signOut() {
-    try {
-      await authApi.logout()
-    } finally {
-      clear()
-    }
+  function signOut() {
+    const currentToken = token.value
+    clear()
+    void authApi.logout(currentToken).catch(() => undefined)
   }
 
   return { token, user, authenticated, canUseAdmin, signIn, restore, signOut, clear }

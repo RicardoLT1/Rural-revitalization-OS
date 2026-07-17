@@ -333,6 +333,25 @@ button:disabled { cursor:not-allowed; }
 @media (max-width:720px) { .map-toolbar { flex-wrap:wrap; }.map-categories { width:100%; order:2; }.map-toolbar > label { width:calc(100% - 48px); margin-left:0; }.village-map { min-height:480px; }.resource-marker b { display:none; }.map-legend { right:12px; left:12px; flex-wrap:wrap; }.resource-workflow-list > button { grid-template-columns:30px minmax(0,1fr) auto; }.resource-workflow-list > button > svg:last-child { display:none; } }
 @media (prefers-reduced-motion:reduce) { .skeleton-panel i,.page-skeleton i { animation:none!important; } }
 
+/* Page feedback must remain legible while dependent services are starting or unavailable. */
+.page-state small { max-width:520px; color:#7c8881; font-size:11px; line-height:1.6; }
+.page-state.error { background:linear-gradient(155deg,#fff 0%,#fbf8f5 100%); }
+.page-state.error button { min-height:36px; padding:0 14px; color:var(--forest); }
+.page-skeleton { align-content:start; justify-items:stretch; gap:22px; padding:26px; border-left:4px solid var(--forest); background:linear-gradient(150deg,#fff 0%,#f3f8f5 100%); text-align:left; }
+.page-loading-heading { min-height:78px; display:grid; grid-template-columns:42px minmax(0,1fr) auto; align-items:center; gap:13px; padding:15px 18px; border:1px solid #cfe0d7; border-radius:11px; background:rgba(255,255,255,.86); box-shadow:0 8px 24px rgba(24,64,48,.06); }
+.page-loading-icon { width:42px; height:42px; display:grid; place-items:center; border-radius:10px; color:#fff; background:var(--forest); }
+.page-loading-heading > div { display:grid; gap:5px; }
+.page-loading-heading strong { font-size:15px; }
+.page-loading-heading > div span { color:#69766f; font-size:11px; }
+.page-loading-heading b { padding:5px 8px; border-radius:999px; color:#715713; background:#f4e7aa; font-size:9px; letter-spacing:.1em; }
+.page-loading-rows { display:grid; gap:12px; }
+.page-loading-rows i { width:100%; height:48px; display:block; border-radius:7px; background:linear-gradient(100deg,#e1ebe5 20%,#f8fbf9 38%,#e1ebe5 56%); background-size:220% 100%; animation:skeleton-shimmer 1.35s ease infinite; }
+.page-loading-rows i:nth-child(2) { width:92%; }
+.page-loading-rows i:nth-child(3) { width:96%; }
+.page-loading-rows i:nth-child(4) { width:84%; }
+.page-loading-rows i:first-child { width:100%; height:48px; }
+@media (prefers-reduced-motion:reduce) { .page-loading-rows i { animation:none!important; } }
+
 /* V1.2.1 real resource map: the map is the primary workspace, not a decorative panel. */
 .page-content:has(.resource-map-page) { max-width:none; padding-bottom:34px; }
 .resource-map-page { min-height:calc(100vh - 96px); }

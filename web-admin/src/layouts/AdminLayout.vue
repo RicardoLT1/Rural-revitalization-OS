@@ -131,9 +131,10 @@ watch(searchQuery, (value) => {
   searchTimer = window.setTimeout(() => { searchTerm.value = value }, 180)
 })
 
-async function signOut() {
-  await session.signOut()
-  await router.replace('/login')
+function signOut() {
+  session.signOut()
+  activePanel.value = null
+  void router.replace('/login')
 }
 
 onMounted(() => {

@@ -11,6 +11,9 @@ export async function fetchProfile() {
   return response.data.data
 }
 
-export async function logout() {
-  await http.post('/auth/logout')
+export async function logout(token?: string) {
+  await http.post('/auth/logout', undefined, {
+    timeout: 2500,
+    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+  })
 }
