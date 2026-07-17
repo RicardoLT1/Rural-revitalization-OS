@@ -2,8 +2,9 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { BarChart3, Bell, Check, ChevronDown, ChevronLeft, ChevronRight, ClipboardCheck, FileClock, FileText, FolderKanban, LandPlot, LogOut, MapPinned, Menu, Search, Settings, UserRound, Users, X } from '@lucide/vue'
-import { fetchDashboard, fetchTodos } from '../api/business'
 import { fetchGlobalSearch } from '../api/search'
+import { fetchNotifications, readAllNotifications, readNotification, type AdminNotification } from '../api/notifications'
+import { fetchSystemSettings, type SystemSettings } from '../api/settings'
 import ComingSoonButton from '../components/ComingSoonButton.vue'
 import { recentSearchResults, rememberSearchResult, toAdminSearchResults } from '../services/adminSearch'
 import type { AdminSearchResult } from '../services/adminSearch'
@@ -23,14 +24,12 @@ const searchError = ref('')
 const searchPartial = ref(false)
 const searchResults = ref<AdminSearchResult[]>([])
 const recentResults = ref(recentSearchResults())
-const notificationRows = ref<Array<{ id: string; title: string; detail: string; kind: string; to: string | { path: string; query?: Record<string, string> } }>>([])
-function savedReadNotifications() {
-  try { return new Set<string>(JSON.parse(localStorage.getItem('xiangyun.admin.read-notifications') || '[]') as string[]) }
-  catch { return new Set<string>() }
-}
-const readNotifications = ref(savedReadNotifications())
+const notificationRows = ref<AdminNotification[]>([])
+const notificationUnreadCount = ref(0)
 const notificationsLoading = ref(false)
 const notificationsLoaded = ref(false)
+const notificationsError = ref('')
+const platformContext = ref<Pick<SystemSettings, 'platformName' | 'villageName' | 'systemVersion'>>({ platformName: '乡耘 OS', villageName: '青耘村', systemVersion: 'v1.3-admin-pro' })
 
 const items = computed(() => [
   { to: '/dashboard', label: '运营看板', icon: BarChart3 },
@@ -44,7 +43,10 @@ const items = computed(() => [
   ] : []),
 ])
 const pageTitle = computed(() => String(route.meta.title || items.value.find((item) => item.to === route.path)?.label || '乡耘工作台'))
-const unreadCount = computed(() => notificationRows.value.filter((item) => !readNotifications.value.has(item.id)).length)
+const unreadCount = computed(() => notificationUnreadCount.value)
+function notificationKind(item: AdminNotification) {
+  return item.type === 'WORKFLOW_OVERDUE' ? '风险提醒' : item.type === 'WORKFLOW_PENDING' ? '待审批' : '系统消息'
+}
 async function runSearch(value: string) {
   const query = value.trim()
   const requestId = ++searchRequestId
@@ -80,13 +82,15 @@ function openSearch() {
 async function loadNotifications(force = false) {
   if ((!force && notificationsLoaded.value) || notificationsLoading.value) return
   notificationsLoading.value = true
-  const [todoResult, dashboardResult] = await Promise.allSettled([fetchTodos(), fetchDashboard(7)])
-  const notices: typeof notificationRows.value = []
-  if (todoResult.status === 'fulfilled') notices.push(...todoResult.value.filter((item) => item.status === 'PENDING').map((item) => ({ id: `todo-${item.processId || item.id}`, title: item.title || '待审批事项', detail: `流程 ${item.processId || item.id} 等待处理`, kind: '待审批', to: { path: '/approvals', query: { workflow: String(item.processId || item.id) } } })))
-  if (dashboardResult.status === 'fulfilled') notices.push(...(dashboardResult.value?.risks || []).map((item) => ({ id: `risk-${item.id}`, title: item.title, detail: item.detail, kind: '风险提醒', to: { path: '/approvals', query: { status: 'PENDING' } } })))
-  notificationRows.value = notices
-  notificationsLoading.value = false
-  notificationsLoaded.value = true
+  notificationsError.value = ''
+  try {
+    const result = await fetchNotifications(false, 6)
+    notificationRows.value = result.items
+    notificationUnreadCount.value = result.unreadCount
+    notificationsLoaded.value = true
+  } catch (reason) {
+    notificationsError.value = reason instanceof Error ? reason.message : '通知读取失败'
+  } finally { notificationsLoading.value = false }
 }
 
 function refreshNotifications() {
@@ -115,16 +119,26 @@ function openFirstSearchResult() {
 }
 
 async function openNotification(item: typeof notificationRows.value[number]) {
-  const next = new Set(readNotifications.value)
-  next.add(item.id)
-  readNotifications.value = next
-  localStorage.setItem('xiangyun.admin.read-notifications', JSON.stringify([...next]))
-  await navigateResult(item.to)
+  if (!item.read) await readNotification(item.id)
+  await loadNotifications(true)
+  if (item.targetPath) await navigateResult(item.targetPath)
 }
 
-function markAllRead() {
-  readNotifications.value = new Set(notificationRows.value.map((item) => item.id))
-  localStorage.setItem('xiangyun.admin.read-notifications', JSON.stringify([...readNotifications.value]))
+async function markAllRead() {
+  await readAllNotifications()
+  await loadNotifications(true)
+}
+
+async function loadPlatformContext() {
+  try {
+    const value = await fetchSystemSettings()
+    platformContext.value = value
+  } catch { /* 品牌上下文失败时保留本地安全文案，不阻断主页面。 */ }
+}
+
+function updatePlatformContext(event: Event) {
+  const detail = (event as CustomEvent<SystemSettings>).detail
+  if (detail) platformContext.value = detail
 }
 
 function handleShortcut(event: KeyboardEvent) {
@@ -149,11 +163,16 @@ function signOut() {
 onMounted(() => {
   window.addEventListener('keydown', handleShortcut)
   window.addEventListener('xiangyun:workflow-updated', refreshNotifications)
+  window.addEventListener('xiangyun:notifications-updated', refreshNotifications)
+  window.addEventListener('xiangyun:settings-updated', updatePlatformContext)
   loadNotifications()
+  loadPlatformContext()
 })
 onBeforeUnmount(() => {
   window.removeEventListener('keydown', handleShortcut)
   window.removeEventListener('xiangyun:workflow-updated', refreshNotifications)
+  window.removeEventListener('xiangyun:notifications-updated', refreshNotifications)
+  window.removeEventListener('xiangyun:settings-updated', updatePlatformContext)
   window.clearTimeout(searchTimer)
 })
 </script>
@@ -164,7 +183,7 @@ onBeforeUnmount(() => {
     <aside class="sidebar" :class="{ open: mobileOpen }">
       <div class="brand-block">
         <span class="brand-seal">乡</span>
-        <div class="brand-copy"><strong>乡耘 OS</strong><span>资源协同中枢</span></div>
+        <div class="brand-copy"><strong>{{ platformContext.platformName }}</strong><span>资源协同中枢</span></div>
         <button class="icon-button mobile-close" type="button" title="关闭导航" @click="mobileOpen = false"><X :size="18" /></button>
       </div>
       <div class="field-index"><span>当前村域</span><strong>01 / {{ session.user?.villageId || '--' }}</strong></div>
@@ -175,8 +194,9 @@ onBeforeUnmount(() => {
       </nav>
       <div class="nav-extension" :aria-hidden="collapsed">
         <span>管理工具</span>
+        <RouterLink class="nav-tool-link" to="/notifications" @click="mobileOpen = false"><Bell :size="18" />通知中心<b v-if="unreadCount">{{ unreadCount > 9 ? '9+' : unreadCount }}</b></RouterLink>
+        <RouterLink v-if="session.user?.role === 'ADMIN'" class="nav-tool-link" to="/settings" @click="mobileOpen = false"><Settings :size="18" />系统设置</RouterLink>
         <ComingSoonButton><FolderKanban :size="18" />数据分析</ComingSoonButton>
-        <ComingSoonButton><Settings :size="18" />系统设置</ComingSoonButton>
       </div>
       <div class="sidebar-foot">
         <div class="user-compact"><span>{{ session.user?.displayName?.slice(0, 1) }}</span><div><strong>{{ session.user?.displayName }}</strong><small>{{ session.user?.role }}</small></div></div>
@@ -188,12 +208,12 @@ onBeforeUnmount(() => {
         <div class="topbar-title">
           <button class="icon-button menu-button" type="button" title="打开导航" @click="mobileOpen = true"><Menu :size="20" /></button>
           <button class="icon-button collapse-button" type="button" :title="collapsed ? '展开侧栏' : '收起侧栏'" :aria-expanded="!collapsed" @click="collapsed = !collapsed"><ChevronLeft :size="18" /></button>
-          <div><span>乡村运营协同平台</span><h1>{{ pageTitle }}</h1></div>
+          <div><span>{{ platformContext.villageName }}运营协同平台</span><h1>{{ pageTitle }}</h1></div>
         </div>
         <div class="topbar-actions">
           <label class="search-box" @click="openSearch"><Search :size="17" /><input v-model="searchQuery" type="search" placeholder="搜索资源、流程、报表..." @focus="openSearch" @keydown.enter.prevent="openFirstSearchResult" /><kbd>Ctrl K</kbd></label>
-          <button class="icon-button" type="button" :title="`${unreadCount} 条未读通知`" :aria-expanded="activePanel === 'notifications'" @click="openNotifications"><Bell :size="19" /><i v-if="unreadCount" /><b v-if="unreadCount" class="notification-count">{{ unreadCount > 9 ? '9+' : unreadCount }}</b></button>
-          <button class="topbar-user" type="button" :aria-expanded="activePanel === 'user'" @click="activePanel = activePanel === 'user' ? null : 'user'"><span>{{ session.user?.displayName?.slice(0, 1) }}</span><div><strong>{{ session.user?.displayName }}</strong><small>青禾村</small></div><ChevronDown :size="15" /></button>
+          <button class="icon-button" type="button" :title="`${unreadCount} 条未读通知`" :aria-expanded="activePanel === 'notifications'" @click="openNotifications"><Bell :size="19" /><b v-if="unreadCount" class="notification-count">{{ unreadCount > 9 ? '9+' : unreadCount }}</b></button>
+          <button class="topbar-user" type="button" :aria-expanded="activePanel === 'user'" @click="activePanel = activePanel === 'user' ? null : 'user'"><span>{{ session.user?.displayName?.slice(0, 1) }}</span><div><strong>{{ session.user?.displayName }}</strong><small>{{ platformContext.villageName }}</small></div><ChevronDown :size="15" /></button>
         </div>
       </header>
       <button v-if="activePanel" class="topbar-popover-scrim" type="button" aria-label="关闭浮层" @click="activePanel = null" />
@@ -203,13 +223,14 @@ onBeforeUnmount(() => {
         <footer><span v-if="searchPartial">已返回核心结果，用户目录暂时不可用</span><span v-else>Enter 打开首条结果</span><span>Esc 关闭</span></footer>
       </section>
       <section v-if="activePanel === 'notifications'" class="topbar-popover notification-popover">
-        <header><div><span>运营提醒</span><h3>通知中心</h3></div><button type="button" :disabled="!notificationRows.length" @click="markAllRead"><Check :size="14" />全部已读</button></header>
-        <div v-if="notificationsLoading" class="popover-state">正在汇总待办与风险...</div><div v-else-if="notificationRows.length" class="notification-list"><button v-for="item in notificationRows" :key="item.id" type="button" :class="{ read: readNotifications.has(item.id) }" @click="openNotification(item)"><i /><div><span>{{ item.kind }}</span><strong>{{ item.title }}</strong><p>{{ item.detail }}</p></div><ChevronRight :size="16" /></button></div><div v-else class="popover-state"><Check :size="22" />当前没有新的运营提醒</div>
+        <header><div><span>运营提醒</span><h3>通知中心</h3></div><button type="button" :disabled="!unreadCount || notificationsLoading" @click="markAllRead"><Check :size="14" />全部已读</button></header>
+        <div v-if="notificationsLoading" class="popover-state">正在读取账号通知...</div><div v-else-if="notificationsError" class="popover-state search-error-state"><span>{{ notificationsError }}</span><button type="button" @click="loadNotifications(true)">重新加载</button></div><div v-else-if="notificationRows.length" class="notification-list"><button v-for="item in notificationRows" :key="item.id" type="button" :class="{ read: item.read }" @click="openNotification(item)"><i /><div><span>{{ notificationKind(item) }}</span><strong>{{ item.title }}</strong><p>{{ item.content }}</p></div><ChevronRight :size="16" /></button></div><div v-else class="popover-state"><Check :size="22" />当前没有新的运营提醒</div>
+        <footer class="notification-popover-footer"><RouterLink to="/notifications" @click="activePanel = null">查看全部通知<ChevronRight :size="15" /></RouterLink></footer>
       </section>
       <section v-if="activePanel === 'user'" class="topbar-popover user-popover">
         <header><span>{{ session.user?.displayName?.slice(0, 1) }}</span><div><strong>{{ session.user?.displayName }}</strong><small>{{ session.user?.username }} · {{ session.user?.role }}</small></div></header>
-        <dl><div><dt>当前村域</dt><dd>{{ session.user?.villageId || '--' }}</dd></div><div><dt>系统版本</dt><dd>v2.1.0</dd></div></dl>
-        <button type="button" disabled><UserRound :size="16" />个人信息<small>即将上线</small></button><button class="logout-menu-item" type="button" @click="signOut"><LogOut :size="16" />退出登录</button>
+        <dl><div><dt>当前村域</dt><dd>{{ platformContext.villageName }}</dd></div><div><dt>系统版本</dt><dd>{{ platformContext.systemVersion }}</dd></div></dl>
+        <button type="button" @click="navigateResult('/profile')"><UserRound :size="16" />个人中心<small>账号与安全</small></button><button class="logout-menu-item" type="button" @click="signOut"><LogOut :size="16" />退出登录</button>
       </section>
       <section class="page-content"><RouterView /></section>
     </main>

@@ -3,8 +3,9 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import L, { type Map as LeafletMap, type Marker } from 'leaflet'
 import 'leaflet/dist/leaflet.css'
-import { ArrowRight, Camera, LandPlot, Layers3, MapPin, RefreshCw, Search, TrendingUp } from '@lucide/vue'
+import { ArrowRight, Camera, LandPlot, Layers3, LocateFixed, MapPin, RefreshCw, Search, TrendingUp } from '@lucide/vue'
 import { fetchResourceMapPoints } from '../api/business'
+import { fetchSystemSettings } from '../api/settings'
 import PageState from '../components/PageState.vue'
 import StatusBadge from '../components/StatusBadge.vue'
 import type { ResourceItem } from '../types/business'
@@ -19,6 +20,7 @@ const category = ref('ALL')
 const keyword = ref('')
 const loading = ref(true)
 const error = ref('')
+const defaultCenter = ref<[number, number]>([30.640522, 119.681337])
 
 let map: LeafletMap | null = null
 let markerLayer: L.LayerGroup | null = null
@@ -121,6 +123,7 @@ function createTooltip(item: ResourceItem) {
 function initializeMap() {
   if (map || !mapElement.value) return
   map = L.map(mapElement.value, { zoomControl: false, minZoom: 12, maxZoom: 19 })
+    .setView(defaultCenter.value, 14)
   L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
     attribution: '&copy; OpenStreetMap contributors',
@@ -186,11 +189,23 @@ function openResource(item: ResourceItem) {
   router.push(`/resources/${item.id}`)
 }
 
+function centerVillage() {
+  initializeMap()
+  map?.flyTo(defaultCenter.value, 14, { animate: true, duration: .65 })
+}
+
 async function load() {
   loading.value = true
   error.value = ''
   try {
-    rows.value = await fetchResourceMapPoints()
+    const [resources, settings] = await Promise.all([
+      fetchResourceMapPoints(),
+      fetchSystemSettings().catch(() => null),
+    ])
+    rows.value = resources
+    if (settings && Number.isFinite(settings.mapCenterLat) && Number.isFinite(settings.mapCenterLng)) {
+      defaultCenter.value = [settings.mapCenterLat, settings.mapCenterLng]
+    }
     selected.value = rows.value.find((item) => item.lat != null && item.lng != null) || rows.value[0] || null
   } catch (reason) {
     error.value = reason instanceof Error ? reason.message : '资源地图读取失败'
@@ -231,6 +246,7 @@ onBeforeUnmount(() => {
     <section class="map-toolbar">
       <div class="map-categories"><button v-for="item in categories" :key="item" type="button" :class="{ active: category === item }" @click="category = item">{{ item === 'ALL' ? '全部资源' : item }}</button></div>
       <label><Search :size="18" /><input v-model="keyword" placeholder="搜索资源或地址" /></label>
+      <button class="icon-button" type="button" title="回到村域中心" @click="centerVillage"><LocateFixed :size="18" /></button>
       <button class="icon-button" type="button" title="刷新地图" @click="load"><RefreshCw :size="18" /></button>
     </section>
     <PageState :loading="loading" :error="error" :empty="!filtered.length" empty-text="当前筛选下没有资源点位" @retry="load">
