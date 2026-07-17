@@ -157,6 +157,26 @@ export async function offlineResource(id: string) {
   await http.post(`/resources/${id}/offline`)
 }
 
+export interface ResourceBatchItemResult {
+  id: string
+  success: boolean
+  message: string
+  status?: string
+}
+
+export interface ResourceBatchResponse {
+  action: 'PUBLISH' | 'OFFLINE'
+  requested: number
+  succeeded: number
+  failed: number
+  items: ResourceBatchItemResult[]
+}
+
+export async function batchResourceAction(ids: string[], action: 'PUBLISH' | 'OFFLINE') {
+  const response = await http.post<ApiResponse<ResourceBatchResponse>>('/resources/batch/actions', { ids, action })
+  return response.data.data
+}
+
 export type ResourcePayload = Pick<ResourceItem, 'name' | 'category' | 'address' | 'area' | 'annualEstimate' | 'investmentStatus' | 'intro' | 'owner' | 'contact' | 'ownershipStatus' | 'materialStatus' | 'investmentNote'>
 
 export async function createResource(payload: ResourcePayload) {

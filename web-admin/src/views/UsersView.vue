@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { onMounted, reactive, ref } from 'vue'
+import { onMounted, reactive, ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { KeyRound, Pencil, Plus, Search, ShieldCheck, UserCheck, UserX, X } from '@lucide/vue'
 import { createUser, fetchUserPage, resetUserPassword, setUserEnabled, updateUser } from '../api/admin'
 import PagePager from '../components/PagePager.vue'
@@ -7,11 +8,12 @@ import PageState from '../components/PageState.vue'
 import type { UserRow } from '../types/business'
 
 const rows = ref<UserRow[]>([])
+const route = useRoute()
 const page = ref(1)
 const pageSize = 10
 const total = ref(0)
 const totalPages = ref(0)
-const keyword = ref('')
+const keyword = ref(typeof route.query.keyword === 'string' ? route.query.keyword : '')
 const role = ref('ALL')
 const loading = ref(true)
 const saving = ref(false)
@@ -46,6 +48,13 @@ function changePage(nextPage: number) {
   page.value = nextPage
   load()
 }
+
+watch(() => route.query.keyword, (value) => {
+  const next = typeof value === 'string' ? value : ''
+  if (next === keyword.value) return
+  keyword.value = next
+  applyFilters()
+})
 
 function open(item?: UserRow) {
   editing.value = item || 'new'

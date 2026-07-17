@@ -2,13 +2,14 @@
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Activity, ArrowRight, ClipboardList, Eye, FolderKanban, History, LandPlot, MapPinned, MapPin, Pencil, Plus, RefreshCw, Search, Users, X } from '@lucide/vue'
-import { createResource, fetchResource, fetchResourceActivity, fetchResourceApplicationCount, fetchResourcePage, offlineResource, publishResource, updateResource } from '../api/business'
+import { batchResourceAction, createResource, fetchResource, fetchResourceActivity, fetchResourceApplicationCount, fetchResourcePage, offlineResource, publishResource, updateResource } from '../api/business'
 import AsyncPanel from '../components/AsyncPanel.vue'
 import PagePager from '../components/PagePager.vue'
 import PageState from '../components/PageState.vue'
 import ResourceMaterialManager from '../components/ResourceMaterialManager.vue'
 import StatusBadge from '../components/StatusBadge.vue'
 import { useSessionStore } from '../stores/session'
+import type { ResourceBatchResponse } from '../api/business'
 import type { ResourceActivity, ResourceItem } from '../types/business'
 
 const session = useSessionStore()
@@ -37,6 +38,12 @@ const saving = ref(false)
 const form = reactive({ name: '', category: '闲置农房', address: '', area: 100 as number | null, annualEstimate: 10 as number | null, investmentStatus: '可招商', intro: '', owner: '', contact: '', ownershipStatus: '村集体确认', materialStatus: '基础材料齐全', investmentNote: '' })
 const canMaintain = computed(() => ['STAFF', 'ADMIN'].includes(session.user?.role || ''))
 const canControlLifecycle = computed(() => session.user?.role === 'ADMIN')
+const selectedIds = ref<Set<string>>(new Set())
+const allPageSelected = computed(() => Boolean(rows.value.length) && rows.value.every(item => selectedIds.value.has(item.id)))
+const batchAction = ref<'PUBLISH' | 'OFFLINE' | null>(null)
+const batchSaving = ref(false)
+const batchResult = ref<ResourceBatchResponse | null>(null)
+const batchNames = ref<Record<string, string>>({})
 
 async function load() {
   loading.value = true
@@ -77,11 +84,13 @@ async function openDetail(id: string, syncRoute = true) {
 }
 
 function applyFilters() {
+  selectedIds.value = new Set()
   page.value = 1
   load()
 }
 
 function changePage(nextPage: number) {
+  selectedIds.value = new Set()
   page.value = nextPage
   load()
 }
@@ -108,6 +117,62 @@ async function changeState(item: ResourceItem, action: 'publish' | 'offline') {
     error.value = reason instanceof Error ? reason.message : `${verb}操作失败`
   } finally {
     window.setTimeout(() => { notice.value = '' }, 2600)
+  }
+}
+
+function toggleResource(id: string, checked: boolean) {
+  const next = new Set(selectedIds.value)
+  if (checked) next.add(id)
+  else next.delete(id)
+  selectedIds.value = next
+}
+
+function onToggleResource(id: string, event: Event) {
+  toggleResource(id, (event.target as HTMLInputElement).checked)
+}
+
+function toggleCurrentPage(checked: boolean) {
+  const next = new Set(selectedIds.value)
+  for (const item of rows.value) {
+    if (checked) next.add(item.id)
+    else next.delete(item.id)
+  }
+  selectedIds.value = next
+}
+
+function onToggleCurrentPage(event: Event) {
+  toggleCurrentPage((event.target as HTMLInputElement).checked)
+}
+
+function openBatchAction(action: 'PUBLISH' | 'OFFLINE') {
+  if (!selectedIds.value.size) return
+  batchNames.value = Object.fromEntries(rows.value.map(item => [item.id, item.name]))
+  batchResult.value = null
+  batchAction.value = action
+}
+
+function closeBatchAction() {
+  if (batchSaving.value) return
+  batchAction.value = null
+  batchResult.value = null
+}
+
+async function executeBatchAction() {
+  if (!batchAction.value || !selectedIds.value.size) return
+  batchSaving.value = true
+  error.value = ''
+  try {
+    batchResult.value = await batchResourceAction([...selectedIds.value], batchAction.value)
+    if (batchResult.value.succeeded) {
+      selectedIds.value = new Set()
+      await load()
+    }
+  } catch (reason) {
+    error.value = reason instanceof Error ? reason.message : '批量资源操作失败'
+    batchAction.value = null
+    batchResult.value = null
+  } finally {
+    batchSaving.value = false
   }
 }
 
@@ -161,8 +226,9 @@ onMounted(async () => {
     <section class="page-intro"><div><p>统一资源底账</p><h2>资源档案</h2></div><div class="resource-heading-actions"><div class="count-summary"><strong>{{ total }}</strong><span>项匹配资源</span></div><button v-if="canMaintain" class="primary-button compact-primary" type="button" @click="openEditor()"><Plus :size="17" />新增资源</button></div></section>
     <div v-if="notice" class="toast-notice"><LandPlot :size="16" />{{ notice }}</div>
     <section class="business-toolbar resource-toolbar"><div class="filter-group"><label><Search :size="16" /><input v-model="keyword" placeholder="搜索资源名称" @keyup.enter="applyFilters" /></label><select v-model="category" @change="applyFilters"><option value="ALL">全部类型</option><option value="闲置农房">闲置农房</option><option value="土地">土地</option><option value="文旅空间">文旅空间</option></select><select v-model="investmentStatus" @change="applyFilters"><option value="ALL">全部招商状态</option><option value="可招商">可招商</option><option value="洽谈中">洽谈中</option><option value="已签约">已签约</option><option value="已下架">已下架</option></select><button class="secondary-button query-button" type="button" @click="applyFilters"><RefreshCw :size="15" />查询</button></div></section>
+    <section v-if="canControlLifecycle && selectedIds.size" class="bulk-action-bar"><div><strong>已选择 {{ selectedIds.size }} 个资源</strong><span>批量操作会逐条执行并返回成功、失败明细</span></div><div><button class="secondary-button" type="button" @click="selectedIds = new Set()">取消选择</button><button class="secondary-button batch-publish" type="button" @click="openBatchAction('PUBLISH')">批量发布</button><button class="secondary-button batch-offline" type="button" @click="openBatchAction('OFFLINE')">批量下架</button></div></section>
     <PageState :loading="loading" :error="error" :empty="!rows.length" empty-text="没有符合条件的资源" @retry="load">
-      <section class="table-panel"><div class="table-scroll"><table><thead><tr><th>资源</th><th>类型</th><th>面积</th><th>年收益预估</th><th>招商状态</th><th>操作</th></tr></thead><tbody><tr v-for="item in rows" :key="item.id" class="clickable-row" tabindex="0" @click="openDetail(item.id)" @keydown.enter="openDetail(item.id)"><td><strong>{{ item.name }}</strong><small><MapPin :size="12" />{{ item.address || item.owner || '地址待完善' }}</small></td><td>{{ item.category || '--' }}</td><td>{{ item.area == null ? '--' : `${item.area} ㎡` }}</td><td>{{ money(item.annualEstimate) }}</td><td><StatusBadge :status="item.investmentStatus" /></td><td><div class="row-buttons"><button class="table-action" type="button" @click.stop="openDetail(item.id)"><Eye :size="15" />详情</button><button v-if="canMaintain" class="table-action" type="button" @click.stop="openEditor(item)"><Pencil :size="14" />编辑</button><template v-if="canControlLifecycle"><button class="table-action approve" type="button" @click.stop="changeState(item, 'publish')">发布</button><button class="table-action reject" type="button" @click.stop="changeState(item, 'offline')">下架</button></template></div></td></tr></tbody></table></div><PagePager :page="page" :page-size="pageSize" :total="total" :total-pages="totalPages" @change="changePage" /></section>
+      <section class="table-panel"><div class="table-scroll"><table><thead><tr><th v-if="canControlLifecycle" class="selection-column"><input type="checkbox" aria-label="选择当前页资源" :checked="allPageSelected" @change="onToggleCurrentPage" /></th><th>资源</th><th>类型</th><th>面积</th><th>年收益预估</th><th>招商状态</th><th>操作</th></tr></thead><tbody><tr v-for="item in rows" :key="item.id" class="clickable-row" :class="{ selected: selectedIds.has(item.id) }" tabindex="0" @click="openDetail(item.id)" @keydown.enter="openDetail(item.id)"><td v-if="canControlLifecycle" class="selection-column" @click.stop><input type="checkbox" :aria-label="`选择资源 ${item.name}`" :checked="selectedIds.has(item.id)" @change="onToggleResource(item.id, $event)" /></td><td><strong>{{ item.name }}</strong><small><MapPin :size="12" />{{ item.address || item.owner || '地址待完善' }}</small></td><td>{{ item.category || '--' }}</td><td>{{ item.area == null ? '--' : `${item.area} ㎡` }}</td><td>{{ money(item.annualEstimate) }}</td><td><StatusBadge :status="item.investmentStatus" /></td><td><div class="row-buttons"><button class="table-action" type="button" @click.stop="openDetail(item.id)"><Eye :size="15" />详情</button><button v-if="canMaintain" class="table-action" type="button" @click.stop="openEditor(item)"><Pencil :size="14" />编辑</button><template v-if="canControlLifecycle"><button class="table-action approve" type="button" @click.stop="changeState(item, 'publish')">发布</button><button class="table-action reject" type="button" @click.stop="changeState(item, 'offline')">下架</button></template></div></td></tr></tbody></table></div><PagePager :page="page" :page-size="pageSize" :total="total" :total-pages="totalPages" @change="changePage" /></section>
     </PageState>
     <div v-if="detailId" class="drawer-layer" @click.self="closeDetail"><aside class="detail-drawer resource-detail-drawer"><header><div><span>资源编号 {{ detail?.id || detailId }}</span><h3>{{ detail?.name || '资源详情' }}</h3></div><div class="drawer-actions"><StatusBadge v-if="detail" :status="detail.investmentStatus" /><button v-if="canMaintain && detail" class="secondary-button" type="button" @click="openEditor(detail)"><Pencil :size="15" />编辑</button><button class="icon-button" type="button" title="关闭" @click="closeDetail"><X :size="18" /></button></div></header><div class="drawer-body">
       <AsyncPanel :loading="detailLoading" :error="detailError" :empty="!detail" empty-text="资源档案不存在" :skeleton-rows="7" @retry="openDetail(detailId, false)">
@@ -179,6 +245,7 @@ onMounted(async () => {
       </template>
       </AsyncPanel>
     </div></aside></div>
+    <div v-if="batchAction" class="dialog-layer" @click.self="closeBatchAction"><aside class="decision-dialog batch-dialog"><header><div><span>{{ batchResult ? '执行结果' : '危险操作确认' }}</span><h3>{{ batchAction === 'PUBLISH' ? '批量发布资源' : '批量下架资源' }}</h3></div><button class="icon-button" type="button" title="关闭" :disabled="batchSaving" @click="closeBatchAction"><X :size="18" /></button></header><template v-if="!batchResult"><section class="batch-impact"><strong>即将处理 {{ selectedIds.size }} 个资源</strong><p v-if="batchAction === 'OFFLINE'">下架后，普通用户将无法继续对这些资源提交合作申请。</p><p v-else>发布后，这些资源将进入可招商状态并对业务端开放。</p><small>系统会逐条执行；单条失败不会回滚已经成功的资源，完整结果将写入审计日志。</small></section><footer><button class="secondary-button" type="button" :disabled="batchSaving" @click="closeBatchAction">取消</button><button class="primary-button dialog-submit" :class="{ danger: batchAction === 'OFFLINE' }" type="button" :disabled="batchSaving" @click="executeBatchAction">{{ batchSaving ? '正在逐条处理...' : `确认${batchAction === 'PUBLISH' ? '发布' : '下架'}` }}</button></footer></template><template v-else><section class="batch-summary"><article><span>请求</span><strong>{{ batchResult.requested }}</strong></article><article class="success"><span>成功</span><strong>{{ batchResult.succeeded }}</strong></article><article :class="{ failed: batchResult.failed }"><span>失败</span><strong>{{ batchResult.failed }}</strong></article></section><section class="batch-result-list"><article v-for="item in batchResult.items" :key="item.id" :class="{ failed: !item.success }"><i>{{ item.success ? '✓' : '!' }}</i><div><strong>{{ batchNames[item.id] || `资源 #${item.id}` }}</strong><span>{{ item.message }}</span></div><StatusBadge v-if="item.status" :status="item.status" /></article></section><footer><button class="primary-button dialog-submit" type="button" @click="closeBatchAction">完成</button></footer></template></aside></div>
     <div v-if="editing" class="dialog-layer" @click.self="editing = null"><form class="entity-dialog resource-dialog" @submit.prevent="saveResource"><header><div><span>{{ editing === 'new' ? '创建档案' : '更新档案' }}</span><h3>{{ editing === 'new' ? '新增乡村资源' : form.name }}</h3></div><button class="icon-button" type="button" title="关闭" @click="editing = null"><X :size="18" /></button></header><div class="entity-form"><div class="form-grid two"><label><span>资源名称</span><input v-model="form.name" required /></label><label><span>资源类型</span><select v-model="form.category"><option>闲置农房</option><option>土地</option><option>文旅空间</option><option>研学基地</option></select></label></div><label><span>资源地址</span><input v-model="form.address" required /></label><div class="form-grid three"><label><span>面积（㎡）</span><input v-model.number="form.area" type="number" min="0" step="0.01" /></label><label><span>年收益预估（万元）</span><input v-model.number="form.annualEstimate" type="number" min="0" step="0.01" /></label><label><span>招商状态</span><select v-model="form.investmentStatus"><option>可招商</option><option>洽谈中</option><option>已签约</option><option>已下架</option></select></label></div><label><span>资源介绍</span><textarea v-model="form.intro" rows="3" /></label><div class="form-grid two"><label><span>权属单位</span><input v-model="form.owner" /></label><label><span>联系方式</span><input v-model="form.contact" /></label></div><div class="form-grid two"><label><span>确权状态</span><input v-model="form.ownershipStatus" /></label><label><span>材料状态</span><input v-model="form.materialStatus" /></label></div><label><span>招商说明</span><textarea v-model="form.investmentNote" rows="2" /></label></div><footer><button class="secondary-button" type="button" @click="editing = null">取消</button><button class="primary-button dialog-submit" type="submit" :disabled="saving">{{ saving ? '正在保存...' : '保存资源' }}</button></footer></form></div>
   </div>
 </template>

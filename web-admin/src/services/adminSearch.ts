@@ -1,4 +1,4 @@
-import type { ResourceItem, UserRow, WeeklyReport, WorkflowItem } from '../types/business'
+import type { AdminSearchApiItem } from '../api/search'
 
 export interface AdminSearchResult {
   id: string
@@ -8,25 +8,25 @@ export interface AdminSearchResult {
   to: string | { path: string; query: Record<string, string> }
 }
 
-export interface AdminSearchIndex {
-  resources: ResourceItem[]
-  workflows: WorkflowItem[]
-  reports: WeeklyReport[]
-  users: UserRow[]
-}
-
 const RECENT_KEY = 'xiangyun.admin.recent-search-results'
 
-export function searchAdminIndex(query: string, index: AdminSearchIndex): AdminSearchResult[] {
-  const term = query.trim().toLowerCase()
-  if (!term) return []
-  const matches = (value: string) => value.toLowerCase().includes(term)
-  return [
-    ...index.resources.filter((item) => matches(`${item.name} ${item.category} ${item.address || ''}`)).slice(0, 4).map((item): AdminSearchResult => ({ id: `resource-${item.id}`, type: '资源', title: item.name, meta: `${item.category} · ${item.address || '地址待完善'}`, to: `/resources/${item.id}` })),
-    ...index.workflows.filter((item) => matches(`${item.title} ${item.processId || item.id} ${item.applicant || ''}`)).slice(0, 4).map((item): AdminSearchResult => ({ id: `workflow-${item.processId || item.id}`, type: '流程', title: item.title || '合作申请', meta: `流程 ${item.processId || item.id} · ${item.status}`, to: { path: '/approvals', query: { workflow: String(item.processId || item.id) } } })),
-    ...index.reports.filter((item) => matches(`${item.title} ${item.summary}`)).slice(0, 3).map((item): AdminSearchResult => ({ id: `report-${item.id}`, type: '周报', title: item.title, meta: `${item.weekStart} 至 ${item.weekEnd}`, to: '/weekly-report' })),
-    ...index.users.filter((item) => matches(`${item.username} ${item.displayName}`)).slice(0, 3).map((item): AdminSearchResult => ({ id: `user-${item.id}`, type: '用户', title: item.displayName, meta: `${item.username} · ${item.role}`, to: '/users' })),
-  ].slice(0, 10)
+const labels = { RESOURCE: '资源', WORKFLOW: '流程', REPORT: '周报', USER: '用户' } as const
+
+function searchTarget(item: AdminSearchApiItem): AdminSearchResult['to'] {
+  if (item.type === 'RESOURCE') return `/resources/${item.id}`
+  if (item.type === 'WORKFLOW') return { path: '/approvals', query: { workflow: item.id } }
+  if (item.type === 'USER') return { path: '/users', query: { keyword: item.title } }
+  return '/weekly-report'
+}
+
+export function toAdminSearchResults(items: AdminSearchApiItem[]): AdminSearchResult[] {
+  return items.map((item) => ({
+    id: `${item.type.toLowerCase()}-${item.id}`,
+    type: labels[item.type],
+    title: item.title,
+    meta: [item.subtitle, item.status].filter(Boolean).join(' · '),
+    to: searchTarget(item),
+  }))
 }
 
 export function recentSearchResults(): AdminSearchResult[] {
