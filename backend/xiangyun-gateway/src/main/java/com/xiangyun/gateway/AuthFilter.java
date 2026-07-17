@@ -33,7 +33,7 @@ public class AuthFilter implements GlobalFilter, Ordered {
     private static final Set<String> PUBLIC_PATHS = Set.of("/api/auth/login", "/api/auth/register");
     private static final Set<String> ADMIN_PREFIXES = Set.of("/api/users", "/api/roles", "/api/audit-logs");
     private static final Set<String> ADMIN_PATHS = Set.of("/api/dashboard/refresh");
-    private static final Set<String> STAFF_OR_ADMIN_PATHS = Set.of("/api/dashboard/admin-overview");
+    private static final Set<String> STAFF_OR_ADMIN_PATHS = Set.of("/api/dashboard/admin-overview", "/api/search");
     private static final Set<String> ADMIN_WRITE_PREFIXES = Set.of(
             "/api/villages",
             "/api/resource-tags",
@@ -112,6 +112,9 @@ public class AuthFilter implements GlobalFilter, Ordered {
     }
 
     private boolean requiresAdmin(String path, String method) {
+        if ("/api/resources/batch/actions".equals(path)) {
+            return true;
+        }
         if (ADMIN_PATHS.contains(path)) {
             return true;
         }

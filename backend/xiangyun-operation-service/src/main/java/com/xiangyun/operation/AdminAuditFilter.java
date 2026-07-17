@@ -93,6 +93,7 @@ public class AdminAuditFilter extends OncePerRequestFilter {
     }
 
     private String action(String method, String path) {
+        if ("/api/resources/batch/actions".equals(path)) return "BATCH_RESOURCE_ACTION";
         if (path.matches("/api/resources/[^/]+/materials") && "POST".equals(method)) return "UPLOAD_RESOURCE_MATERIAL";
         if (path.matches("/api/resources/[^/]+/materials/[^/]+/replace")) return "REPLACE_RESOURCE_MATERIAL";
         if (path.matches("/api/resources/[^/]+/materials/[^/]+/cover")) return "SET_RESOURCE_COVER";

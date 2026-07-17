@@ -81,6 +81,14 @@ public class AuthController {
         return ApiResponse.success(authService.userPage(keyword, role, enabled, page, pageSize));
     }
 
+    @GetMapping("/internal/users/search")
+    public ApiResponse<List<com.xiangyun.common.dto.UserSummary>> searchUsers(
+            @RequestParam String keyword,
+            @RequestParam String villageId,
+            @RequestParam(defaultValue = "5") Integer limit) {
+        return ApiResponse.success(authService.searchUserSummaries(keyword, villageId, limit));
+    }
+
     @PostMapping("/users")
     public ApiResponse<Map<String, Object>> createUser(@RequestBody Map<String, Object> body,
                                                        HttpServletRequest request) {

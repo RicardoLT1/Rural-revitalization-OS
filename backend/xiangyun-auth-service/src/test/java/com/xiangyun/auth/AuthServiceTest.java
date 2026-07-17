@@ -148,4 +148,12 @@ class AuthServiceTest {
         assertThat(authService.summary("2").role()).isEqualTo("STAFF");
         assertThat(authService.summary("3").role()).isEqualTo("ADMIN");
     }
+
+    @Test
+    void internalUserSearchHonorsVillageAndLimit() {
+        var results = authService.searchUserSummaries("demo", "1", 2);
+
+        assertThat(results).hasSize(2);
+        assertThat(results).allMatch(user -> "1".equals(user.villageId()));
+    }
 }

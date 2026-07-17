@@ -45,7 +45,7 @@ spring:
         - id: operation-service
           uri: lb://xiangyun-operation-service
           predicates:
-            - Path=/api/villages,/api/villages/**,/api/resources,/api/resources/**,/api/resource-tags,/api/resource-tags/**,/api/workflows/**,/api/todos,/api/todos/**,/api/operation/**,/api/audit-logs,/api/audit-logs/**
+            - Path=/api/villages,/api/villages/**,/api/resources,/api/resources/**,/api/resource-tags,/api/resource-tags/**,/api/workflows/**,/api/todos,/api/todos/**,/api/operation/**,/api/audit-logs,/api/audit-logs/**,/api/search
           filters:
             - RemoveResponseHeader=Content-Length
             - DedupeResponseHeader=Content-Type, RETAIN_LAST

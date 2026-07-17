@@ -36,6 +36,16 @@ public class OperationController {
         return ApiResponse.success(operationService.villages());
     }
 
+    @GetMapping("/search")
+    public ApiResponse<AdminSearchResponse> globalSearch(
+            @RequestHeader(value = SecurityHeaders.VILLAGE_ID, defaultValue = "1") String villageId,
+            @RequestHeader(value = SecurityHeaders.ROLE, defaultValue = "STAFF") String role,
+            @RequestParam("q") String query,
+            @RequestParam(defaultValue = "ALL") String type,
+            @RequestParam(defaultValue = "10") Integer limit) {
+        return ApiResponse.success(operationService.globalSearch(query, type, limit, villageId, role));
+    }
+
     @PostMapping("/villages")
     public ApiResponse<Map<String, Object>> createVillage(@RequestBody Map<String, Object> body) {
         return ApiResponse.success(Map.of("created", true, "payload", body));
@@ -171,6 +181,23 @@ public class OperationController {
         Map<String, Object> result = operationService.updateInvestmentStatus(
                 id, String.valueOf(body.getOrDefault("investmentStatus", "洽谈中")));
         AdminAuditContext.after(request, safeResourceSnapshot(id, result));
+        return ApiResponse.success(result);
+    }
+
+    @PostMapping("/resources/batch/actions")
+    public ApiResponse<ResourceBatchResponse> batchResourceAction(
+            @RequestHeader(value = SecurityHeaders.ROLE, defaultValue = "") String role,
+            @RequestBody ResourceBatchRequest body,
+            HttpServletRequest request) {
+        if (!"ADMIN".equals(role)) {
+            throw new com.xiangyun.common.BusinessException(40300, "仅管理员可以执行批量资源操作");
+        }
+        List<String> ids = body == null || body.ids() == null ? List.of() : body.ids();
+        String action = body == null ? "" : body.action();
+        AdminAuditContext.targetId(request, String.join(",", ids));
+        AdminAuditContext.before(request, Map.of("action", action == null ? "" : action, "requested", ids.size()));
+        ResourceBatchResponse result = operationService.batchResourceAction(ids, action);
+        AdminAuditContext.after(request, result);
         return ApiResponse.success(result);
     }
 

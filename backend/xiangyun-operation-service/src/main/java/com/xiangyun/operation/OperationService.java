@@ -1,6 +1,7 @@
 package com.xiangyun.operation;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.xiangyun.common.ApiResponse;
 import com.xiangyun.common.BusinessException;
 import com.xiangyun.common.dto.OperationStats;
 import com.xiangyun.common.dto.AdminOperationOverview;
@@ -58,6 +59,112 @@ public class OperationService {
 
     public List<Map<String, Object>> villages() {
         return jdbcTemplate.queryForList("select id, name, region, address, status from village where deleted=0 order by id");
+    }
+
+    public AdminSearchResponse globalSearch(String query,
+                                            String type,
+                                            Integer limit,
+                                            String villageId,
+                                            String role) {
+        String term = query == null ? "" : query.trim();
+        if (term.length() > 50) {
+            throw new BusinessException(40008, "搜索关键词不能超过 50 个字符");
+        }
+        int actualLimit = Math.max(1, Math.min(limit == null ? 10 : limit, 20));
+        String normalizedType = StringUtils.hasText(type) ? type.trim().toUpperCase() : "ALL";
+        List<String> selectedTypes = switch (normalizedType) {
+            case "ALL" -> new ArrayList<>(List.of("RESOURCE", "WORKFLOW", "REPORT", "USER"));
+            case "RESOURCE", "WORKFLOW", "REPORT", "USER" -> new ArrayList<>(List.of(normalizedType));
+            default -> throw new BusinessException(40009, "搜索类型不合法");
+        };
+        if (!"ADMIN".equals(role)) {
+            selectedTypes.remove("USER");
+        }
+        if (!StringUtils.hasText(term) || selectedTypes.isEmpty()) {
+            return new AdminSearchResponse(term, List.of(), Map.of(), false);
+        }
+
+        int quota = normalizedType.equals("ALL")
+                ? Math.max(1, (int) Math.ceil((double) actualLimit / selectedTypes.size()))
+                : actualLimit;
+        String likeTerm = "%" + term + "%";
+        List<AdminSearchItem> results = new ArrayList<>();
+        boolean partial = false;
+        if (selectedTypes.contains("RESOURCE")) {
+            results.addAll(searchResources(villageId, likeTerm, quota));
+        }
+        if (selectedTypes.contains("WORKFLOW")) {
+            results.addAll(searchWorkflows(villageId, likeTerm, quota));
+        }
+        if (selectedTypes.contains("REPORT")) {
+            results.addAll(searchReports(villageId, likeTerm, quota));
+        }
+        if (selectedTypes.contains("USER")) {
+            try {
+                ApiResponse<List<UserSummary>> response = authClient.searchUsers(term, villageId, quota);
+                List<UserSummary> users = response == null || response.data() == null ? List.of() : response.data();
+                results.addAll(users.stream().map(user -> new AdminSearchItem(
+                        user.id(), "USER", user.displayName(), user.username(), user.role(), null)).toList());
+            } catch (RuntimeException ex) {
+                partial = true;
+            }
+        }
+
+        List<AdminSearchItem> items = results.stream().limit(actualLimit).toList();
+        Map<String, Integer> counts = new LinkedHashMap<>();
+        for (AdminSearchItem item : items) {
+            counts.merge(item.type(), 1, Integer::sum);
+        }
+        return new AdminSearchResponse(term, items, counts, partial);
+    }
+
+    private List<AdminSearchItem> searchResources(String villageId, String term, int limit) {
+        return jdbcTemplate.query("""
+                select id, name, category, address, investment_status, updated_at
+                from resource
+                where deleted=0 and village_id=? and (name like ? or address like ? or owner like ?)
+                order by updated_at desc, id desc limit ?
+                """, (rs, rowNum) -> new AdminSearchItem(
+                String.valueOf(rs.getLong("id")), "RESOURCE", rs.getString("name"),
+                joinSubtitle(rs.getString("category"), rs.getString("address")),
+                rs.getString("investment_status"), nullableText(rs.getObject("updated_at"))),
+                Long.parseLong(villageId), term, term, term, limit);
+    }
+
+    private List<AdminSearchItem> searchWorkflows(String villageId, String term, int limit) {
+        return jdbcTemplate.query("""
+                select id, title, applicant_name, category, status, updated_at
+                from workflow
+                where deleted=0 and village_id=? and (title like ? or cast(id as char) like ? or applicant_name like ?)
+                order by updated_at desc, id desc limit ?
+                """, (rs, rowNum) -> new AdminSearchItem(
+                String.valueOf(rs.getLong("id")), "WORKFLOW", rs.getString("title"),
+                joinSubtitle("流程 " + rs.getLong("id"), rs.getString("applicant_name")),
+                rs.getString("status"), nullableText(rs.getObject("updated_at"))),
+                Long.parseLong(villageId), term, term, term, limit);
+    }
+
+    private List<AdminSearchItem> searchReports(String villageId, String term, int limit) {
+        return jdbcTemplate.query("""
+                select id, title, week_start, week_end, status, created_at
+                from weekly_report
+                where deleted=0 and village_id=? and (title like ? or summary like ?)
+                order by week_start desc, id desc limit ?
+                """, (rs, rowNum) -> new AdminSearchItem(
+                String.valueOf(rs.getLong("id")), "REPORT", rs.getString("title"),
+                joinSubtitle(nullableText(rs.getObject("week_start")), nullableText(rs.getObject("week_end"))),
+                rs.getString("status"), nullableText(rs.getObject("created_at"))),
+                Long.parseLong(villageId), term, term, limit);
+    }
+
+    private String joinSubtitle(String first, String second) {
+        if (!StringUtils.hasText(first)) return second == null ? "" : second;
+        if (!StringUtils.hasText(second)) return first;
+        return first + " · " + second;
+    }
+
+    private String nullableText(Object value) {
+        return value == null ? null : String.valueOf(value);
     }
 
     public List<ResourceView> resources(String category, String investmentStatus, String keyword) {
@@ -205,6 +312,41 @@ public class OperationService {
 
     public Map<String, Object> offlineResource(String id) {
         return updateResourceLifecycle(id, "offline", "已下架");
+    }
+
+    public ResourceBatchResponse batchResourceAction(List<String> ids, String action) {
+        String normalizedAction = action == null ? "" : action.trim().toUpperCase();
+        if (!List.of("PUBLISH", "OFFLINE").contains(normalizedAction)) {
+            throw new BusinessException(40010, "批量资源操作不合法");
+        }
+        List<String> uniqueIds = ids == null ? List.of() : ids.stream()
+                .filter(StringUtils::hasText)
+                .map(String::trim)
+                .distinct()
+                .toList();
+        if (uniqueIds.isEmpty()) {
+            throw new BusinessException(40011, "请至少选择一个资源");
+        }
+        if (uniqueIds.size() > 50) {
+            throw new BusinessException(40012, "单次批量操作不能超过 50 个资源");
+        }
+
+        List<ResourceBatchItemResult> items = new ArrayList<>();
+        for (String id : uniqueIds) {
+            try {
+                Map<String, Object> result = "PUBLISH".equals(normalizedAction)
+                        ? publishResource(id)
+                        : offlineResource(id);
+                items.add(new ResourceBatchItemResult(id, true, "操作成功",
+                        String.valueOf(result.getOrDefault("investmentStatus", ""))));
+            } catch (RuntimeException ex) {
+                String message = StringUtils.hasText(ex.getMessage()) ? ex.getMessage() : "操作失败";
+                items.add(new ResourceBatchItemResult(id, false, message, null));
+            }
+        }
+        int succeeded = (int) items.stream().filter(ResourceBatchItemResult::success).count();
+        return new ResourceBatchResponse(normalizedAction, uniqueIds.size(), succeeded,
+                uniqueIds.size() - succeeded, items);
     }
 
     public Map<String, Object> updateInvestmentStatus(String id, String investmentStatus) {

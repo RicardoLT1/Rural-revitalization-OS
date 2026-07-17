@@ -102,6 +102,21 @@ public class AuthService {
         return users.values().stream().map(this::userRow).toList();
     }
 
+    public List<UserSummary> searchUserSummaries(String keyword, String villageId, Integer limit) {
+        String term = keyword == null ? "" : keyword.trim().toLowerCase();
+        int actualLimit = Math.max(1, Math.min(limit == null ? 5 : limit, 20));
+        return users.values().stream()
+                .filter(DemoUser::enabled)
+                .filter(user -> !StringUtils.hasText(villageId) || villageId.equals(user.villageId()))
+                .filter(user -> term.isEmpty()
+                        || user.username().toLowerCase().contains(term)
+                        || user.displayName().toLowerCase().contains(term))
+                .sorted(Comparator.comparingInt(user -> Integer.parseInt(user.id())))
+                .limit(actualLimit)
+                .map(user -> new UserSummary(user.id(), user.username(), user.displayName(), user.role(), user.villageId()))
+                .toList();
+    }
+
     public PageResponse<Map<String, Object>> userPage(String keyword,
                                                       String role,
                                                       Boolean enabled,

@@ -334,6 +334,22 @@ class AuthFilterTest {
     }
 
     @Test
+    void globalSearchRequiresStaffRole() {
+        MockServerWebExchange userExchange = authorizedExchange("GET", "/api/search?q=粮仓", "USER");
+        MockServerWebExchange staffExchange = authorizedExchange("GET", "/api/search?q=粮仓", "STAFF");
+        AtomicBoolean staffCalled = new AtomicBoolean(false);
+
+        filter.filter(userExchange, next -> Mono.empty()).block();
+        filter.filter(staffExchange, next -> {
+            staffCalled.set(true);
+            return Mono.empty();
+        }).block();
+
+        assertThat(userExchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+        assertThat(staffCalled).isTrue();
+    }
+
+    @Test
     void staffCanCreateResource() {
         MockServerWebExchange exchange = authorizedExchange("POST", "/api/resources", "STAFF");
         AtomicBoolean called = new AtomicBoolean(false);
@@ -350,9 +366,13 @@ class AuthFilterTest {
     void staffCannotPublishOrDeleteResource() {
         MockServerWebExchange publishExchange = authorizedExchange("POST", "/api/resources/101/publish", "STAFF");
         MockServerWebExchange deleteExchange = authorizedExchange("DELETE", "/api/resources/101", "STAFF");
+        MockServerWebExchange batchExchange = authorizedExchange("POST", "/api/resources/batch/actions", "STAFF");
 
         filter.filter(publishExchange, next -> Mono.empty()).block();
         filter.filter(deleteExchange, next -> Mono.empty()).block();
+        filter.filter(batchExchange, next -> Mono.empty()).block();
+
+        assertThat(batchExchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
 
         assertThat(publishExchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
         assertThat(deleteExchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);

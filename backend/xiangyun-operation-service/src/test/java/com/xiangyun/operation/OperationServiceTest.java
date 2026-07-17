@@ -43,6 +43,40 @@ class OperationServiceTest {
     }
 
     @Test
+    void globalSearchReturnsTypedVillageScopedResources() {
+        AdminSearchItem item = new AdminSearchItem("203", "RESOURCE", "老粮仓文创展厅",
+                "文旅空间 · 青耘村老粮仓片区", "洽谈中", "2026-07-17T10:00");
+        when(jdbcTemplate.query(anyString(), any(org.springframework.jdbc.core.RowMapper.class), any(Object[].class)))
+                .thenReturn(List.of(item));
+
+        AdminSearchResponse result = service.globalSearch("粮仓", "RESOURCE", 10, "1", "STAFF");
+
+        assertThat(result.items()).containsExactly(item);
+        assertThat(result.counts()).containsEntry("RESOURCE", 1);
+        assertThat(result.partial()).isFalse();
+    }
+
+    @Test
+    void staffSearchNeverReturnsUserDirectory() {
+        AdminSearchResponse result = service.globalSearch("demo", "USER", 10, "1", "STAFF");
+
+        assertThat(result.items()).isEmpty();
+    }
+
+    @Test
+    void batchResourceActionReportsPartialSuccess() {
+        when(jdbcTemplate.update(anyString(), any(Object[].class))).thenReturn(1);
+
+        ResourceBatchResponse result = service.batchResourceAction(List.of("101", "invalid"), "PUBLISH");
+
+        assertThat(result.requested()).isEqualTo(2);
+        assertThat(result.succeeded()).isEqualTo(1);
+        assertThat(result.failed()).isEqualTo(1);
+        assertThat(result.items()).anyMatch(ResourceBatchItemResult::success);
+        assertThat(result.items()).anyMatch(item -> !item.success());
+    }
+
+    @Test
     void createResourceInsertsRecord() {
         when(jdbcTemplate.update(anyString(), any(Object[].class))).thenReturn(1);
         Map<String, Object> result = service.createResource(Map.of("name", "新民宿"));
