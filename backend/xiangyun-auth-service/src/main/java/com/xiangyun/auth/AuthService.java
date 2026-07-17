@@ -72,11 +72,39 @@ public class AuthService {
     }
 
     public LoginResponse.UserProfile me(String authorization) {
-        TokenPayload payload = parseBearer(authorization);
-        assertSession(payload);
-        DemoUser user = users.values().stream().filter(item -> item.id().equals(payload.userId())).findFirst()
-                .orElseThrow(() -> new BusinessException(40100, "用户不存在"));
-        return profile(user);
+        return profile(authenticatedUser(authorization));
+    }
+
+    public synchronized LoginResponse.UserProfile updateOwnProfile(String authorization, Map<String, Object> body) {
+        DemoUser user = authenticatedUser(authorization);
+        String displayName = bodyText(body, "displayName", user.displayName());
+        if (displayName.length() < 2 || displayName.length() > 32) {
+            throw new BusinessException(40004, "姓名长度应在 2 到 32 个字符之间");
+        }
+        DemoUser updated = new DemoUser(user.id(), user.username(), displayName, user.role(), user.villageId(),
+                user.passwordHash(), user.enabled(), user.permissions());
+        users.put(updated.username(), updated);
+        return profile(updated);
+    }
+
+    public synchronized Map<String, Object> changeOwnPassword(String authorization,
+                                                               String currentPassword,
+                                                               String newPassword) {
+        DemoUser user = authenticatedUser(authorization);
+        if (!StringUtils.hasText(currentPassword) || !encoder.matches(currentPassword, user.passwordHash())) {
+            throw new BusinessException(40005, "当前密码不正确");
+        }
+        if (!StringUtils.hasText(newPassword) || newPassword.length() < 8) {
+            throw new BusinessException(40006, "新密码至少 8 位");
+        }
+        if (encoder.matches(newPassword, user.passwordHash())) {
+            throw new BusinessException(40901, "新密码不能与当前密码相同");
+        }
+        DemoUser updated = new DemoUser(user.id(), user.username(), user.displayName(), user.role(), user.villageId(),
+                encoder.encode(newPassword), user.enabled(), user.permissions());
+        users.put(updated.username(), updated);
+        invalidateUserSessions(user.id());
+        return Map.of("id", user.id(), "passwordChanged", true, "sessionsInvalidated", true);
     }
 
     public void logout(String authorization) {
@@ -309,6 +337,13 @@ public class AuthService {
         if (redisTemplate.opsForValue().get(sessionKey(payload.jti())) == null) {
             throw new BusinessException(40100, "登录会话已失效");
         }
+    }
+
+    private DemoUser authenticatedUser(String authorization) {
+        TokenPayload payload = parseBearer(authorization);
+        assertSession(payload);
+        return users.values().stream().filter(item -> item.id().equals(payload.userId())).findFirst()
+                .orElseThrow(() -> new BusinessException(40100, "用户不存在"));
     }
 
     private TokenPayload parseBearer(String authorization) {

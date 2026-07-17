@@ -350,6 +350,36 @@ class AuthFilterTest {
     }
 
     @Test
+    void notificationsRequireStaffRole() {
+        MockServerWebExchange userExchange = authorizedExchange("GET", "/api/notifications", "USER");
+        MockServerWebExchange staffExchange = authorizedExchange("POST", "/api/notifications/read-all", "STAFF");
+        AtomicBoolean staffCalled = new AtomicBoolean(false);
+
+        filter.filter(userExchange, next -> Mono.empty()).block();
+        filter.filter(staffExchange, next -> { staffCalled.set(true); return Mono.empty(); }).block();
+
+        assertThat(userExchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+        assertThat(staffCalled).isTrue();
+    }
+
+    @Test
+    void onlyAdminCanWriteSystemSettings() {
+        MockServerWebExchange staffRead = authorizedExchange("GET", "/api/system-settings", "STAFF");
+        MockServerWebExchange staffWrite = authorizedExchange("PUT", "/api/system-settings", "STAFF");
+        MockServerWebExchange adminWrite = authorizedExchange("PUT", "/api/system-settings", "ADMIN");
+        AtomicBoolean staffReadCalled = new AtomicBoolean(false);
+        AtomicBoolean adminWriteCalled = new AtomicBoolean(false);
+
+        filter.filter(staffRead, next -> { staffReadCalled.set(true); return Mono.empty(); }).block();
+        filter.filter(staffWrite, next -> Mono.empty()).block();
+        filter.filter(adminWrite, next -> { adminWriteCalled.set(true); return Mono.empty(); }).block();
+
+        assertThat(staffReadCalled).isTrue();
+        assertThat(staffWrite.getResponse().getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+        assertThat(adminWriteCalled).isTrue();
+    }
+
+    @Test
     void staffCanCreateResource() {
         MockServerWebExchange exchange = authorizedExchange("POST", "/api/resources", "STAFF");
         AtomicBoolean called = new AtomicBoolean(false);

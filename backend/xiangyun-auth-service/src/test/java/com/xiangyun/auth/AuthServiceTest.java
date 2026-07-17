@@ -156,4 +156,37 @@ class AuthServiceTest {
         assertThat(results).hasSize(2);
         assertThat(results).allMatch(user -> "1".equals(user.villageId()));
     }
+
+    @Test
+    void currentUserCanUpdateDisplayName() {
+        LoginResponse response = authService.login("staff_demo", "123456");
+        when(valueOperations.get(anyString())).thenReturn("2");
+
+        var profile = authService.updateOwnProfile("Bearer " + response.token(), Map.of("displayName", "村域运营专员"));
+
+        assertThat(profile.displayName()).isEqualTo("村域运营专员");
+    }
+
+    @Test
+    void changingOwnPasswordValidatesCurrentPasswordAndInvalidatesSessions() {
+        LoginResponse response = authService.login("staff_demo", "123456");
+        when(valueOperations.get(anyString())).thenReturn("2");
+        when(setOperations.members("auth:user:sessions:2")).thenReturn(Set.of("jti-a"));
+
+        Map<String, Object> result = authService.changeOwnPassword(
+                "Bearer " + response.token(), "123456", "NewPass2026");
+
+        assertThat(result).containsEntry("passwordChanged", true).containsEntry("sessionsInvalidated", true);
+        verify(redisTemplate).delete("auth:user:sessions:2");
+    }
+
+    @Test
+    void changingOwnPasswordRejectsWrongCurrentPassword() {
+        LoginResponse response = authService.login("staff_demo", "123456");
+        when(valueOperations.get(anyString())).thenReturn("2");
+
+        assertThatThrownBy(() -> authService.changeOwnPassword(
+                "Bearer " + response.token(), "wrong", "NewPass2026"))
+                .isInstanceOf(BusinessException.class);
+    }
 }

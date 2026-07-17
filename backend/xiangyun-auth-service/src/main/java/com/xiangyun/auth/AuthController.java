@@ -65,6 +65,45 @@ public class AuthController {
         return ApiResponse.success(authService.me(authorization));
     }
 
+    @PutMapping("/auth/me/profile")
+    public ApiResponse<LoginResponse.UserProfile> updateMyProfile(
+            @RequestHeader("Authorization") String authorization,
+            @RequestBody Map<String, Object> body,
+            HttpServletRequest request) {
+        LoginResponse.UserProfile before = authService.me(authorization);
+        try {
+            LoginResponse.UserProfile result = authService.updateOwnProfile(authorization, body);
+            auditPublisher.record(request, "UPDATE_MY_PROFILE", "USER", before.id(), "SUCCESS", 200,
+                    "个人信息已更新", before, result);
+            return ApiResponse.success(result);
+        } catch (RuntimeException ex) {
+            auditPublisher.record(request, "UPDATE_MY_PROFILE", "USER", before.id(), "FAILURE", statusOf(ex),
+                    ex.getMessage(), before, null);
+            throw ex;
+        }
+    }
+
+    @PostMapping("/auth/me/password")
+    public ApiResponse<Map<String, Object>> changeMyPassword(
+            @RequestHeader("Authorization") String authorization,
+            @RequestBody Map<String, Object> body,
+            HttpServletRequest request) {
+        LoginResponse.UserProfile current = authService.me(authorization);
+        try {
+            Map<String, Object> result = authService.changeOwnPassword(
+                    authorization,
+                    String.valueOf(body.getOrDefault("currentPassword", "")),
+                    String.valueOf(body.getOrDefault("newPassword", "")));
+            auditPublisher.record(request, "CHANGE_MY_PASSWORD", "USER", current.id(), "SUCCESS", 200,
+                    "密码已变更，全部会话已失效", Map.of("passwordChanged", false), result);
+            return ApiResponse.success(result);
+        } catch (RuntimeException ex) {
+            auditPublisher.record(request, "CHANGE_MY_PASSWORD", "USER", current.id(), "FAILURE", statusOf(ex),
+                    ex.getMessage(), Map.of("passwordChanged", false), null);
+            throw ex;
+        }
+    }
+
     @PostMapping("/auth/logout")
     public ApiResponse<Map<String, Object>> logout(@RequestHeader("Authorization") String authorization) {
         authService.logout(authorization);

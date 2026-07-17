@@ -74,6 +74,9 @@ public class AdminAuditFilter extends OncePerRequestFilter {
     }
 
     private boolean isAuditedPath(String path) {
+        if (path.startsWith("/api/system-settings")) {
+            return true;
+        }
         if (path.startsWith("/api/resources")) {
             return true;
         }
@@ -86,6 +89,7 @@ public class AdminAuditFilter extends OncePerRequestFilter {
     }
 
     private String module(String path) {
+        if (path.startsWith("/api/system-settings")) return "SYSTEM";
         if (path.startsWith("/api/resources")) return "RESOURCE";
         if (path.startsWith("/api/operation/reports")) return "REPORT";
         if (path.startsWith("/api/todos")) return "TODO";
@@ -93,6 +97,7 @@ public class AdminAuditFilter extends OncePerRequestFilter {
     }
 
     private String action(String method, String path) {
+        if (path.startsWith("/api/system-settings")) return "UPDATE_SYSTEM_SETTINGS";
         if ("/api/resources/batch/actions".equals(path)) return "BATCH_RESOURCE_ACTION";
         if (path.matches("/api/resources/[^/]+/materials") && "POST".equals(method)) return "UPLOAD_RESOURCE_MATERIAL";
         if (path.matches("/api/resources/[^/]+/materials/[^/]+/replace")) return "REPLACE_RESOURCE_MATERIAL";
@@ -115,6 +120,7 @@ public class AdminAuditFilter extends OncePerRequestFilter {
     }
 
     private String targetType(String path) {
+        if (path.startsWith("/api/system-settings")) return "SYSTEM_SETTING";
         if (path.matches("/api/resources/[^/]+/materials.*")) return "RESOURCE_MATERIAL";
         if (path.startsWith("/api/resources")) return "RESOURCE";
         if (path.startsWith("/api/operation/reports")) return "WEEKLY_REPORT";

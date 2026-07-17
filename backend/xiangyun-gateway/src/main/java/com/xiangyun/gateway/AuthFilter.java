@@ -34,6 +34,8 @@ public class AuthFilter implements GlobalFilter, Ordered {
     private static final Set<String> ADMIN_PREFIXES = Set.of("/api/users", "/api/roles", "/api/audit-logs");
     private static final Set<String> ADMIN_PATHS = Set.of("/api/dashboard/refresh");
     private static final Set<String> STAFF_OR_ADMIN_PATHS = Set.of("/api/dashboard/admin-overview", "/api/search");
+    private static final Set<String> STAFF_OR_ADMIN_PREFIXES = Set.of(
+            "/api/notifications", "/api/profile/login-records", "/api/system-settings");
     private static final Set<String> ADMIN_WRITE_PREFIXES = Set.of(
             "/api/villages",
             "/api/resource-tags",
@@ -112,6 +114,9 @@ public class AuthFilter implements GlobalFilter, Ordered {
     }
 
     private boolean requiresAdmin(String path, String method) {
+        if (path.startsWith("/api/system-settings") && isWriteMethod(method)) {
+            return true;
+        }
         if ("/api/resources/batch/actions".equals(path)) {
             return true;
         }
@@ -136,6 +141,9 @@ public class AuthFilter implements GlobalFilter, Ordered {
     }
 
     private boolean requiresStaffOrAdmin(String path, String method) {
+        if (STAFF_OR_ADMIN_PREFIXES.stream().anyMatch(prefix -> path.equals(prefix) || path.startsWith(prefix + "/"))) {
+            return true;
+        }
         if (STAFF_OR_ADMIN_PATHS.contains(path)) {
             return true;
         }

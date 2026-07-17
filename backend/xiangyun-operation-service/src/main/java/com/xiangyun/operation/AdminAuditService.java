@@ -93,6 +93,18 @@ public class AdminAuditService {
                 AUDIT_SELECT + query.where() + " order by created_at desc,id desc limit ?", args.toArray());
     }
 
+    public List<Map<String, Object>> loginRecords(String actorId, int limit) {
+        int actualLimit = Math.max(1, Math.min(limit, 30));
+        return jdbcTemplate.queryForList("""
+                select id,action,result,client_ip as clientIp,user_agent as userAgent,
+                       detail,created_at as createdAt
+                from admin_audit_log
+                where module='SECURITY' and actor_id=?
+                  and action in ('LOGIN_SUCCESS','LOGOUT')
+                order by created_at desc,id desc limit ?
+                """, actorId, actualLimit);
+    }
+
     private AuditQuery auditQuery(String keyword,
                                   String module,
                                   String result,
