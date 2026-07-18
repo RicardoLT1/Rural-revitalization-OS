@@ -5,13 +5,17 @@ import com.xiangyun.common.dto.LoginResponse;
 import com.xiangyun.common.dto.PageResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.SetOperations;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.DriverManagerDataSource;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.time.Duration;
-import java.util.Set;
 import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -27,6 +31,7 @@ class AuthServiceTest {
     private StringRedisTemplate redisTemplate;
     private ValueOperations<String, String> valueOperations;
     private SetOperations<String, String> setOperations;
+    private AuthUserRepository repository;
     private AuthService authService;
 
     @BeforeEach
@@ -36,7 +41,33 @@ class AuthServiceTest {
         setOperations = mock(SetOperations.class);
         when(redisTemplate.opsForValue()).thenReturn(valueOperations);
         when(redisTemplate.opsForSet()).thenReturn(setOperations);
-        authService = new AuthService(redisTemplate, "test-secret", 7200);
+
+        DriverManagerDataSource dataSource = new DriverManagerDataSource(
+                "jdbc:h2:mem:auth-" + UUID.randomUUID() + ";MODE=MySQL;DB_CLOSE_DELAY=-1;DATABASE_TO_LOWER=TRUE",
+                "sa", "");
+        JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
+        jdbcTemplate.execute("""
+                create table auth_user(
+                  id bigint auto_increment primary key,
+                  username varchar(64) not null unique,
+                  display_name varchar(64) not null,
+                  role_code varchar(32) not null,
+                  village_id varchar(64) not null,
+                  password_hash varchar(100) not null,
+                  enabled tinyint not null default 1,
+                  created_at timestamp not null default current_timestamp,
+                  updated_at timestamp not null default current_timestamp
+                )
+                """);
+        repository = new AuthUserRepository(jdbcTemplate);
+        seed(repository, "user_demo", "小程序用户", "USER", true);
+        seed(repository, "staff_demo", "业务工作人员", "STAFF", true);
+        seed(repository, "admin", "系统管理员", "ADMIN", true);
+        seed(repository, "operator", "兼容运营账号", "STAFF", true);
+        seed(repository, "approver", "兼容审批账号", "STAFF", true);
+        seed(repository, "viewer", "兼容查看账号", "STAFF", true);
+        seed(repository, "disabled", "停用账号", "USER", false);
+        authService = new AuthService(repository, redisTemplate, "test-secret", 7200);
     }
 
     @Test
@@ -66,13 +97,14 @@ class AuthServiceTest {
     }
 
     @Test
-    void registerCreatesUserRoleAndToken() {
+    void registerCreatesPersistedUserWithDatabaseGeneratedId() {
         LoginResponse response = authService.register("new_user", "123456", "新用户");
 
         assertThat(response.token()).isNotBlank();
-        assertThat(response.user().username()).isEqualTo("new_user");
+        assertThat(response.user().id()).isEqualTo("8");
         assertThat(response.user().role()).isEqualTo("USER");
-        assertThat(authService.login("new_user", "123456").user().role()).isEqualTo("USER");
+        assertThat(new AuthService(repository, redisTemplate, "test-secret", 7200)
+                .login("new_user", "123456").user().username()).isEqualTo("new_user");
     }
 
     @Test
@@ -112,7 +144,7 @@ class AuthServiceTest {
     }
 
     @Test
-    void disableUserInvalidatesAllSessions() {
+    void disableUserInvalidatesAllSessionsAndPersistsStatus() {
         when(setOperations.members("auth:user:sessions:2")).thenReturn(Set.of("jti-a", "jti-b"));
 
         authService.enableUser("2", false);
@@ -120,6 +152,8 @@ class AuthServiceTest {
         verify(redisTemplate).delete("login:token:jti-a");
         verify(redisTemplate).delete("login:token:jti-b");
         verify(redisTemplate).delete("auth:user:sessions:2");
+        AuthService restarted = new AuthService(repository, redisTemplate, "test-secret", 7200);
+        assertThat(restarted.user("2")).containsEntry("enabled", false);
     }
 
     @Test
@@ -133,13 +167,15 @@ class AuthServiceTest {
     }
 
     @Test
-    void assignRoleInvalidatesOldSessions() {
+    void assignRoleInvalidatesOldSessionsAndPersistsRole() {
         when(setOperations.members("auth:user:sessions:2")).thenReturn(Set.of("jti-a"));
 
         authService.assignRole("2", "USER");
 
         verify(redisTemplate).delete("login:token:jti-a");
         verify(redisTemplate).delete("auth:user:sessions:2");
+        AuthService restarted = new AuthService(repository, redisTemplate, "test-secret", 7200);
+        assertThat(restarted.summary("2").role()).isEqualTo("USER");
     }
 
     @Test
@@ -158,17 +194,20 @@ class AuthServiceTest {
     }
 
     @Test
-    void currentUserCanUpdateDisplayName() {
+    void currentUserCanUpdateDisplayNameAndChangeSurvivesServiceRebuild() {
         LoginResponse response = authService.login("staff_demo", "123456");
         when(valueOperations.get(anyString())).thenReturn("2");
 
-        var profile = authService.updateOwnProfile("Bearer " + response.token(), Map.of("displayName", "村域运营专员"));
+        var profile = authService.updateOwnProfile(
+                "Bearer " + response.token(), Map.of("displayName", "村域运营专员"));
 
         assertThat(profile.displayName()).isEqualTo("村域运营专员");
+        AuthService restarted = new AuthService(repository, redisTemplate, "test-secret", 7200);
+        assertThat(restarted.summary("2").displayName()).isEqualTo("村域运营专员");
     }
 
     @Test
-    void changingOwnPasswordValidatesCurrentPasswordAndInvalidatesSessions() {
+    void changingOwnPasswordPersistsAndInvalidatesSessions() {
         LoginResponse response = authService.login("staff_demo", "123456");
         when(valueOperations.get(anyString())).thenReturn("2");
         when(setOperations.members("auth:user:sessions:2")).thenReturn(Set.of("jti-a"));
@@ -178,6 +217,10 @@ class AuthServiceTest {
 
         assertThat(result).containsEntry("passwordChanged", true).containsEntry("sessionsInvalidated", true);
         verify(redisTemplate).delete("auth:user:sessions:2");
+        AuthService restarted = new AuthService(repository, redisTemplate, "test-secret", 7200);
+        assertThatThrownBy(() -> restarted.login("staff_demo", "123456"))
+                .isInstanceOf(BusinessException.class);
+        assertThat(restarted.login("staff_demo", "NewPass2026").user().id()).isEqualTo("2");
     }
 
     @Test
@@ -188,5 +231,14 @@ class AuthServiceTest {
         assertThatThrownBy(() -> authService.changeOwnPassword(
                 "Bearer " + response.token(), "wrong", "NewPass2026"))
                 .isInstanceOf(BusinessException.class);
+    }
+
+    private void seed(AuthUserRepository target,
+                      String username,
+                      String displayName,
+                      String role,
+                      boolean enabled) {
+        target.create(username, displayName, role, "1",
+                new BCryptPasswordEncoder().encode("123456"), enabled);
     }
 }

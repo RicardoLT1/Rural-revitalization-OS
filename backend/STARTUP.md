@@ -25,6 +25,11 @@ Check infrastructure ports before starting services:
 
 Open four terminals under `backend/`:
 
+The startup scripts default to the `demo` Spring profile because they are paired with
+`docker-compose.demo.yml`. This profile applies schema migrations and the isolated demo
+seed migrations. Pass `-Profile dev` for an empty development database or `-Profile prod`
+for a production deployment. Do not combine `prod` with `demo`.
+
 ```powershell
 .\scripts\start-auth.ps1
 ```
@@ -40,6 +45,24 @@ Open four terminals under `backend/`:
 ```powershell
 .\scripts\start-gateway.ps1
 ```
+
+Explicit demo startup is also supported:
+
+```powershell
+.\scripts\start-auth.ps1 -Profile demo
+.\scripts\start-operation.ps1 -Profile demo
+.\scripts\start-analysis.ps1 -Profile demo
+.\scripts\start-gateway.ps1 -Profile demo
+```
+
+See [`../docs/environment-profiles.md`](../docs/environment-profiles.md) for the
+profile/data matrix, production requirements, and Flyway seed policy.
+
+For the first formal deployment, Auth supports a one-time administrator bootstrap. Set
+`AUTH_BOOTSTRAP_ENABLED=true` and provide an `AUTH_BOOTSTRAP_PASSWORD` of at least 12
+characters for the first Auth startup. After the account is created, disable the flag and
+remove the bootstrap password from the runtime environment. Existing accounts are never
+overwritten by this mechanism.
 
 ## Health Check
 

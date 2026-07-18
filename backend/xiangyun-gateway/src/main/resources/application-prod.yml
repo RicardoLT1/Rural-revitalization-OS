@@ -1,0 +1,23 @@
+spring:
+  config:
+    activate:
+      on-profile: prod
+  cloud:
+    nacos:
+      server-addr: ${NACOS_ADDR}
+      discovery:
+        namespace: ${NACOS_NAMESPACE}
+      config:
+        namespace: ${NACOS_NAMESPACE}
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      password: ${REDIS_PASSWORD}
+
+xiangyun:
+  jwt:
+    secret: ${JWT_SECRET}
+  internal-auth:
+    enabled: true
+    secret: ${XIANGYUN_INTERNAL_SECRET}

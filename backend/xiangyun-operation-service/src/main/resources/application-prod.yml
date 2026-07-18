@@ -1,0 +1,36 @@
+spring:
+  config:
+    activate:
+      on-profile: prod
+  cloud:
+    nacos:
+      server-addr: ${NACOS_ADDR}
+      discovery:
+        namespace: ${NACOS_NAMESPACE}
+      config:
+        namespace: ${NACOS_NAMESPACE}
+  datasource:
+    url: ${MYSQL_URL}
+    username: ${MYSQL_USER}
+    password: ${MYSQL_PASSWORD}
+  flyway:
+    locations: classpath:db/migration
+    validate-on-migrate: true
+    clean-disabled: true
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      password: ${REDIS_PASSWORD}
+  rabbitmq:
+    host: ${RABBITMQ_HOST}
+    port: ${RABBITMQ_PORT}
+    username: ${RABBITMQ_USERNAME}
+    password: ${RABBITMQ_PASSWORD}
+
+xiangyun:
+  storage:
+    root: ${XIANGYUN_UPLOAD_ROOT}
+  internal-auth:
+    enabled: true
+    secret: ${XIANGYUN_INTERNAL_SECRET}

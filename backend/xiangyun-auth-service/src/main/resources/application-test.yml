@@ -1,0 +1,23 @@
+spring:
+  config:
+    activate:
+      on-profile: test
+  cloud:
+    nacos:
+      discovery:
+        enabled: false
+      config:
+        enabled: false
+  datasource:
+    url: jdbc:h2:mem:xiangyun_auth_test;MODE=MySQL;DB_CLOSE_DELAY=-1;DATABASE_TO_LOWER=TRUE
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+  flyway:
+    locations: classpath:db/migration
+    clean-disabled: true
+
+xiangyun:
+  auth:
+    bootstrap:
+      enabled: false

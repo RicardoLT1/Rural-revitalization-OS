@@ -1,0 +1,7 @@
+spring:
+  config:
+    activate:
+      on-profile: dev
+  flyway:
+    locations: classpath:db/migration
+    clean-disabled: true

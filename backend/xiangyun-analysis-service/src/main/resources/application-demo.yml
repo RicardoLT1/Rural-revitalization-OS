@@ -1,0 +1,10 @@
+spring:
+  config:
+    activate:
+      on-profile: "demo & !prod"
+  flyway:
+    locations:
+      - classpath:db/migration
+      - classpath:db/demo
+    validate-on-migrate: true
+    fail-on-missing-locations: true

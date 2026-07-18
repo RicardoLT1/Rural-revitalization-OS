@@ -7,17 +7,18 @@ import com.xiangyun.common.dto.LoginResponse;
 import com.xiangyun.common.dto.PageResponse;
 import com.xiangyun.common.dto.UserSummary;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import java.time.Duration;
-import java.util.LinkedHashMap;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.Comparator;
 
 @Service
 public class AuthService {
@@ -26,25 +27,25 @@ public class AuthService {
     private static final List<String> STAFF_PERMISSIONS = List.of("resource:read", "workflow:read", "workflow:approve", "report:read");
     private static final List<String> ADMIN_PERMISSIONS = List.of("user:manage", "role:manage", "resource:write", "workflow:approve", "report:read", "system:read");
 
+    private final AuthUserRepository userRepository;
     private final StringRedisTemplate redisTemplate;
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
     private final String secret;
     private final long ttlSeconds;
-    private final Map<String, DemoUser> users;
 
-    public AuthService(StringRedisTemplate redisTemplate,
+    public AuthService(AuthUserRepository userRepository,
+                       StringRedisTemplate redisTemplate,
                        @Value("${xiangyun.jwt.secret}") String secret,
                        @Value("${xiangyun.jwt.ttl-seconds}") long ttlSeconds) {
+        this.userRepository = userRepository;
         this.redisTemplate = redisTemplate;
         this.secret = secret;
         this.ttlSeconds = ttlSeconds;
-        String password = encoder.encode("123456");
-        this.users = createUsers(password);
     }
 
     public LoginResponse login(String username, String password) {
-        DemoUser user = users.get(username);
-        if (user == null || !encoder.matches(password, user.passwordHash())) {
+        AuthUserAccount user = userRepository.findByUsername(username).orElse(null);
+        if (user == null || !StringUtils.hasText(password) || !encoder.matches(password, user.passwordHash())) {
             throw new BusinessException(40100, "用户名或密码错误");
         }
         if (!user.enabled()) {
@@ -55,42 +56,41 @@ public class AuthService {
         return new LoginResponse(payload.token(), "Bearer", ttlSeconds, profile(user));
     }
 
-    public synchronized LoginResponse register(String username, String password, String displayName) {
-        if (!StringUtils.hasText(username) || username.length() < 3) {
-            throw new BusinessException(40001, "用户名至少 3 个字符");
+    public LoginResponse register(String username, String password, String displayName) {
+        String actualUsername = username == null ? "" : username.trim();
+        if (actualUsername.length() < 3 || actualUsername.length() > 64) {
+            throw new BusinessException(40001, "用户名长度应在 3 到 64 个字符之间");
         }
         if (!StringUtils.hasText(password) || password.length() < 6) {
             throw new BusinessException(40002, "密码至少 6 位");
         }
-        if (users.containsKey(username)) {
+        if (userRepository.existsByUsername(actualUsername)) {
             throw new BusinessException(40900, "用户名已存在");
         }
-        String id = String.valueOf(users.size() + 1);
-        String name = StringUtils.hasText(displayName) ? displayName : username;
-        users.put(username, new DemoUser(id, username, name, "USER", "1", encoder.encode(password), true, USER_PERMISSIONS));
-        return login(username, password);
+        String name = StringUtils.hasText(displayName) ? displayName.trim() : actualUsername;
+        requireLength(name, 1, 64, 40004, "姓名");
+        createAccount(actualUsername, name, "USER", "1", password, true);
+        return login(actualUsername, password);
     }
 
     public LoginResponse.UserProfile me(String authorization) {
         return profile(authenticatedUser(authorization));
     }
 
-    public synchronized LoginResponse.UserProfile updateOwnProfile(String authorization, Map<String, Object> body) {
-        DemoUser user = authenticatedUser(authorization);
+    public LoginResponse.UserProfile updateOwnProfile(String authorization, Map<String, Object> body) {
+        AuthUserAccount user = authenticatedUser(authorization);
         String displayName = bodyText(body, "displayName", user.displayName());
         if (displayName.length() < 2 || displayName.length() > 32) {
             throw new BusinessException(40004, "姓名长度应在 2 到 32 个字符之间");
         }
-        DemoUser updated = new DemoUser(user.id(), user.username(), displayName, user.role(), user.villageId(),
-                user.passwordHash(), user.enabled(), user.permissions());
-        users.put(updated.username(), updated);
-        return profile(updated);
+        userRepository.updateDisplayName(user.id(), displayName);
+        return profile(findUser(user.id()));
     }
 
-    public synchronized Map<String, Object> changeOwnPassword(String authorization,
-                                                               String currentPassword,
-                                                               String newPassword) {
-        DemoUser user = authenticatedUser(authorization);
+    public Map<String, Object> changeOwnPassword(String authorization,
+                                                  String currentPassword,
+                                                  String newPassword) {
+        AuthUserAccount user = authenticatedUser(authorization);
         if (!StringUtils.hasText(currentPassword) || !encoder.matches(currentPassword, user.passwordHash())) {
             throw new BusinessException(40005, "当前密码不正确");
         }
@@ -100,9 +100,7 @@ public class AuthService {
         if (encoder.matches(newPassword, user.passwordHash())) {
             throw new BusinessException(40901, "新密码不能与当前密码相同");
         }
-        DemoUser updated = new DemoUser(user.id(), user.username(), user.displayName(), user.role(), user.villageId(),
-                encoder.encode(newPassword), user.enabled(), user.permissions());
-        users.put(updated.username(), updated);
+        userRepository.updatePasswordHash(user.id(), encoder.encode(newPassword));
         invalidateUserSessions(user.id());
         return Map.of("id", user.id(), "passwordChanged", true, "sessionsInvalidated", true);
     }
@@ -113,33 +111,30 @@ public class AuthService {
     }
 
     public UserSummary summary(String id) {
-        return users.values().stream()
-                .filter(item -> item.id().equals(id))
-                .map(item -> new UserSummary(item.id(), item.username(), item.displayName(), item.role(), item.villageId()))
-                .findFirst()
-                .orElseThrow(() -> new BusinessException(40400, "用户不存在"));
+        AuthUserAccount user = findUser(id);
+        return new UserSummary(user.id(), user.username(), user.displayName(), user.role(), user.villageId());
     }
 
     public List<UserSummary> listUsers() {
-        return users.values().stream()
+        return userRepository.findAll().stream()
                 .map(item -> new UserSummary(item.id(), item.username(), item.displayName(), item.role(), item.villageId()))
                 .toList();
     }
 
     public List<Map<String, Object>> listUserRows() {
-        return users.values().stream().map(this::userRow).toList();
+        return userRepository.findAll().stream().map(this::userRow).toList();
     }
 
     public List<UserSummary> searchUserSummaries(String keyword, String villageId, Integer limit) {
         String term = keyword == null ? "" : keyword.trim().toLowerCase();
         int actualLimit = Math.max(1, Math.min(limit == null ? 5 : limit, 20));
-        return users.values().stream()
-                .filter(DemoUser::enabled)
+        return userRepository.findAll().stream()
+                .filter(AuthUserAccount::enabled)
                 .filter(user -> !StringUtils.hasText(villageId) || villageId.equals(user.villageId()))
                 .filter(user -> term.isEmpty()
                         || user.username().toLowerCase().contains(term)
                         || user.displayName().toLowerCase().contains(term))
-                .sorted(Comparator.comparingInt(user -> Integer.parseInt(user.id())))
+                .sorted(Comparator.comparingLong(this::numericId))
                 .limit(actualLimit)
                 .map(user -> new UserSummary(user.id(), user.username(), user.displayName(), user.role(), user.villageId()))
                 .toList();
@@ -151,13 +146,13 @@ public class AuthService {
                                                       Integer page,
                                                       Integer pageSize) {
         String term = keyword == null ? "" : keyword.trim().toLowerCase();
-        List<Map<String, Object>> filtered = users.values().stream()
+        List<Map<String, Object>> filtered = userRepository.findAll().stream()
                 .filter(user -> term.isEmpty()
                         || user.username().toLowerCase().contains(term)
                         || user.displayName().toLowerCase().contains(term))
                 .filter(user -> !StringUtils.hasText(role) || "ALL".equalsIgnoreCase(role) || user.role().equals(role))
                 .filter(user -> enabled == null || user.enabled() == enabled)
-                .sorted(Comparator.comparingInt(user -> Integer.parseInt(user.id())))
+                .sorted(Comparator.comparingLong(this::numericId))
                 .map(this::userRow)
                 .toList();
         int actualPage = PageResponse.normalizePage(page);
@@ -171,12 +166,12 @@ public class AuthService {
         return userRow(findUser(id));
     }
 
-    public synchronized Map<String, Object> createUser(Map<String, Object> body) {
+    public Map<String, Object> createUser(Map<String, Object> body) {
         String username = bodyText(body, "username", "");
-        if (!StringUtils.hasText(username) || username.length() < 3) {
-            throw new BusinessException(40001, "用户名至少 3 个字符");
+        if (username.length() < 3 || username.length() > 64) {
+            throw new BusinessException(40001, "用户名长度应在 3 到 64 个字符之间");
         }
-        if (users.containsKey(username)) {
+        if (userRepository.existsByUsername(username)) {
             throw new BusinessException(40900, "用户名已存在");
         }
         String password = bodyText(body, "password", "123456");
@@ -186,57 +181,57 @@ public class AuthService {
         String role = normalizeRole(bodyText(body, "role", "USER"));
         String displayName = bodyText(body, "displayName", username);
         String villageId = bodyText(body, "villageId", "1");
-        DemoUser user = new DemoUser(nextUserId(), username, displayName, role, villageId, encoder.encode(password), true, permissionsForRole(role));
-        users.put(username, user);
-        return userRow(user);
+        requireLength(displayName, 1, 64, 40004, "姓名");
+        requireLength(villageId, 1, 64, 40010, "村域编号");
+        return userRow(createAccount(username, displayName, role, villageId, password, true));
     }
 
-    public synchronized Map<String, Object> updateUser(String id, Map<String, Object> body) {
-        DemoUser user = findUser(id);
+    public Map<String, Object> updateUser(String id, Map<String, Object> body) {
+        AuthUserAccount user = findUser(id);
         String role = body.containsKey("role") ? normalizeRole(bodyText(body, "role", user.role())) : user.role();
         boolean enabled = body.containsKey("enabled") ? Boolean.parseBoolean(String.valueOf(body.get("enabled"))) : user.enabled();
-        DemoUser updated = new DemoUser(user.id(), user.username(), bodyText(body, "displayName", user.displayName()), role,
-                bodyText(body, "villageId", user.villageId()), user.passwordHash(), enabled, enabled ? permissionsForRole(role) : List.of());
-        users.put(updated.username(), updated);
+        String displayName = bodyText(body, "displayName", user.displayName());
+        String villageId = bodyText(body, "villageId", user.villageId());
+        requireLength(displayName, 1, 64, 40004, "姓名");
+        requireLength(villageId, 1, 64, 40010, "村域编号");
+        userRepository.updateAccount(id,
+                displayName,
+                role,
+                villageId,
+                enabled);
         if (!enabled || !role.equals(user.role())) {
             invalidateUserSessions(id);
         }
-        return userRow(updated);
+        return userRow(findUser(id));
     }
 
-    public synchronized Map<String, Object> enableUser(String id, boolean enabled) {
-        DemoUser user = findUser(id);
-        DemoUser updated = new DemoUser(user.id(), user.username(), user.displayName(), user.role(), user.villageId(),
-                user.passwordHash(), enabled, enabled ? permissionsForRole(user.role()) : List.of());
-        users.put(updated.username(), updated);
+    public Map<String, Object> enableUser(String id, boolean enabled) {
+        findUser(id);
+        userRepository.updateEnabled(id, enabled);
         if (!enabled) {
             invalidateUserSessions(id);
         }
-        return userRow(updated);
+        return userRow(findUser(id));
     }
 
-    public synchronized Map<String, Object> resetPassword(String id, String password) {
+    public Map<String, Object> resetPassword(String id, String password) {
         if (!StringUtils.hasText(password) || password.length() < 6) {
             throw new BusinessException(40002, "密码至少 6 位");
         }
-        DemoUser user = findUser(id);
-        DemoUser updated = new DemoUser(user.id(), user.username(), user.displayName(), user.role(), user.villageId(),
-                encoder.encode(password), user.enabled(), user.permissions());
-        users.put(updated.username(), updated);
+        findUser(id);
+        userRepository.updatePasswordHash(id, encoder.encode(password));
         invalidateUserSessions(id);
         return Map.of("id", id, "passwordChanged", true, "sessionsInvalidated", true);
     }
 
-    public synchronized Map<String, Object> assignRole(String id, String role) {
-        DemoUser user = findUser(id);
+    public Map<String, Object> assignRole(String id, String role) {
+        AuthUserAccount user = findUser(id);
         String actualRole = normalizeRole(role);
-        DemoUser updated = new DemoUser(user.id(), user.username(), user.displayName(), actualRole, user.villageId(),
-                user.passwordHash(), user.enabled(), user.enabled() ? permissionsForRole(actualRole) : List.of());
-        users.put(updated.username(), updated);
+        userRepository.updateRole(id, actualRole);
         if (!actualRole.equals(user.role())) {
             invalidateUserSessions(id);
         }
-        return userRow(updated);
+        return userRow(findUser(id));
     }
 
     public List<Map<String, Object>> roles() {
@@ -245,6 +240,24 @@ public class AuthService {
                 Map.of("code", "STAFF", "name", "工作人员"),
                 Map.of("code", "ADMIN", "name", "系统管理员")
         );
+    }
+
+    private AuthUserAccount createAccount(String username,
+                                          String displayName,
+                                          String role,
+                                          String villageId,
+                                          String rawPassword,
+                                          boolean enabled) {
+        try {
+            return userRepository.create(username, displayName, role, villageId, encoder.encode(rawPassword), enabled);
+        } catch (DuplicateKeyException ex) {
+            throw new BusinessException(40900, "用户名已存在");
+        } catch (DataIntegrityViolationException ex) {
+            if (userRepository.existsByUsername(username)) {
+                throw new BusinessException(40900, "用户名已存在");
+            }
+            throw ex;
+        }
     }
 
     private void registerSession(String userId, String jti) {
@@ -272,25 +285,22 @@ public class AuthService {
         redisTemplate.delete(key);
     }
 
-    private Map<String, Object> userRow(DemoUser user) {
+    private Map<String, Object> userRow(AuthUserAccount user) {
         return Map.of("id", user.id(), "username", user.username(), "displayName", user.displayName(),
                 "role", user.role(), "villageId", user.villageId(), "enabled", user.enabled());
     }
 
-    private DemoUser findUser(String id) {
-        return users.values().stream().filter(item -> item.id().equals(id)).findFirst()
+    private AuthUserAccount findUser(String id) {
+        return userRepository.findById(id)
                 .orElseThrow(() -> new BusinessException(40400, "用户不存在"));
     }
 
-    private String nextUserId() {
-        int max = users.values().stream().map(DemoUser::id).mapToInt(value -> {
-            try {
-                return Integer.parseInt(value);
-            } catch (NumberFormatException ex) {
-                return 0;
-            }
-        }).max().orElse(0);
-        return String.valueOf(max + 1);
+    private long numericId(AuthUserAccount user) {
+        try {
+            return Long.parseLong(user.id());
+        } catch (NumberFormatException ex) {
+            return Long.MAX_VALUE;
+        }
     }
 
     private String normalizeRole(String role) {
@@ -317,20 +327,15 @@ public class AuthService {
         return String.valueOf(value).trim();
     }
 
-    private Map<String, DemoUser> createUsers(String password) {
-        Map<String, DemoUser> demoUsers = new LinkedHashMap<>();
-        demoUsers.put("admin", new DemoUser("3", "admin", "系统管理员", "ADMIN", "1", password, true, ADMIN_PERMISSIONS));
-        demoUsers.put("user_demo", new DemoUser("1", "user_demo", "小程序用户", "USER", "1", password, true, USER_PERMISSIONS));
-        demoUsers.put("staff_demo", new DemoUser("2", "staff_demo", "业务工作人员", "STAFF", "1", password, true, STAFF_PERMISSIONS));
-        demoUsers.put("operator", new DemoUser("4", "operator", "兼容运营账号", "STAFF", "1", password, true, STAFF_PERMISSIONS));
-        demoUsers.put("approver", new DemoUser("5", "approver", "兼容审批账号", "STAFF", "1", password, true, STAFF_PERMISSIONS));
-        demoUsers.put("viewer", new DemoUser("6", "viewer", "兼容查看账号", "STAFF", "1", password, true, STAFF_PERMISSIONS));
-        demoUsers.put("disabled", new DemoUser("7", "disabled", "停用账号", "USER", "1", password, false, List.of()));
-        return demoUsers;
+    private void requireLength(String value, int min, int max, int code, String label) {
+        if (value == null || value.length() < min || value.length() > max) {
+            throw new BusinessException(code, label + "长度应在 " + min + " 到 " + max + " 个字符之间");
+        }
     }
 
-    private LoginResponse.UserProfile profile(DemoUser user) {
-        return new LoginResponse.UserProfile(user.id(), user.username(), user.displayName(), user.role(), user.villageId(), user.permissions());
+    private LoginResponse.UserProfile profile(AuthUserAccount user) {
+        return new LoginResponse.UserProfile(user.id(), user.username(), user.displayName(), user.role(),
+                user.villageId(), user.enabled() ? permissionsForRole(user.role()) : List.of());
     }
 
     private void assertSession(TokenPayload payload) {
@@ -339,10 +344,10 @@ public class AuthService {
         }
     }
 
-    private DemoUser authenticatedUser(String authorization) {
+    private AuthUserAccount authenticatedUser(String authorization) {
         TokenPayload payload = parseBearer(authorization);
         assertSession(payload);
-        return users.values().stream().filter(item -> item.id().equals(payload.userId())).findFirst()
+        return userRepository.findById(payload.userId())
                 .orElseThrow(() -> new BusinessException(40100, "用户不存在"));
     }
 

@@ -1,0 +1,9 @@
+spring:
+  config:
+    activate:
+      on-profile: "demo & !prod"
+  flyway:
+    locations:
+      - classpath:db/migration
+      - classpath:db/demo
+    clean-disabled: true

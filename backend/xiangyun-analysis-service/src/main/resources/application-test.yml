@@ -1,0 +1,16 @@
+spring:
+  config:
+    activate:
+      on-profile: test
+  cloud:
+    nacos:
+      discovery:
+        enabled: false
+      config:
+        enabled: false
+  flyway:
+    enabled: false
+  rabbitmq:
+    listener:
+      simple:
+        auto-startup: false

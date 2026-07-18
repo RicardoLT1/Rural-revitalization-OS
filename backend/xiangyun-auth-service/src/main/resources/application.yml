@@ -20,6 +20,17 @@ spring:
       config:
         namespace: ${NACOS_NAMESPACE:public}
         file-extension: yml
+  datasource:
+    url: ${MYSQL_URL:jdbc:mysql://127.0.0.1:3307/xiangyun_os?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useSSL=false}
+    username: ${MYSQL_USER:xiangyun_app}
+    password: ${MYSQL_PASSWORD:Xiangyun@2026}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    baseline-version: 0
+    table: flyway_auth_history
+    locations: classpath:db/migration
   data:
     redis:
       host: ${REDIS_HOST:127.0.0.1}
@@ -27,6 +38,13 @@ spring:
       password: ${REDIS_PASSWORD:}
 
 xiangyun:
+  auth:
+    bootstrap:
+      enabled: ${AUTH_BOOTSTRAP_ENABLED:false}
+      username: ${AUTH_BOOTSTRAP_USERNAME:admin}
+      password: ${AUTH_BOOTSTRAP_PASSWORD:}
+      display-name: ${AUTH_BOOTSTRAP_DISPLAY_NAME:系统管理员}
+      village-id: ${AUTH_BOOTSTRAP_VILLAGE_ID:1}
   jwt:
     secret: ${JWT_SECRET:xiangyun-demo-secret-2026}
     ttl-seconds: ${JWT_TTL_SECONDS:7200}

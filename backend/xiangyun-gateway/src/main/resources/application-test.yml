@@ -1,0 +1,10 @@
+spring:
+  config:
+    activate:
+      on-profile: test
+  cloud:
+    nacos:
+      discovery:
+        enabled: false
+      config:
+        enabled: false
