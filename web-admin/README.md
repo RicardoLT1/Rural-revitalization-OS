@@ -1,5 +1,33 @@
-# Vue 3 + TypeScript + Vite
+# Xiangyun OS Web Admin
 
-This template should help get you started developing with Vue 3 and TypeScript in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+Vue 3 + TypeScript management console for Xiangyun OS.
 
-Learn more about the recommended Project Setup and IDE Support in the [Vue Docs TypeScript Guide](https://vuejs.org/guide/typescript/overview.html#project-setup).
+## Local development
+
+Start Gateway, Auth, Operation, and Analysis with the `demo` Spring profile, then run:
+
+```powershell
+npm install
+npm run dev
+```
+
+The console is available at `http://127.0.0.1:5173`; Vite proxies `/api` to the Gateway on port `8080`.
+
+## Verification
+
+```powershell
+npm run build
+npm run test:e2e
+```
+
+The Playwright release-gate suite is serial because it exercises shared demo accounts and settings. It covers administrator login, settings and map linkage, profile and password security, STAFF/USER access boundaries, persistent notification reads, and audit evidence. Settings, profile fields, and the `admin` password are restored in cleanup hooks.
+
+On Windows the suite uses the installed Microsoft Edge channel by default, so no bundled browser download is required. Override the browser or target URL when needed:
+
+```powershell
+$env:E2E_BROWSER_CHANNEL = "chrome"
+$env:E2E_BASE_URL = "http://127.0.0.1:5173"
+npm run test:e2e
+```
+
+Failure screenshots, traces, and HTML reports are written to ignored Playwright output directories.
