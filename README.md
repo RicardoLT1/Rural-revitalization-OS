@@ -23,7 +23,11 @@ cd backend
 .\scripts\start-gateway.ps1
 ```
 
-Run the four service commands in four separate terminals. These commands are backend services and will keep running until stopped.
+Run the four service commands in four separate terminals. These commands default to the
+`demo` profile, matching `docker-compose.demo.yml`, and will keep running until stopped.
+Use `-Profile dev` for schema-only local development or `-Profile prod` with externally
+provided infrastructure and secrets. Profile details are documented in
+[`docs/environment-profiles.md`](docs/environment-profiles.md).
 
 Gateway:
 
@@ -35,7 +39,7 @@ Tests:
 
 ```bash
 cd backend
-mvn test
+mvn clean test "-Dspring.profiles.active=test"
 ```
 
 Formal Web admin (Phase 3 accepted, V1.2 productization complete):
@@ -48,7 +52,7 @@ npm run dev
 
 Open `http://127.0.0.1:5173`. The Vite development server proxies `/api` to the Gateway at port `8080`. The legacy static `web/` demo remains only as a rollback fallback until an explicit retirement decision is recorded.
 
-The current Web Admin supports approval detail decisions, resource archives and activity timelines, a real-coordinate resource map, dashboard drilldown, notifications, server-side global search, CSV export, and role-aware read-only states. The verified productization checkpoint is `v1.2-web-admin-productized` (`74c8c85`). V1.3 Admin Pro on `feature/v1.3-admin-pro` now includes hard permissions, real village-scoped metrics, unified pagination, security and change auditing, authenticated resource-material management, village-scoped federated search, audited resource batch actions with partial-result reporting, persistent account notifications, village-level system settings, and a security-aware personal center. The map remains an intentionally lightweight village distribution view; full GIS, production object storage, external notification channels, and automated E2E remain follow-up capabilities.
+The current Web Admin supports approval detail decisions, resource archives and activity timelines, a real-coordinate resource map, dashboard drilldown, notifications, server-side global search, CSV export, and role-aware read-only states. The verified productization checkpoint is `v1.2-web-admin-productized` (`74c8c85`). V1.3 Admin Pro on `feature/v1.3-admin-pro` now includes hard permissions, real village-scoped metrics, unified pagination, security and change auditing, authenticated resource-material management, village-scoped federated search, audited resource batch actions with partial-result reporting, persistent account notifications, village-level system settings, a security-aware personal center, a persistent authentication directory, isolated environment seed policies, and a six-flow Playwright release gate. The map remains an intentionally lightweight village distribution view; full GIS, production object storage, external notification channels, high availability, and disaster recovery remain follow-up capabilities.
 
 ## Demo Notes
 
@@ -68,3 +72,4 @@ Recommended reading order:
 12. [docs/outbox-rabbitmq.md](docs/outbox-rabbitmq.md) - workflow events, Outbox/Inbox reliability, RabbitMQ topology, and operating notes.
 13. [docs/delivery-checklist.md](docs/delivery-checklist.md) - final checklist for configuration, startup, tests, demo flow, and troubleshooting.
 14. [backend/STARTUP.md](backend/STARTUP.md) - backend build and startup commands.
+15. [docs/environment-profiles.md](docs/environment-profiles.md) - dev/demo/test/prod data sources, seed isolation, and production startup requirements.
